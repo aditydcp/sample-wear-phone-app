@@ -28,11 +28,19 @@ android {
 }
 
 dependencies {
-
+    // default implementations
     implementation 'androidx.core:core-ktx:1.7.0'
-    implementation 'com.google.android.gms:play-services-wearable:18.0.0'
     implementation 'androidx.percentlayout:percentlayout:1.0.0'
     implementation 'androidx.legacy:legacy-support-v4:1.0.0'
     implementation 'androidx.recyclerview:recyclerview:1.2.1'
     implementation 'androidx.wear:wear:1.2.0'
+
+    // implement shared module
+    implementation project(path: ':shared')
+
+    // wearables API
+    implementation 'com.google.android.gms:play-services-wearable:11.6.0'
+
+    // Gson
+    implementation 'com.google.code.gson:gson:2.8.2'
 }
