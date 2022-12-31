@@ -7,4 +7,6 @@
     <string name="success_message">Message successfully sent.<br />Check your Smartwatch! </string>
 
     <string name="click_me_button">Click Me</string>
+
+    <string name="message_content">This is the message</string>
 </resources>
