@@ -1,0 +1,10 @@
+<resources>
+    <string name="app_name">Sample Wear Mobile App</string>
+    <string name="title">Message Control</string>
+
+    <string name="click_me_text">Click the button to send message</string>
+    <string name="clicked_text">Button clicked!</string>
+    <string name="success_message">Message successfully sent.<br />Check your Smartwatch! </string>
+
+    <string name="click_me_button">Click Me</string>
+</resources>
