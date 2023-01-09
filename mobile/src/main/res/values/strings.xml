@@ -1,4 +1,4 @@
-<resources>
+<resources xmlns:tools="http://schemas.android.com/tools">
     <string name="app_name">Sample Wear Mobile App</string>
     <string name="title">Message Control</string>
 
