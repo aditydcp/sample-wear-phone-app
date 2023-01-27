@@ -35,6 +35,9 @@ dependencies {
     implementation 'androidx.recyclerview:recyclerview:1.2.1'
     implementation 'androidx.wear:wear:1.2.0'
 
+    // Samsung SDK
+    implementation fileTree(dir: 'libs', include: '*.aar')
+
     // implement shared module
     implementation project(path: ':shared')
 
