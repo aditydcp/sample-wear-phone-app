@@ -11,13 +11,13 @@ import com.google.android.gms.common.api.GoogleApiClient
 import com.google.android.gms.wearable.Node
 import com.google.android.gms.wearable.Wearable
 import com.google.gson.Gson
-import com.example.samplewearmobileapp.Message
 
 class MainActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks {
     private lateinit var binding: ActivityMainBinding
     private lateinit var client: GoogleApiClient
     private var connectedNode: List<Node>? = null
     private var message: Message = Message()
+    private var stateNum = 0
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -35,14 +35,16 @@ class MainActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks {
 
         // create a message object
         message.content = getString(R.string.message_content)
+        message.code = ActivityCode.START_ACTIVITY
 
         // set click listener
         binding.root.findViewById<Button>(R.id.button).setOnClickListener {
-            onButtonClicked(message)
+            setMessageCode()
+            sendMessage(message)
         }
     }
 
-    private fun onButtonClicked(message: Message) {
+    private fun sendMessage(message: Message) {
         binding.root.findViewById<TextView>(R.id.textView).text = getString(R.string.clicked_text)
         val gson = Gson()
         connectedNode?.forEach { node ->
@@ -50,6 +52,25 @@ class MainActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks {
             Wearable.MessageApi.sendMessage(client, node.id, "/message", bytes)
             Toast.makeText(applicationContext, "Message sent!", Toast.LENGTH_LONG).show()
         }
+    }
+
+    private fun setMessageCode(forceCode: Int = 99) {
+        if (forceCode != 99) {
+            message.code = forceCode
+        }
+        else if (stateNum == 0) {
+            message.code = ActivityCode.START_ACTIVITY
+            toggleState()
+        }
+        else if (stateNum == 1) {
+            message.code = ActivityCode.STOP_ACTIVITY
+            toggleState()
+        }
+    }
+
+    private fun toggleState() {
+        if (stateNum == 0) stateNum = 1
+        else if (stateNum == 1) stateNum = 0
     }
 
     override fun onConnected(p0: Bundle?) {
