@@ -2,11 +2,27 @@
     <string name="app_name">Sample Wear Mobile App</string>
     <string name="title">Message Control</string>
 
-    <string name="click_me_text">Click the button to send message</string>
+    <string name="click_me_text">Click the button to start/stop measurement</string>
     <string name="clicked_text">Button clicked!</string>
     <string name="success_message">Message successfully sent.<br />Check your Smartwatch! </string>
 
     <string name="click_me_button">Click Me</string>
 
     <string name="message_content">This is the message</string>
+
+    <string name="title_wear">Wear App</string>
+    <string name="status">Status :</string>
+    <string name="status_default">No Status</string>
+    <string name="hr">HR :</string>
+    <string name="default_value">0</string>
+    <string name="ibi">IBI :</string>
+    <string name="title_hrm">Polar HRM</string>
+
+    <string name="message_on_button_click">App button clicked</string>
+
+    <string name="reset">Reset from Wear starting</string>
+    <string name="wear_running">Wear currently running</string>
+
+    <string name="button_start">Start</string>
+    <string name="button_stop">Stop</string>
 </resources>

@@ -13,16 +13,25 @@
     <string name="BodySensors">android.permission.BODY_SENSORS</string>
 
     <string name="heart_rate_text">Heart Rate : </string>
-    <string name="default_heart_rate">No Heart Beat</string>
+    <string name="default_heart_rate">0</string>
     <string name="heart_rate_status_text">HR Status : </string>
     <string name="default_heart_rate_status">No status</string>
     <string name="ibi_text">Heart Rate IBI : </string>
     <string name="default_ibi">0</string>
     <string name="ibi_status_text">IBI Status : </string>
     <string name="default_ibi_status">No status</string>
+    <string name="ibi_status_good">Good</string>
+    <string name="ibi_status_bad">Bad</string>
 
     <string name="status_running">Running</string>
     <string name="status_stopped">Stopped</string>
 
     <string name="no_content">Message received without content</string>
+
+    <string name="ConnectedToHs">Connected to Health Tracking Service</string>
+    <string name="NoHrSupport">Heart Rate is not supported on this device</string>
+    <string name="NoPermission">Permission has not been granted</string>
+    <string name="SdkPolicyError">SDK Policy denied</string>
+    <string name="HealthPlatformVersionIsOutdated">Health Platform is outdated or not installed</string>
+    <string name="ConnectionError">Could not connect to Health Tracking Service. Check error log.</string>
 </resources>
