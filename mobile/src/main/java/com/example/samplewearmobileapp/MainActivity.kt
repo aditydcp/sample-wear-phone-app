@@ -51,8 +51,10 @@ class MainActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks {
         textTooltip = binding.buttonTooltip
         button = binding.button
 
-        textTooltip.text = getString(R.string.click_me_text)
-        button.text = getString(R.string.button_start)
+        runOnUiThread {
+            textTooltip.text = getString(R.string.click_me_text)
+            button.text = getString(R.string.button_start)
+        }
 
         // build Google API Client with access to Wearable API
         client = GoogleApiClient.Builder(this)
@@ -66,7 +68,9 @@ class MainActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks {
             message.content = getString(R.string.message_on_button_click)
             setMessageCode()
             toggleState()
-            textTooltip.text = getString(R.string.clicked_text)
+            runOnUiThread {
+                textTooltip.text = getString(R.string.clicked_text)
+            }
             sendMessage(message, MessagePath.COMMAND)
         }
     }
@@ -89,9 +93,11 @@ class MainActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks {
         }
         Wearable.DataApi.addListener(client) { data ->
             val receivedData = Gson().fromJson(String(data[0].dataItem.data), HeartData::class.java)
-            textWearHr.text = receivedData.hr.toString()
-            textWearIbi.text = receivedData.ibi.toString()
-            textWearTimestamp.text = receivedData.timestamp.format(DateTimeFormatter.ISO_DATE_TIME)
+            runOnUiThread {
+                textWearHr.text = receivedData.hr.toString()
+                textWearIbi.text = receivedData.ibi.toString()
+                textWearTimestamp.text = receivedData.timestamp.format(DateTimeFormatter.ISO_DATE_TIME)
+            }
         }
     }
 
@@ -129,7 +135,7 @@ class MainActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks {
         connectedNode?.forEach { node ->
             val bytes = gson.toJson(message).toByteArray()
             Wearable.MessageApi.sendMessage(client, node.id, path, bytes)
-            Toast.makeText(applicationContext, "Message sent!", Toast.LENGTH_LONG).show()
+//            Toast.makeText(applicationContext, "Message sent!", Toast.LENGTH_LONG).show()
         }
     }
 
@@ -155,15 +161,17 @@ class MainActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks {
         else if (stateNum == 1) {
             stateNum = 0
         }
-        if (stateNum == 0) {
-            button.text = getString(R.string.button_start)
-            textWearStatus.text = getString(R.string.status_stopped)
+        runOnUiThread {
+            if (stateNum == 0) {
+                button.text = getString(R.string.button_start)
+                textWearStatus.text = getString(R.string.status_stopped)
+            }
+            if (stateNum == 1) {
+                button.text = getString(R.string.button_stop)
+                textWearStatus.text = getString(R.string.status_running)
+            }
+            textTooltip.text = stateNum.toString()
         }
-        if (stateNum == 1) {
-            button.text = getString(R.string.button_stop)
-            textWearStatus.text = getString(R.string.status_running)
-        }
-        textTooltip.text = stateNum.toString()
         Log.d("Mobile","stateNum changed to: $stateNum")
     }
 }

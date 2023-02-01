@@ -317,6 +317,7 @@ class MainActivity : Activity(), GoogleApiClient.ConnectionCallbacks {
         val bytes = Gson().toJson(heartData).toByteArray()
         Wearable.DataApi.putDataItem(client,
         PutDataRequest.create(MessagePath.INFO).setData(bytes).setUrgent())
+        Log.i("Wear","Heart Data sent via DataApi!")
     }
 
     private fun switchState(forceCode: Int = 99) {
