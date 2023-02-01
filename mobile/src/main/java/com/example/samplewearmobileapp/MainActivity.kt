@@ -11,6 +11,7 @@ import com.google.android.gms.common.api.GoogleApiClient
 import com.google.android.gms.wearable.Node
 import com.google.android.gms.wearable.Wearable
 import com.google.gson.Gson
+import java.time.format.DateTimeFormatter
 
 class MainActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks {
     private lateinit var binding: ActivityMainBinding
@@ -23,9 +24,11 @@ class MainActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks {
     private lateinit var textWearStatus: TextView
     private lateinit var textWearHr: TextView
     private lateinit var textWearIbi: TextView
+    private lateinit var textWearTimestamp: TextView
     private lateinit var textHrmStatus: TextView
     private lateinit var textHrmHr: TextView
     private lateinit var textHrmIbi: TextView
+    private lateinit var textHrmTimestamp: TextView
     private lateinit var textTooltip: TextView
     private lateinit var button: Button
 
@@ -40,9 +43,11 @@ class MainActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks {
         textWearStatus = binding.wearStatus
         textWearHr = binding.wearHr
         textWearIbi = binding.wearIbi
+        textWearTimestamp = binding.wearTime
         textHrmStatus = binding.hrmStatus
         textHrmHr = binding.hrmHr
         textHrmIbi = binding.hrmIbi
+        textHrmTimestamp = binding.hrmTime
         textTooltip = binding.buttonTooltip
         button = binding.button
 
@@ -82,6 +87,12 @@ class MainActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks {
             wearMessage = Gson().fromJson(String(messageEvent.data), Message::class.java)
             onMessageArrived(messageEvent.path)
         }
+        Wearable.DataApi.addListener(client) { data ->
+            val receivedData = Gson().fromJson(String(data[0].dataItem.data), HeartData::class.java)
+            textWearHr.text = receivedData.hr.toString()
+            textWearIbi.text = receivedData.ibi.toString()
+            textWearTimestamp.text = receivedData.timestamp.format(DateTimeFormatter.ISO_DATE_TIME)
+        }
     }
 
     override fun onConnectionSuspended(p0: Int) {
@@ -92,7 +103,7 @@ class MainActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks {
         wearMessage?.let {
             when (messagePath) {
                 MessagePath.COMMAND -> {
-                    if (it.code == ActivityCode.START_ACTIVITY) { // reset this module's state
+                    if (it.code == ActivityCode.STOP_ACTIVITY) { // reset this module's state
                         toggleState(0)
                     }
                 }
@@ -103,6 +114,9 @@ class MainActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks {
                     when (it.code) {
                         ActivityCode.START_ACTIVITY -> { // get Wear's current state
                             toggleState(1)
+                        }
+                        ActivityCode.DO_NOTHING -> {
+                            toggleState(0)
                         }
                     }
                 }
@@ -137,11 +151,17 @@ class MainActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks {
         }
         else if (stateNum == 0) {
             stateNum = 1
-            button.text = getString(R.string.button_start)
         }
         else if (stateNum == 1) {
             stateNum = 0
+        }
+        if (stateNum == 0) {
+            button.text = getString(R.string.button_start)
+            textWearStatus.text = getString(R.string.status_stopped)
+        }
+        if (stateNum == 1) {
             button.text = getString(R.string.button_stop)
+            textWearStatus.text = getString(R.string.status_running)
         }
         textTooltip.text = stateNum.toString()
         Log.d("Mobile","stateNum changed to: $stateNum")

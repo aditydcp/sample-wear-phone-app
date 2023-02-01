@@ -13,9 +13,11 @@ import androidx.core.app.ActivityCompat
 import com.example.samplewearmobileapp.databinding.ActivityMainBinding
 import com.google.android.gms.common.api.GoogleApiClient
 import com.google.android.gms.wearable.Node
+import com.google.android.gms.wearable.PutDataRequest
 import com.google.android.gms.wearable.Wearable
 import com.google.gson.Gson
 import com.samsung.android.service.health.tracking.HealthTrackerException
+import java.time.LocalDateTime
 
 class MainActivity : Activity(), GoogleApiClient.ConnectionCallbacks {
     private val tag = "Wear: MainActivity"
@@ -95,6 +97,7 @@ class MainActivity : Activity(), GoogleApiClient.ConnectionCallbacks {
                         textHeartRate.text = getString(R.string.default_heart_rate)
                     }
                 }
+                sendHrData(hrData)
                 heartRateDataLast = hrData
             })
         }
@@ -239,7 +242,7 @@ class MainActivity : Activity(), GoogleApiClient.ConnectionCallbacks {
             // prompt to reset phone app state
             // onConnected is not immediately run when onCreate
             // so the prompt should be executed on connection
-            message.code = ActivityCode.START_ACTIVITY
+            message.code = ActivityCode.STOP_ACTIVITY
             message.content = "Reset Phone App State"
             sendMessage(message, MessagePath.COMMAND)
             Log.d("Wear","prompt reset passed")
@@ -266,7 +269,7 @@ class MainActivity : Activity(), GoogleApiClient.ConnectionCallbacks {
                                 textStatus.text = getString(R.string.status_running)
                             }
 
-                            currentState = 1
+                            switchState(1)
                             heartRateListener.startTracker()
                         }
                         ActivityCode.STOP_ACTIVITY -> {
@@ -274,7 +277,7 @@ class MainActivity : Activity(), GoogleApiClient.ConnectionCallbacks {
                                 textStatus.text = getString(R.string.status_stopped)
                             }
 
-                            currentState = 0
+                            switchState(0)
                             heartRateListener.stopTracker()
                         }
                         ActivityCode.DO_NOTHING -> {
@@ -289,9 +292,7 @@ class MainActivity : Activity(), GoogleApiClient.ConnectionCallbacks {
                 MessagePath.REQUEST -> {
                     if (it.code == ActivityCode.START_ACTIVITY) { // receive state request
                         Log.i("Wear","A request received!")
-                        message.code = currentState
-                        message.content = "Wear state: $currentState"
-                        sendMessage(message, MessagePath.INFO)
+                        switchState(currentState)
                     }
                 }
                 MessagePath.INFO -> {
@@ -309,5 +310,28 @@ class MainActivity : Activity(), GoogleApiClient.ConnectionCallbacks {
             Log.i("Wear","Message sent!")
             Log.i("Wear","$message")
         }
+    }
+
+    private fun sendHrData(hrData: HeartRateData) {
+        val heartData = HeartData(hrData.hr, hrData.ibi, LocalDateTime.now())
+        val bytes = Gson().toJson(heartData).toByteArray()
+        Wearable.DataApi.putDataItem(client,
+        PutDataRequest.create(MessagePath.INFO).setData(bytes).setUrgent())
+    }
+
+    private fun switchState(forceCode: Int = 99) {
+        if (forceCode != 99) {
+            currentState = forceCode
+        }
+        else if (currentState == 0) {
+            currentState = 1
+        }
+        else if (currentState == 1) {
+            currentState = 0
+        }
+        message.code = currentState
+        message.content = "Wear state: $currentState"
+        sendMessage(message, MessagePath.INFO)
+        Log.d("Wear","stateNum changed to: $currentState")
     }
 }

@@ -77,6 +77,22 @@
                     android:layout_height="wrap_content"
                     android:hint="@string/default_value" />
             </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/timestamp"
+                    android:layout_marginEnd="8dp"/>
+                <TextView
+                    android:id="@+id/wear_time"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:hint="@string/default_value" />
+            </LinearLayout>
         </LinearLayout>
 
         <LinearLayout
@@ -140,6 +156,22 @@
                     android:layout_height="wrap_content"
                     android:hint="@string/default_value" />
             </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/timestamp"
+                    android:layout_marginEnd="8dp"/>
+                <TextView
+                    android:id="@+id/hrm_time"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:hint="@string/default_value" />
+            </LinearLayout>
         </LinearLayout>
     </LinearLayout>
 
@@ -160,6 +192,7 @@
         android:layout_height="125dp"
         android:background="@drawable/circle"
         android:hint="@string/button_start"
+        android:textSize="16sp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"

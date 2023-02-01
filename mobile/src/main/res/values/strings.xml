@@ -20,9 +20,13 @@
 
     <string name="message_on_button_click">App button clicked</string>
 
+    <string name="status_running">Running</string>
+    <string name="status_stopped">Stopped</string>
+
     <string name="reset">Reset from Wear starting</string>
     <string name="wear_running">Wear currently running</string>
 
     <string name="button_start">Start</string>
     <string name="button_stop">Stop</string>
+    <string name="timestamp">Timestamp</string>
 </resources>
