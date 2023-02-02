@@ -18,6 +18,7 @@ import com.google.android.gms.wearable.Wearable
 import com.google.gson.Gson
 import com.samsung.android.service.health.tracking.HealthTrackerException
 import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
 
 class MainActivity : Activity(), GoogleApiClient.ConnectionCallbacks {
     private val tag = "Wear: MainActivity"
@@ -313,10 +314,15 @@ class MainActivity : Activity(), GoogleApiClient.ConnectionCallbacks {
     }
 
     private fun sendHrData(hrData: HeartRateData) {
-        val heartData = HeartData(hrData.hr, hrData.ibi, LocalDateTime.now())
+        val heartData = HeartData(
+            hrData.hr,
+            hrData.ibi,
+            LocalDateTime.now().format(DateTimeFormatter.ISO_DATE_TIME).toString()
+        )
         val bytes = Gson().toJson(heartData).toByteArray()
         Wearable.DataApi.putDataItem(client,
-        PutDataRequest.create(MessagePath.INFO).setData(bytes).setUrgent())
+            PutDataRequest.create(MessagePath.INFO).setData(bytes).setUrgent()
+        )
         Log.i("Wear","Heart Data sent via DataApi!")
     }
 

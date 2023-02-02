@@ -13,7 +13,7 @@ package com.example.samplewearmobileapp
 
 enum class HeartRateStatus(val code: Int, val statusText: String) {
     HR_STATUS_NONE(0,"None"),
-    HR_STATUS_FIND_HR(1,"Find HR"),
+    HR_STATUS_FIND_HR(1,"Good"),
     HR_STATUS_ATTACHED(-1,"Attached"),
     HR_STATUS_DETECT_MOVE(-2,"Movement Detected"),
     HR_STATUS_DETACHED(-3, "Detached"),
