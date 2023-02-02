@@ -11,6 +11,7 @@ import com.google.android.gms.common.api.GoogleApiClient
 import com.google.android.gms.wearable.Node
 import com.google.android.gms.wearable.Wearable
 import com.google.gson.Gson
+import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
 class MainActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks {
@@ -96,7 +97,7 @@ class MainActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks {
             runOnUiThread {
                 textWearHr.text = receivedData.hr.toString()
                 textWearIbi.text = receivedData.ibi.toString()
-                textWearTimestamp.text = receivedData.timestamp.format(DateTimeFormatter.ISO_DATE_TIME)
+                textWearTimestamp.text = receivedData.timestamp
             }
         }
     }
