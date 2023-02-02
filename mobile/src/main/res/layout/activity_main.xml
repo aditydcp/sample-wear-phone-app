@@ -11,12 +11,13 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        app:layout_constraintBottom_toTopOf="@+id/button"
+        app:layout_constraintBottom_toTopOf="@id/button_main"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent">
 
         <LinearLayout
+            android:id="@+id/wear_container"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:orientation="vertical"
@@ -96,6 +97,7 @@
         </LinearLayout>
 
         <LinearLayout
+            android:id="@+id/hrm_container"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:orientation="vertical"
@@ -158,7 +160,7 @@
             </LinearLayout>
 
             <LinearLayout
-                android:layout_width="wrap_content"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical">
                 <TextView
@@ -168,7 +170,7 @@
                     android:layout_marginEnd="8dp"/>
                 <TextView
                     android:id="@+id/hrm_time"
-                    android:layout_width="wrap_content"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:hint="@string/default_value" />
             </LinearLayout>
@@ -176,18 +178,29 @@
     </LinearLayout>
 
     <TextView
+        android:id="@+id/button_view"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/button_normal_view"
+        app:layout_constraintBottom_toTopOf="@+id/button_tooltip"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/main_container"
+        app:layout_constraintVertical_bias="0.2" />
+
+    <TextView
         android:id="@+id/button_tooltip"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:hint="@string/click_me_text"
-        app:layout_constraintBottom_toTopOf="@id/button"
+        app:layout_constraintBottom_toTopOf="@id/button_main"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/main_container"
         app:layout_constraintVertical_bias="0.75" />
 
     <Button
-        android:id="@+id/button"
+        android:id="@+id/button_main"
         android:layout_width="125dp"
         android:layout_height="125dp"
         android:background="@drawable/circle"

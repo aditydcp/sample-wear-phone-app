@@ -2,7 +2,9 @@ package com.example.samplewearmobileapp
 
 import android.os.Bundle
 import android.util.Log
+import android.view.View
 import android.widget.Button
+import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
@@ -11,8 +13,6 @@ import com.google.android.gms.common.api.GoogleApiClient
 import com.google.android.gms.wearable.Node
 import com.google.android.gms.wearable.Wearable
 import com.google.gson.Gson
-import java.time.LocalDateTime
-import java.time.format.DateTimeFormatter
 
 class MainActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks {
     private lateinit var binding: ActivityMainBinding
@@ -31,7 +31,10 @@ class MainActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks {
     private lateinit var textHrmIbi: TextView
     private lateinit var textHrmTimestamp: TextView
     private lateinit var textTooltip: TextView
-    private lateinit var button: Button
+    private lateinit var buttonMain: Button
+    private lateinit var buttonView: TextView
+    private lateinit var containerWear: LinearLayout
+    private lateinit var containerHrm: LinearLayout
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -50,11 +53,15 @@ class MainActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks {
         textHrmIbi = binding.hrmIbi
         textHrmTimestamp = binding.hrmTime
         textTooltip = binding.buttonTooltip
-        button = binding.button
+        buttonMain = binding.buttonMain
+        buttonView = binding.buttonView
+        containerWear = binding.wearContainer
+        containerHrm = binding.hrmContainer
 
         runOnUiThread {
             textTooltip.text = getString(R.string.click_me_text)
-            button.text = getString(R.string.button_start)
+            buttonMain.text = getString(R.string.button_start)
+            buttonView.visibility = View.GONE
         }
 
         // build Google API Client with access to Wearable API
@@ -65,7 +72,7 @@ class MainActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks {
         client.connect()
 
         // set click listener
-        button.setOnClickListener {
+        buttonMain.setOnClickListener {
             message.content = getString(R.string.message_on_button_click)
             setMessageCode()
             toggleState()
@@ -73,6 +80,28 @@ class MainActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks {
                 textTooltip.text = getString(R.string.clicked_text)
             }
             sendMessage(message, MessagePath.COMMAND)
+        }
+
+        containerWear.setOnClickListener {
+            runOnUiThread {
+                containerHrm.visibility = View.GONE
+                buttonView.visibility = View.VISIBLE
+            }
+        }
+
+        containerHrm.setOnClickListener {
+            runOnUiThread {
+                containerWear.visibility = View.GONE
+                buttonView.visibility = View.VISIBLE
+            }
+        }
+
+        buttonView.setOnClickListener {
+            runOnUiThread {
+                containerWear.visibility = View.VISIBLE
+                containerHrm.visibility = View.VISIBLE
+                buttonView.visibility = View.GONE
+            }
         }
     }
 
@@ -164,11 +193,11 @@ class MainActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks {
         }
         runOnUiThread {
             if (stateNum == 0) {
-                button.text = getString(R.string.button_start)
+                buttonMain.text = getString(R.string.button_start)
                 textWearStatus.text = getString(R.string.status_stopped)
             }
             if (stateNum == 1) {
-                button.text = getString(R.string.button_stop)
+                buttonMain.text = getString(R.string.button_stop)
                 textWearStatus.text = getString(R.string.status_running)
             }
             textTooltip.text = stateNum.toString()

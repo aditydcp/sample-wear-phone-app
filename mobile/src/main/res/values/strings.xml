@@ -29,4 +29,5 @@
     <string name="button_start">Start</string>
     <string name="button_stop">Stop</string>
     <string name="timestamp">Timestamp</string>
+    <string name="button_normal_view">Normal View</string>
 </resources>
