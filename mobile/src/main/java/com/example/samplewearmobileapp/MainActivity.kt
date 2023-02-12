@@ -1,5 +1,11 @@
 package com.example.samplewearmobileapp
 
+import android.Manifest
+import android.bluetooth.BluetoothAdapter
+import android.bluetooth.BluetoothManager
+import android.content.Intent
+import android.content.pm.PackageManager
+import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import android.view.View
@@ -8,6 +14,8 @@ import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
 import com.example.samplewearmobileapp.databinding.ActivityMainBinding
 import com.google.android.gms.common.api.GoogleApiClient
 import com.google.android.gms.wearable.Node
@@ -17,6 +25,8 @@ import com.google.gson.Gson
 class MainActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks {
     private lateinit var binding: ActivityMainBinding
     private lateinit var client: GoogleApiClient
+    private lateinit var bluetoothManager: BluetoothManager
+    private var bluetoothAdapter: BluetoothAdapter? = null
     private var connectedNode: List<Node>? = null
     private var message: Message = Message()
     private var wearMessage: Message? = null
@@ -40,6 +50,15 @@ class MainActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks {
         super.onCreate(savedInstanceState)
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
+
+        // request for permissions
+        if (allPermissionsGranted()) {
+            setupBluetooth()
+        } else {
+            ActivityCompat.requestPermissions(
+                this, REQUIRED_PERMISSIONS, REQUEST_CODE_PERMISSIONS
+            )
+        }
 
         message.sender = Entity.PHONE_APP
 
@@ -109,7 +128,10 @@ class MainActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks {
         Wearable.NodeApi.getConnectedNodes(client).setResultCallback {
             connectedNode = it.nodes
             Log.d("Mobile","Node connected")
-            Toast.makeText(applicationContext, "Node connected!", Toast.LENGTH_LONG).show()
+
+            runOnUiThread {
+                textWearStatus.text = getString(R.string.status_connected)
+            }
 
             // request Wear App current state
             // request on connection to ensure message is sent
@@ -133,6 +155,83 @@ class MainActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks {
 
     override fun onConnectionSuspended(p0: Int) {
         connectedNode = null
+        runOnUiThread {
+            textWearStatus.text = getString(R.string.status_disconnected)
+        }
+    }
+
+    @Deprecated("Deprecated in Java")
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        if (requestCode == REQUEST_CODE_ENABLE_BLUETOOTH) {
+            when (resultCode) {
+                RESULT_OK -> {
+                    Toast.makeText(this,
+                        "Bluetooth enabled.",
+                        Toast.LENGTH_SHORT).show()
+                }
+                RESULT_CANCELED -> {
+                    Toast.makeText(this,
+                        "Bluetooth has not been enabled.",
+                        Toast.LENGTH_SHORT).show()
+                }
+            }
+        }
+        else super.onActivityResult(requestCode, resultCode, data)
+    }
+
+    override fun onRequestPermissionsResult(
+        requestCode: Int, permissions: Array<String>, grantResults:
+        IntArray) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        if (requestCode == REQUEST_CODE_PERMISSIONS) {
+            if (allPermissionsGranted()) {
+                setupBluetooth()
+            } else {
+                Toast.makeText(this,
+                    "Permissions not granted by the user.",
+                    Toast.LENGTH_SHORT).show()
+                finish()
+            }
+        }
+    }
+
+    private fun allPermissionsGranted() = REQUIRED_PERMISSIONS.all {
+        ContextCompat.checkSelfPermission(baseContext, it) ==
+                PackageManager.PERMISSION_GRANTED
+    }
+
+    private fun setupBluetooth() {
+        // setup bluetooth adapter
+        bluetoothManager = getSystemService(BluetoothManager::class.java)
+        bluetoothAdapter = bluetoothManager.adapter
+
+        // check bluetooth availability
+        if (bluetoothAdapter == null) {
+            runOnUiThread {
+                textHrmStatus.text = getString(R.string.status_no_support)
+            }
+        }
+
+        enableBluetooth()
+    }
+
+    private fun enableBluetooth() {
+        if (bluetoothAdapter?.isEnabled == false) {
+            val enableBtIntent = Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE)
+            if (ActivityCompat.checkSelfPermission(
+                    this,
+                    Manifest.permission.BLUETOOTH_CONNECT
+                ) != PackageManager.PERMISSION_GRANTED
+            ) {
+                ActivityCompat.requestPermissions(
+                    this,
+                    arrayOf(Manifest.permission.BLUETOOTH_CONNECT),
+                    REQUEST_CODE_PERMISSIONS
+                )
+                return
+            }
+            startActivityForResult(enableBtIntent, REQUEST_CODE_ENABLE_BLUETOOTH)
+        }
     }
 
     private fun onMessageArrived(messagePath: String) {
@@ -203,5 +302,25 @@ class MainActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks {
             textTooltip.text = stateNum.toString()
         }
         Log.d("Mobile","stateNum changed to: $stateNum")
+    }
+
+    companion object {
+        private const val TAG = "Mobile.MainActivity"
+        private const val REQUEST_CODE_PERMISSIONS = 10
+        private const val REQUEST_CODE_ENABLE_BLUETOOTH = 1
+        private val REQUIRED_PERMISSIONS =
+            mutableListOf(
+                Manifest.permission.BLUETOOTH_SCAN,
+                Manifest.permission.BLUETOOTH_CONNECT,
+                Manifest.permission.ACCESS_BACKGROUND_LOCATION,
+                Manifest.permission.ACCESS_COARSE_LOCATION,
+                Manifest.permission.ACCESS_FINE_LOCATION
+            ).toTypedArray()
+//                .apply {
+//                if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.R) {
+//                    add(Manifest.permission.BLUETOOTH)
+//                    add(Manifest.permission.BLUETOOTH_ADMIN)
+//                }
+//            }
     }
 }

@@ -11,17 +11,20 @@
     <string name="message_content">This is the message</string>
 
     <string name="title_wear">Wear App</string>
+    <string name="title_hrm">HRM</string>
     <string name="status">Status :</string>
-    <string name="status_default">No Status</string>
     <string name="hr">HR :</string>
-    <string name="default_value">0</string>
     <string name="ibi">IBI :</string>
-    <string name="title_hrm">Polar HRM</string>
+    <string name="default_value">0</string>
 
     <string name="message_on_button_click">App button clicked</string>
 
+    <string name="status_default">No Status</string>
+    <string name="status_connected">Connected</string>
+    <string name="status_disconnected">Disconnected</string>
     <string name="status_running">Running</string>
     <string name="status_stopped">Stopped</string>
+    <string name="status_no_support">Not supported</string>
 
     <string name="reset">Reset from Wear starting</string>
     <string name="wear_running">Wear currently running</string>
