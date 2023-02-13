@@ -70,6 +70,17 @@ All rights reserved.
     </ListView>
 
     <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Hello world"
+        android:textColor="@color/white" />
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Hello world"
+        android:textColor="@color/black" />
+
+    <TextView
         android:id="@+id/devices_found_new_title"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"

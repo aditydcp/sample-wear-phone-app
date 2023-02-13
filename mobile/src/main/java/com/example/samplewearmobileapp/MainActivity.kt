@@ -235,6 +235,11 @@ class MainActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks {
         Log.i(TAG,"Lifecycle: onRestart()")
     }
 
+    override fun onStop() {
+        super.onStop()
+        Log.i(TAG, "Lifecycle: onStop()")
+    }
+
     override fun onDestroy() {
         super.onDestroy()
         Log.i(TAG,"Lifecycle: onDestroy()")
