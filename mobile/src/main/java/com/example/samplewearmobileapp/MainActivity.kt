@@ -162,7 +162,7 @@ class MainActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks {
     override fun onConnected(p0: Bundle?) {
         Wearable.NodeApi.getConnectedNodes(client).setResultCallback {
             connectedNode = it.nodes
-            Log.d("Mobile","Node connected")
+            Log.d(TAG,"Node connected")
 
             runOnUiThread {
                 textWearStatus.text = getString(R.string.status_connected)
@@ -230,9 +230,14 @@ class MainActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks {
         }
     }
 
+    override fun onRestart() {
+        super.onRestart()
+        Log.i(TAG,"Lifecycle: onRestart()")
+    }
+
     override fun onDestroy() {
         super.onDestroy()
-
+        Log.i(TAG,"Lifecycle: onDestroy()")
         // unregister receiver
         unregisterReceiver(bluetoothStateReceiver)
     }
@@ -359,7 +364,7 @@ class MainActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks {
             }
             textTooltip.text = appState.toString()
         }
-        Log.d("Mobile","stateNum changed to: $appState")
+        Log.d(TAG,"stateNum changed to: $appState")
     }
 
     companion object {
