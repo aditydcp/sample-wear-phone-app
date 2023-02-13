@@ -35,4 +35,10 @@
     <string name="timestamp">Timestamp</string>
     <string name="button_normal_view">Normal View</string>
     <string name="button_connect_hrm">Connect to HRM ></string>
+
+    <string name="connect_status_searching">Searching for devices…</string>
+    <string name="connect_status_stopped">Search timeout.</string>
+    <string name="connect_button_search">Search again</string>
+    <string name="devices_acquainted">Already Connected Devices:</string>
+    <string name="devices_found_new">Devices Found In Scan:</string>
 </resources>

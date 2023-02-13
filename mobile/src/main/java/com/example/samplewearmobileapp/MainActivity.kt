@@ -154,7 +154,8 @@ class MainActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks {
         }
 
         buttonConnectHrm.setOnClickListener {
-            enableBluetooth()
+            val intent = Intent(this@MainActivity, ConnectHrmActivity::class.java)
+            startActivity(intent)
         }
     }
 

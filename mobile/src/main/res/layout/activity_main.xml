@@ -180,7 +180,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"
-                android:textColor="@color/purple_700"
+                android:textColor="@color/purple_200"
                 android:textStyle="bold"
                 android:text="@string/button_connect_hrm" />
         </LinearLayout>
