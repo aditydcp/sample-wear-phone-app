@@ -2,8 +2,12 @@ package com.example.samplewearmobileapp
 
 import android.Manifest
 import android.bluetooth.BluetoothAdapter
+import android.bluetooth.BluetoothAdapter.*
 import android.bluetooth.BluetoothManager
+import android.content.BroadcastReceiver
+import android.content.Context
 import android.content.Intent
+import android.content.IntentFilter
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
@@ -13,7 +17,6 @@ import android.widget.Button
 import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
-import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
@@ -32,7 +35,8 @@ class MainActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks {
     private var connectedNode: List<Node>? = null
     private var message: Message = Message()
     private var wearMessage: Message? = null
-    private var stateNum = 0
+    private var appState = 0
+    private var bluetoothState = STATE_OFF
 
     private lateinit var textWearStatus: TextView
     private lateinit var textWearHr: TextView
@@ -48,6 +52,24 @@ class MainActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks {
     private lateinit var buttonConnectHrm: TextView
     private lateinit var containerWear: LinearLayout
     private lateinit var containerHrm: LinearLayout
+
+    private val bluetoothStateReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context, intent: Intent) {
+            bluetoothState = intent.getIntExtra(EXTRA_STATE, STATE_OFF)
+            when (bluetoothState) {
+                STATE_TURNING_OFF -> {
+                    Toast.makeText(context,
+                        "Bluetooth turning off",
+                        Toast.LENGTH_SHORT).show()
+                }
+                STATE_TURNING_ON -> {
+                    Toast.makeText(context,
+                        "Bluetooth turning on",
+                        Toast.LENGTH_SHORT).show()
+                }
+            }
+        }
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -86,6 +108,10 @@ class MainActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks {
             buttonMain.text = getString(R.string.button_start)
             buttonView.visibility = View.GONE
         }
+
+        // register bluetooth state broadcast receiver
+        val filter = IntentFilter(ACTION_STATE_CHANGED)
+        registerReceiver(bluetoothStateReceiver, filter)
 
         // build Google API Client with access to Wearable API
         client = GoogleApiClient.Builder(this)
@@ -203,6 +229,13 @@ class MainActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks {
         }
     }
 
+    override fun onDestroy() {
+        super.onDestroy()
+
+        // unregister receiver
+        unregisterReceiver(bluetoothStateReceiver)
+    }
+
     private fun allPermissionsGranted() = REQUIRED_PERMISSIONS.all {
         ContextCompat.checkSelfPermission(baseContext, it) ==
                 PackageManager.PERMISSION_GRANTED
@@ -296,36 +329,36 @@ class MainActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks {
         if (forceCode != 99) {
             message.code = forceCode
         }
-        else if (stateNum == 0) {
+        else if (appState == 0) {
             message.code = ActivityCode.START_ACTIVITY
         }
-        else if (stateNum == 1) {
+        else if (appState == 1) {
             message.code = ActivityCode.STOP_ACTIVITY
         }
     }
 
     private fun toggleState(forceCode: Int = 99) {
         if (forceCode != 99) {
-            stateNum = forceCode
+            appState = forceCode
         }
-        else if (stateNum == 0) {
-            stateNum = 1
+        else if (appState == 0) {
+            appState = 1
         }
-        else if (stateNum == 1) {
-            stateNum = 0
+        else if (appState == 1) {
+            appState = 0
         }
         runOnUiThread {
-            if (stateNum == 0) {
+            if (appState == 0) {
                 buttonMain.text = getString(R.string.button_start)
                 textWearStatus.text = getString(R.string.status_stopped)
             }
-            if (stateNum == 1) {
+            if (appState == 1) {
                 buttonMain.text = getString(R.string.button_stop)
                 textWearStatus.text = getString(R.string.status_running)
             }
-            textTooltip.text = stateNum.toString()
+            textTooltip.text = appState.toString()
         }
-        Log.d("Mobile","stateNum changed to: $stateNum")
+        Log.d("Mobile","stateNum changed to: $appState")
     }
 
     companion object {
