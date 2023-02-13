@@ -5,6 +5,7 @@
     <string name="click_me_text">Click the button to start/stop measurement</string>
     <string name="clicked_text">Button clicked!</string>
     <string name="success_message">Message successfully sent.<br />Check your Smartwatch! </string>
+    <string name="click_view_button">Click the Normal View text to toggle view</string>
 
     <string name="click_me_button">Click Me</string>
 
@@ -33,4 +34,5 @@
     <string name="button_stop">Stop</string>
     <string name="timestamp">Timestamp</string>
     <string name="button_normal_view">Normal View</string>
+    <string name="button_connect_hrm">Connect to HRM ></string>
 </resources>

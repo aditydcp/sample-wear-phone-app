@@ -27,8 +27,8 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/title_wear"
-                android:textSize="24sp"
-                android:textFontWeight="800" />
+                android:textStyle="bold"
+                android:textSize="24sp" />
 
             <LinearLayout
                 android:layout_width="wrap_content"
@@ -107,8 +107,8 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/title_hrm"
-                android:textSize="24sp"
-                android:textFontWeight="800" />
+                android:textStyle="bold"
+                android:textSize="24sp" />
 
             <LinearLayout
                 android:layout_width="wrap_content"
@@ -174,6 +174,15 @@
                     android:layout_height="wrap_content"
                     android:hint="@string/default_value" />
             </LinearLayout>
+
+            <TextView
+                android:id="@+id/hrm_connect"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:textColor="@color/purple_700"
+                android:textStyle="bold"
+                android:text="@string/button_connect_hrm" />
         </LinearLayout>
     </LinearLayout>
 
@@ -206,6 +215,8 @@
         android:background="@drawable/circle"
         android:hint="@string/button_start"
         android:textSize="16sp"
+        android:textColor="@color/white"
+        android:textStyle="bold"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"

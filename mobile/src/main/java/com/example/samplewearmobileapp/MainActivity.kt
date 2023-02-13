@@ -26,6 +26,7 @@ import com.google.gson.Gson
 class MainActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks {
     private lateinit var binding: ActivityMainBinding
     private lateinit var client: GoogleApiClient
+    // TODO: Consider creating a shared object for Bluetooth manager
     private lateinit var bluetoothManager: BluetoothManager
     private var bluetoothAdapter: BluetoothAdapter? = null
     private var connectedNode: List<Node>? = null
@@ -44,6 +45,7 @@ class MainActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks {
     private lateinit var textTooltip: TextView
     private lateinit var buttonMain: Button
     private lateinit var buttonView: TextView
+    private lateinit var buttonConnectHrm: TextView
     private lateinit var containerWear: LinearLayout
     private lateinit var containerHrm: LinearLayout
 
@@ -75,6 +77,7 @@ class MainActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks {
         textTooltip = binding.buttonTooltip
         buttonMain = binding.buttonMain
         buttonView = binding.buttonView
+        buttonConnectHrm = binding.hrmConnect
         containerWear = binding.wearContainer
         containerHrm = binding.hrmContainer
 
@@ -122,6 +125,10 @@ class MainActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks {
                 containerHrm.visibility = View.VISIBLE
                 buttonView.visibility = View.GONE
             }
+        }
+
+        buttonConnectHrm.setOnClickListener {
+            enableBluetooth()
         }
     }
 
