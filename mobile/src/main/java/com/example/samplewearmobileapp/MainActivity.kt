@@ -13,6 +13,7 @@ import android.widget.Button
 import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
+import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
@@ -218,17 +219,33 @@ class MainActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks {
     private fun enableBluetooth() {
         if (bluetoothAdapter?.isEnabled == false) {
             val enableBtIntent = Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE)
-            if (ActivityCompat.checkSelfPermission(
-                    this,
-                    Manifest.permission.BLUETOOTH_CONNECT
-                ) != PackageManager.PERMISSION_GRANTED
-            ) {
-                ActivityCompat.requestPermissions(
-                    this,
-                    arrayOf(Manifest.permission.BLUETOOTH_CONNECT),
-                    REQUEST_CODE_PERMISSIONS
-                )
-                return
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                if (ActivityCompat.checkSelfPermission(
+                        this,
+                        Manifest.permission.BLUETOOTH_CONNECT
+                    ) != PackageManager.PERMISSION_GRANTED
+                ) {
+                    ActivityCompat.requestPermissions(
+                        this,
+                        arrayOf(Manifest.permission.BLUETOOTH_CONNECT),
+                        REQUEST_CODE_PERMISSIONS
+                    )
+                    return
+                }
+            }
+            else {
+                if (ActivityCompat.checkSelfPermission(
+                        this,
+                        Manifest.permission.BLUETOOTH
+                    ) != PackageManager.PERMISSION_GRANTED
+                ) {
+                    ActivityCompat.requestPermissions(
+                        this,
+                        arrayOf(Manifest.permission.BLUETOOTH),
+                        REQUEST_CODE_PERMISSIONS
+                    )
+                    return
+                }
             }
             startActivityForResult(enableBtIntent, REQUEST_CODE_ENABLE_BLUETOOTH)
         }
@@ -310,17 +327,22 @@ class MainActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks {
         private const val REQUEST_CODE_ENABLE_BLUETOOTH = 1
         private val REQUIRED_PERMISSIONS =
             mutableListOf(
-                Manifest.permission.BLUETOOTH_SCAN,
-                Manifest.permission.BLUETOOTH_CONNECT,
-                Manifest.permission.ACCESS_BACKGROUND_LOCATION,
                 Manifest.permission.ACCESS_COARSE_LOCATION,
                 Manifest.permission.ACCESS_FINE_LOCATION
-            ).toTypedArray()
-//                .apply {
-//                if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.R) {
-//                    add(Manifest.permission.BLUETOOTH)
-//                    add(Manifest.permission.BLUETOOTH_ADMIN)
-//                }
-//            }
+            ).apply {
+                if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.R) {
+                    add(Manifest.permission.BLUETOOTH)
+                    add(Manifest.permission.BLUETOOTH_ADMIN)
+                }
+            }.apply {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                    add(Manifest.permission.BLUETOOTH_SCAN)
+                    add(Manifest.permission.BLUETOOTH_CONNECT)
+                }
+            }.apply {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                    add(Manifest.permission.ACCESS_BACKGROUND_LOCATION,)
+                }
+            }.toTypedArray()
     }
 }
