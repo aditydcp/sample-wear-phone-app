@@ -254,11 +254,18 @@ class MainActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks {
 
     private fun setupBluetooth() {
         // setup bluetooth adapter
-        bluetoothManager = getSystemService(BluetoothManager::class.java)
-        bluetoothAdapter = bluetoothManager.adapter
+//        bluetoothManager = getSystemService(BluetoothManager::class.java)
+//        bluetoothAdapter = bluetoothManager.adapter
+        BluetoothService.buildManager(applicationContext)
+        BluetoothService.setAdapter(BluetoothService.getManager()?.adapter)
 
         // check bluetooth availability
-        if (bluetoothAdapter == null) {
+//        if (bluetoothAdapter == null) {
+//            runOnUiThread {
+//                textHrmStatus.text = getString(R.string.status_no_support)
+//            }
+//        }
+        if (BluetoothService.getAdapter() == null) {
             runOnUiThread {
                 textHrmStatus.text = getString(R.string.status_no_support)
             }
@@ -268,7 +275,7 @@ class MainActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks {
     }
 
     private fun enableBluetooth() {
-        if (bluetoothAdapter?.isEnabled == false) {
+        if (BluetoothService.getAdapter()?.isEnabled == false) {
             val enableBtIntent = Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE)
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
                 if (ActivityCompat.checkSelfPermission(
