@@ -39,7 +39,7 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.SampleWearMobileApp"
-        tools:targetApi="31">
+        tools:targetApi="33">
         <activity
             android:name=".MainActivity"
             android:exported="true">
@@ -55,7 +55,11 @@
         </activity>
         <activity
             android:name=".ConnectHrmActivity"
-            android:exported="true" />
+            android:exported="false" >
+            <meta-data
+                android:name="android.app.lib_name"
+                android:value="" />
+        </activity>
     </application>
 
 </manifest>

@@ -1,7 +1,6 @@
 package com.example.samplewearmobileapp
 
 import android.os.Bundle
-import android.os.PersistableBundle
 import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
 import com.example.samplewearmobileapp.databinding.ActivityConnectHrmBinding
@@ -10,9 +9,8 @@ class ConnectHrmActivity : AppCompatActivity() {
     // TODO: Create an activity for finding bluetooth device
     private lateinit var binding: ActivityConnectHrmBinding
 
-    override fun onCreate(savedInstanceState: Bundle?,
-                          persistentState: PersistableBundle?) {
-        super.onCreate(savedInstanceState, persistentState)
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
         binding = ActivityConnectHrmBinding.inflate(layoutInflater)
         setContentView(binding.root)
         Log.i(TAG, "Lifecycle: onCreate()")
