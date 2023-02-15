@@ -20,6 +20,7 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import com.example.samplewearmobileapp.BluetoothService.REQUEST_CODE_ENABLE_BLUETOOTH
 import com.example.samplewearmobileapp.databinding.ActivityMainBinding
 import com.google.android.gms.common.api.GoogleApiClient
 import com.google.android.gms.wearable.Node
@@ -30,8 +31,6 @@ class MainActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks {
     private lateinit var binding: ActivityMainBinding
     private lateinit var client: GoogleApiClient
     // TODO: Consider creating a shared object for Bluetooth manager
-    private lateinit var bluetoothManager: BluetoothManager
-    private var bluetoothAdapter: BluetoothAdapter? = null
     private var connectedNode: List<Node>? = null
     private var message: Message = Message()
     private var wearMessage: Message? = null
@@ -110,8 +109,7 @@ class MainActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks {
         }
 
         // register bluetooth state broadcast receiver
-        val filter = IntentFilter(ACTION_STATE_CHANGED)
-        registerReceiver(bluetoothStateReceiver, filter)
+        registerReceiver(bluetoothStateReceiver, BluetoothService.BLUETOOTH_STATE_FILTER)
 
         // build Google API Client with access to Wearable API
         client = GoogleApiClient.Builder(this)
@@ -233,11 +231,15 @@ class MainActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks {
     override fun onRestart() {
         super.onRestart()
         Log.i(TAG,"Lifecycle: onRestart()")
+        // re-register bluetooth state receiver
+        registerReceiver(bluetoothStateReceiver, BluetoothService.BLUETOOTH_STATE_FILTER)
     }
 
     override fun onStop() {
         super.onStop()
         Log.i(TAG, "Lifecycle: onStop()")
+        // unregister receiver
+        unregisterReceiver(bluetoothStateReceiver)
     }
 
     override fun onDestroy() {
@@ -254,59 +256,17 @@ class MainActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks {
 
     private fun setupBluetooth() {
         // setup bluetooth adapter
-//        bluetoothManager = getSystemService(BluetoothManager::class.java)
-//        bluetoothAdapter = bluetoothManager.adapter
-        BluetoothService.buildManager(applicationContext)
-        BluetoothService.setAdapter(BluetoothService.getManager()?.adapter)
+        BluetoothService.manager = getSystemService(BluetoothManager::class.java)
+        BluetoothService.adapter = BluetoothService.manager.adapter
 
         // check bluetooth availability
-//        if (bluetoothAdapter == null) {
-//            runOnUiThread {
-//                textHrmStatus.text = getString(R.string.status_no_support)
-//            }
-//        }
-        if (BluetoothService.getAdapter() == null) {
+        if (BluetoothService.adapter == null) {
             runOnUiThread {
                 textHrmStatus.text = getString(R.string.status_no_support)
             }
         }
 
-        enableBluetooth()
-    }
-
-    private fun enableBluetooth() {
-        if (BluetoothService.getAdapter()?.isEnabled == false) {
-            val enableBtIntent = Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE)
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-                if (ActivityCompat.checkSelfPermission(
-                        this,
-                        Manifest.permission.BLUETOOTH_CONNECT
-                    ) != PackageManager.PERMISSION_GRANTED
-                ) {
-                    ActivityCompat.requestPermissions(
-                        this,
-                        arrayOf(Manifest.permission.BLUETOOTH_CONNECT),
-                        REQUEST_CODE_PERMISSIONS
-                    )
-                    return
-                }
-            }
-            else {
-                if (ActivityCompat.checkSelfPermission(
-                        this,
-                        Manifest.permission.BLUETOOTH
-                    ) != PackageManager.PERMISSION_GRANTED
-                ) {
-                    ActivityCompat.requestPermissions(
-                        this,
-                        arrayOf(Manifest.permission.BLUETOOTH),
-                        REQUEST_CODE_PERMISSIONS
-                    )
-                    return
-                }
-            }
-            startActivityForResult(enableBtIntent, REQUEST_CODE_ENABLE_BLUETOOTH)
-        }
+        BluetoothService.enableBluetooth(this, this)
     }
 
     private fun onMessageArrived(messagePath: String) {
@@ -381,8 +341,7 @@ class MainActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks {
 
     companion object {
         private const val TAG = "Mobile.MainActivity"
-        private const val REQUEST_CODE_PERMISSIONS = 10
-        private const val REQUEST_CODE_ENABLE_BLUETOOTH = 1
+        const val REQUEST_CODE_PERMISSIONS = 10
         private val REQUIRED_PERMISSIONS =
             mutableListOf(
                 Manifest.permission.ACCESS_COARSE_LOCATION,
