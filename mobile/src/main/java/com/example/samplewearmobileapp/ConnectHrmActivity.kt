@@ -1,10 +1,8 @@
 package com.example.samplewearmobileapp
 
-import android.bluetooth.BluetoothAdapter
 import android.bluetooth.BluetoothDevice
-import android.content.BroadcastReceiver
-import android.content.Context
-import android.content.Intent
+import android.bluetooth.le.ScanCallback
+import android.bluetooth.le.ScanResult
 import android.os.Bundle
 import android.util.Log
 import android.view.View
@@ -28,54 +26,54 @@ class ConnectHrmActivity : AppCompatActivity() {
     private lateinit var textNewDevices: TextView
     private lateinit var listNewDevices: ListView
 
-    private val bluetoothDeviceFinderReceiver = object : BroadcastReceiver() {
-        override fun onReceive(context: Context, intent: Intent) {
-            when (intent.action) {
-                BluetoothDevice.ACTION_FOUND -> {
-                    // Discovery has found a device. Get the BluetoothDevice
-                    // object and its info from the Intent.
-                    val device: BluetoothDevice? =
-                        intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE)
-                    if (device != null) {
-                        BluetoothService.checkBluetoothPermission(
-                            applicationContext,
-                            this@ConnectHrmActivity
-                        )
-                        devicesNewInfo.add(device)
-                        listNewDevicesAdapter.add(device.name)
-                        listNewDevicesAdapter.notifyDataSetChanged()
+//    private val bluetoothDeviceFinderReceiver = object : BroadcastReceiver() {
+//        override fun onReceive(context: Context, intent: Intent) {
+//            when (intent.action) {
+//                BluetoothDevice.ACTION_FOUND -> {
+//                    // Discovery has found a device. Get the BluetoothDevice
+//                    // object and its info from the Intent.
+//                    val device: BluetoothDevice? =
+//                        intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE)
+//                    if (device != null) {
+//                        BluetoothService.checkBluetoothPermission(
+//                            applicationContext,
+//                            this@ConnectHrmActivity
+//                        )
+//                        devicesNewInfo.add(device)
+//                        listNewDevicesAdapter.add(device.name)
+//                        listNewDevicesAdapter.notifyDataSetChanged()
+//
+//                        Log.d(TAG,"Device name: ${device.name}\n" +
+//                                "Device address: ${device.address}\n" +
+//                                "Device type: ${device.type}\n" +
+//                                "Device class: ${device.bluetoothClass.deviceClass}\n" +
+//                                "Device major class: ${device.bluetoothClass.majorDeviceClass}")
+//                    }
+//                }
+//            }
+//        }
+//    }
 
-                        Log.d(TAG,"Device name: ${device.name}\n" +
-                                "Device address: ${device.address}\n" +
-                                "Device type: ${device.type}\n" +
-                                "Device class: ${device.bluetoothClass.deviceClass}\n" +
-                                "Device major class: ${device.bluetoothClass.majorDeviceClass}")
-                    }
-                }
-            }
-        }
-    }
-
-    private val bluetoothDiscoveryStatusReceiver = object : BroadcastReceiver() {
-        override fun onReceive(context: Context, intent: Intent) {
-            when (intent.action) {
-                BluetoothAdapter.ACTION_DISCOVERY_FINISHED -> {
-                    runOnUiThread {
-                        spinnerStatus.visibility = View.INVISIBLE
-                        buttonSearch.visibility = View.VISIBLE
-                        textStatus.text = getString(R.string.connect_status_stopped)
-                    }
-                }
-                BluetoothAdapter.ACTION_DISCOVERY_STARTED -> {
-                    runOnUiThread {
-                        spinnerStatus.visibility = View.VISIBLE
-                        buttonSearch.visibility = View.GONE
-                        textStatus.text = getString(R.string.connect_status_searching)
-                    }
-                }
-            }
-        }
-    }
+//    private val bluetoothDiscoveryStatusReceiver = object : BroadcastReceiver() {
+//        override fun onReceive(context: Context, intent: Intent) {
+//            when (intent.action) {
+//                BluetoothAdapter.ACTION_DISCOVERY_FINISHED -> {
+//                    runOnUiThread {
+//                        spinnerStatus.visibility = View.INVISIBLE
+//                        buttonSearch.visibility = View.VISIBLE
+//                        textStatus.text = getString(R.string.connect_status_stopped)
+//                    }
+//                }
+//                BluetoothAdapter.ACTION_DISCOVERY_STARTED -> {
+//                    runOnUiThread {
+//                        spinnerStatus.visibility = View.VISIBLE
+//                        buttonSearch.visibility = View.GONE
+//                        textStatus.text = getString(R.string.connect_status_searching)
+//                    }
+//                }
+//            }
+//        }
+//    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -98,7 +96,7 @@ class ConnectHrmActivity : AppCompatActivity() {
         }
 
         // register bluetooth device finder broadcast receiver
-        registerReceiver(bluetoothDeviceFinderReceiver, BluetoothService.DEVICE_FINDER_FILTER)
+//        registerReceiver(bluetoothDeviceFinderReceiver, BluetoothService.DEVICE_FINDER_FILTER)
 
         // start bluetooth device finder
         startSearch()
@@ -142,9 +140,23 @@ class ConnectHrmActivity : AppCompatActivity() {
     }
 
     private fun startSearch() {
-        BluetoothService.startDeviceSearch(this, this)
-        registerReceiver(bluetoothDiscoveryStatusReceiver,
-            BluetoothService.BLUETOOTH_DISCOVERY_STATE_FILTER)
+        BluetoothService.leScanCallback = object : ScanCallback(){
+            override fun onScanResult(callbackType: Int, result: ScanResult?) {
+                super.onScanResult(callbackType, result)
+                BluetoothService.checkBluetoothPermission(
+                    applicationContext,
+                    this@ConnectHrmActivity
+                )
+                if (result != null) {
+                    devicesNewInfo.add(result.device)
+                    listNewDevicesAdapter.add(result.device.name)
+                    listNewDevicesAdapter.notifyDataSetChanged()
+                }
+            }
+        }
+        BluetoothService.toggleLeDeviceSearch(this, this)
+//        registerReceiver(bluetoothDiscoveryStatusReceiver,
+//            BluetoothService.BLUETOOTH_DISCOVERY_STATE_FILTER)
     }
 
     private fun attemptConnection(deviceInfo: BluetoothDevice) {
@@ -171,8 +183,11 @@ class ConnectHrmActivity : AppCompatActivity() {
 
         // store each devices info
         acquaintedDevices?.forEach { device ->
-            devicesAcquaintedInfo.add(device)
-            listAcquaintedDevicesAdapter.add(device.name)
+            // store only BLE devices
+            if(device.type == BluetoothDevice.DEVICE_TYPE_LE) {
+                devicesAcquaintedInfo.add(device)
+                listAcquaintedDevicesAdapter.add(device.name)
+            }
         }
         listAcquaintedDevicesAdapter.notifyDataSetChanged()
     }
@@ -186,20 +201,20 @@ class ConnectHrmActivity : AppCompatActivity() {
         super.onStop()
         Log.i(TAG, "Lifecycle: onStop()")
         // stop search
-        BluetoothService.stopDeviceSearch(this, this)
+        BluetoothService.stopLeDeviceSearch(this, this)
         // unregister receiver
-        unregisterReceiver(bluetoothDeviceFinderReceiver)
-        unregisterReceiver(bluetoothDiscoveryStatusReceiver)
+//        unregisterReceiver(bluetoothDeviceFinderReceiver)
+//        unregisterReceiver(bluetoothDiscoveryStatusReceiver)
     }
 
     override fun onDestroy() {
         super.onDestroy()
         Log.i(TAG, "Lifecycle: onDestroy()")
         // stop search
-        BluetoothService.stopDeviceSearch(this, this)
+        BluetoothService.stopLeDeviceSearch(this, this)
         // unregister receiver
-        unregisterReceiver(bluetoothDeviceFinderReceiver)
-        unregisterReceiver(bluetoothDiscoveryStatusReceiver)
+//        unregisterReceiver(bluetoothDeviceFinderReceiver)
+//        unregisterReceiver(bluetoothDiscoveryStatusReceiver)
     }
 
     companion object {
