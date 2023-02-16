@@ -82,22 +82,39 @@ object BluetoothService {
      * Automatically stop search after a period of time
      * defined by property LE_SCAN_TIME.
      *
+     * (Optional) Function can be passed to act upon current scan status:
+     * whether scan is currently running or not.
+     *
      * Use property leScanCallback to access the scan callbacks.
      */
-    fun toggleLeDeviceSearch(context: Context, activity: Activity) {
+    fun toggleLeDeviceSearch(context: Context, activity: Activity,
+                             function:
+                                 (isScanning: Boolean) -> Unit = {
+                                 Log.d(TAG,"Hi I'm default value\n" +
+                                         "parameter value: $it")
+                             }) {
+        val runnable = Runnable {
+            isLeScanning = false
+            adapter?.bluetoothLeScanner?.stopScan(leScanCallback)
+            function(isLeScanning)
+        }
+
         checkBluetoothPermission(context, activity)
         if (leScanCallback != null) {
             if (!isLeScanning) {
-                handler.postDelayed({
-                    isLeScanning = false
-                    adapter?.bluetoothLeScanner?.stopScan(leScanCallback)
-                }, LE_SCAN_TIME)
+                // stop scan after a period of time
+                handler.postDelayed(runnable, LE_SCAN_TIME)
+
+                // start scan
                 isLeScanning = true
                 adapter?.bluetoothLeScanner?.startScan(leScanCallback)
             } else {
+                // stop scan if invoked when scan is running
+                handler.removeCallbacks(runnable)
                 isLeScanning = false
                 adapter?.bluetoothLeScanner?.stopScan(leScanCallback)
             }
+            function(isLeScanning)
         } else {
             Log.e(TAG, "Error: ScanCallback is null!")
         }

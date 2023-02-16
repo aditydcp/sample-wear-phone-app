@@ -95,9 +95,6 @@ class ConnectHrmActivity : AppCompatActivity() {
             startSearch()
         }
 
-        // register bluetooth device finder broadcast receiver
-//        registerReceiver(bluetoothDeviceFinderReceiver, BluetoothService.DEVICE_FINDER_FILTER)
-
         // start bluetooth device finder
         startSearch()
     }
@@ -154,9 +151,19 @@ class ConnectHrmActivity : AppCompatActivity() {
                 }
             }
         }
-        BluetoothService.toggleLeDeviceSearch(this, this)
-//        registerReceiver(bluetoothDiscoveryStatusReceiver,
-//            BluetoothService.BLUETOOTH_DISCOVERY_STATE_FILTER)
+        BluetoothService.toggleLeDeviceSearch(this, this) { isScanning ->
+            runOnUiThread {
+                if (isScanning) {
+                    spinnerStatus.visibility = View.VISIBLE
+                    buttonSearch.visibility = View.GONE
+                    textStatus.text = getString(R.string.connect_status_searching)
+                } else {
+                    spinnerStatus.visibility = View.INVISIBLE
+                    buttonSearch.visibility = View.VISIBLE
+                    textStatus.text = getString(R.string.connect_status_stopped)
+                }
+            }
+        }
     }
 
     private fun attemptConnection(deviceInfo: BluetoothDevice) {
