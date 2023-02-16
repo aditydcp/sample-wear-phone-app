@@ -12,7 +12,6 @@ import android.content.pm.PackageManager
 import android.os.Build
 import androidx.core.app.ActivityCompat
 import androidx.core.app.ActivityCompat.startActivityForResult
-import androidx.core.content.ContextCompat.getSystemService
 
 /**
  * Singleton object for providing Bluetooth functionalities.
@@ -54,9 +53,21 @@ object BluetoothService {
         }
     }
 
-    fun startSearchDevice(context: Context, activity: Activity) {
+    /**
+     * Start searching for Bluetooth devices asynchronously.
+     */
+    fun startDeviceSearch(context: Context, activity: Activity) {
         checkBluetoothPermission(context, activity)
         adapter?.startDiscovery()
+    }
+
+    /**
+     * Stop Bluetooth device search if it is currently running.
+     */
+    fun stopDeviceSearch(context: Context, activity: Activity) {
+        checkBluetoothPermission(context, activity)
+        if(adapter?.isDiscovering == true)
+            adapter?.cancelDiscovery()
     }
 
     /**

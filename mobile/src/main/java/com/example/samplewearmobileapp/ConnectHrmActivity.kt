@@ -1,21 +1,15 @@
 package com.example.samplewearmobileapp
 
-import android.Manifest
 import android.bluetooth.BluetoothAdapter
-import android.bluetooth.BluetoothClass
 import android.bluetooth.BluetoothDevice
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
-import android.content.IntentFilter
-import android.content.pm.PackageManager
-import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import android.view.View
 import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.app.ActivityCompat
 import com.example.samplewearmobileapp.databinding.ActivityConnectHrmBinding
 
 class ConnectHrmActivity : AppCompatActivity() {
@@ -148,13 +142,19 @@ class ConnectHrmActivity : AppCompatActivity() {
     }
 
     private fun startSearch() {
-        BluetoothService.startSearchDevice(this, this)
+        BluetoothService.startDeviceSearch(this, this)
         registerReceiver(bluetoothDiscoveryStatusReceiver,
             BluetoothService.BLUETOOTH_DISCOVERY_STATE_FILTER)
     }
 
     private fun attemptConnection(deviceInfo: BluetoothDevice) {
         // TODO: Connect to Bluetooth Device
+        BluetoothService.checkBluetoothPermission(this, this)
+        Log.d(TAG,"Device name: ${deviceInfo.name}\n" +
+                "Device address: ${deviceInfo.address}\n" +
+                "Device type: ${deviceInfo.type}\n" +
+                "Device class: ${deviceInfo.bluetoothClass.deviceClass}\n" +
+                "Device major class: ${deviceInfo.bluetoothClass.majorDeviceClass}")
     }
 
     private fun getAcquaintedDevices() {
@@ -185,6 +185,8 @@ class ConnectHrmActivity : AppCompatActivity() {
     override fun onStop() {
         super.onStop()
         Log.i(TAG, "Lifecycle: onStop()")
+        // stop search
+        BluetoothService.stopDeviceSearch(this, this)
         // unregister receiver
         unregisterReceiver(bluetoothDeviceFinderReceiver)
         unregisterReceiver(bluetoothDiscoveryStatusReceiver)
@@ -193,6 +195,8 @@ class ConnectHrmActivity : AppCompatActivity() {
     override fun onDestroy() {
         super.onDestroy()
         Log.i(TAG, "Lifecycle: onDestroy()")
+        // stop search
+        BluetoothService.stopDeviceSearch(this, this)
         // unregister receiver
         unregisterReceiver(bluetoothDeviceFinderReceiver)
         unregisterReceiver(bluetoothDiscoveryStatusReceiver)
