@@ -3,7 +3,12 @@ package com.example.samplewearmobileapp
 import android.bluetooth.BluetoothDevice
 import android.bluetooth.le.ScanCallback
 import android.bluetooth.le.ScanResult
+import android.content.ComponentName
+import android.content.Context
+import android.content.Intent
+import android.content.ServiceConnection
 import android.os.Bundle
+import android.os.IBinder
 import android.util.Log
 import android.view.View
 import android.widget.*
@@ -11,12 +16,12 @@ import androidx.appcompat.app.AppCompatActivity
 import com.example.samplewearmobileapp.databinding.ActivityConnectHrmBinding
 
 class ConnectHrmActivity : AppCompatActivity() {
-    // TODO: Create an activity for finding bluetooth device
     private lateinit var binding: ActivityConnectHrmBinding
     private lateinit var devicesAcquaintedInfo: ArrayList<BluetoothDevice>
     private lateinit var devicesNewInfo: ArrayList<BluetoothDevice>
     private lateinit var listAcquaintedDevicesAdapter: ArrayAdapter<String>
     private lateinit var listNewDevicesAdapter: ArrayAdapter<String>
+    private var bluetoothLeService : BluetoothLeService? = null
 
     private lateinit var textStatus: TextView
     private lateinit var spinnerStatus: ProgressBar
@@ -26,54 +31,26 @@ class ConnectHrmActivity : AppCompatActivity() {
     private lateinit var textNewDevices: TextView
     private lateinit var listNewDevices: ListView
 
-//    private val bluetoothDeviceFinderReceiver = object : BroadcastReceiver() {
-//        override fun onReceive(context: Context, intent: Intent) {
-//            when (intent.action) {
-//                BluetoothDevice.ACTION_FOUND -> {
-//                    // Discovery has found a device. Get the BluetoothDevice
-//                    // object and its info from the Intent.
-//                    val device: BluetoothDevice? =
-//                        intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE)
-//                    if (device != null) {
-//                        BluetoothService.checkBluetoothPermission(
-//                            applicationContext,
-//                            this@ConnectHrmActivity
-//                        )
-//                        devicesNewInfo.add(device)
-//                        listNewDevicesAdapter.add(device.name)
-//                        listNewDevicesAdapter.notifyDataSetChanged()
-//
-//                        Log.d(TAG,"Device name: ${device.name}\n" +
-//                                "Device address: ${device.address}\n" +
-//                                "Device type: ${device.type}\n" +
-//                                "Device class: ${device.bluetoothClass.deviceClass}\n" +
-//                                "Device major class: ${device.bluetoothClass.majorDeviceClass}")
-//                    }
-//                }
-//            }
-//        }
-//    }
+    private val serviceConnection: ServiceConnection = object : ServiceConnection {
+        override fun onServiceConnected(
+            name: ComponentName,
+            service: IBinder
+        ) {
+            bluetoothLeService = (service as BluetoothLeService.LocalBinder).getService()
+            bluetoothLeService?.let { bluetooth ->
+                if (!bluetooth.initialize()) {
+                    Log.e(TAG, "Unable to initialize Bluetooth")
+//                    finish()
+                }
+                // perform connection
+                bluetooth.connect(deviceAddress)
+            }
+        }
 
-//    private val bluetoothDiscoveryStatusReceiver = object : BroadcastReceiver() {
-//        override fun onReceive(context: Context, intent: Intent) {
-//            when (intent.action) {
-//                BluetoothAdapter.ACTION_DISCOVERY_FINISHED -> {
-//                    runOnUiThread {
-//                        spinnerStatus.visibility = View.INVISIBLE
-//                        buttonSearch.visibility = View.VISIBLE
-//                        textStatus.text = getString(R.string.connect_status_stopped)
-//                    }
-//                }
-//                BluetoothAdapter.ACTION_DISCOVERY_STARTED -> {
-//                    runOnUiThread {
-//                        spinnerStatus.visibility = View.VISIBLE
-//                        buttonSearch.visibility = View.GONE
-//                        textStatus.text = getString(R.string.connect_status_searching)
-//                    }
-//                }
-//            }
-//        }
-//    }
+        override fun onServiceDisconnected(name: ComponentName) {
+            bluetoothLeService = null
+        }
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -94,6 +71,10 @@ class ConnectHrmActivity : AppCompatActivity() {
         buttonSearch.setOnClickListener {
             startSearch()
         }
+
+        // bind this activity to BluetoothLeService
+        val gattServiceIntent = Intent(this, BluetoothLeService::class.java)
+        bindService(gattServiceIntent, serviceConnection, Context.BIND_AUTO_CREATE)
 
         // start bluetooth device finder
         startSearch()
