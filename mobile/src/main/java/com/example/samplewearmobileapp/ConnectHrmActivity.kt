@@ -3,10 +3,7 @@ package com.example.samplewearmobileapp
 import android.bluetooth.BluetoothDevice
 import android.bluetooth.le.ScanCallback
 import android.bluetooth.le.ScanResult
-import android.content.ComponentName
-import android.content.Context
-import android.content.Intent
-import android.content.ServiceConnection
+import android.content.*
 import android.os.Bundle
 import android.os.IBinder
 import android.util.Log
@@ -22,6 +19,8 @@ class ConnectHrmActivity : AppCompatActivity() {
     private lateinit var listAcquaintedDevicesAdapter: ArrayAdapter<String>
     private lateinit var listNewDevicesAdapter: ArrayAdapter<String>
     private var bluetoothLeService : BluetoothLeService? = null
+    private var targetDeviceAddress : String? = null
+    private var isConnected = false
 
     private lateinit var textStatus: TextView
     private lateinit var spinnerStatus: ProgressBar
@@ -42,13 +41,30 @@ class ConnectHrmActivity : AppCompatActivity() {
                     Log.e(TAG, "Unable to initialize Bluetooth")
 //                    finish()
                 }
-                // perform connection
-                bluetooth.connect(deviceAddress)
             }
         }
 
         override fun onServiceDisconnected(name: ComponentName) {
             bluetoothLeService = null
+        }
+    }
+
+    private val gattUpdateReceiver: BroadcastReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context, intent: Intent) {
+            when (intent.action) {
+                BluetoothLeService.ACTION_GATT_CONNECTED -> {
+                    isConnected = true
+                    Toast.makeText(applicationContext,
+                        "BLE Device connected!",
+                        Toast.LENGTH_LONG).show()
+                }
+                BluetoothLeService.ACTION_GATT_DISCONNECTED -> {
+                    isConnected = false
+                    Toast.makeText(applicationContext,
+                        "BLE Device disconnected!",
+                        Toast.LENGTH_LONG).show()
+                }
+            }
         }
     }
 
@@ -149,12 +165,19 @@ class ConnectHrmActivity : AppCompatActivity() {
 
     private fun attemptConnection(deviceInfo: BluetoothDevice) {
         // TODO: Connect to Bluetooth Device
+        targetDeviceAddress = deviceInfo.address
+
         BluetoothService.checkBluetoothPermission(this, this)
         Log.d(TAG,"Device name: ${deviceInfo.name}\n" +
                 "Device address: ${deviceInfo.address}\n" +
                 "Device type: ${deviceInfo.type}\n" +
                 "Device class: ${deviceInfo.bluetoothClass.deviceClass}\n" +
                 "Device major class: ${deviceInfo.bluetoothClass.majorDeviceClass}")
+
+        // perform connection
+        bluetoothLeService?.let { bluetooth ->
+            bluetooth.connect(targetDeviceAddress!!, this@ConnectHrmActivity)
+        }
     }
 
     private fun getAcquaintedDevices() {
@@ -180,9 +203,31 @@ class ConnectHrmActivity : AppCompatActivity() {
         listAcquaintedDevicesAdapter.notifyDataSetChanged()
     }
 
+    private fun makeGattUpdateIntentFilter(): IntentFilter? {
+        return IntentFilter().apply {
+            addAction(BluetoothLeService.ACTION_GATT_CONNECTED)
+            addAction(BluetoothLeService.ACTION_GATT_DISCONNECTED)
+        }
+    }
+
     override fun onRestart() {
         super.onRestart()
         Log.i(TAG, "Lifecycle: onRestart()")
+    }
+
+    override fun onResume() {
+        super.onResume()
+        registerReceiver(gattUpdateReceiver, makeGattUpdateIntentFilter())
+        if (bluetoothLeService != null) {
+            val result = bluetoothLeService!!
+                .connect(targetDeviceAddress!!, this)
+            Log.d(TAG, "Connect request result=$result")
+        }
+    }
+
+    override fun onPause() {
+        super.onPause()
+        unregisterReceiver(gattUpdateReceiver)
     }
 
     override fun onStop() {
@@ -193,6 +238,7 @@ class ConnectHrmActivity : AppCompatActivity() {
         // unregister receiver
 //        unregisterReceiver(bluetoothDeviceFinderReceiver)
 //        unregisterReceiver(bluetoothDiscoveryStatusReceiver)
+        unregisterReceiver(gattUpdateReceiver)
     }
 
     override fun onDestroy() {
@@ -203,6 +249,7 @@ class ConnectHrmActivity : AppCompatActivity() {
         // unregister receiver
 //        unregisterReceiver(bluetoothDeviceFinderReceiver)
 //        unregisterReceiver(bluetoothDiscoveryStatusReceiver)
+        unregisterReceiver(gattUpdateReceiver)
     }
 
     companion object {

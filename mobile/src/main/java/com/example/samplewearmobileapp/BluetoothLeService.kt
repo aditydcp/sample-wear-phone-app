@@ -1,26 +1,35 @@
 package com.example.samplewearmobileapp
 
+import android.Manifest
 import android.app.Activity
 import android.app.Service
 import android.bluetooth.BluetoothAdapter
 import android.bluetooth.BluetoothGatt
 import android.bluetooth.BluetoothGattCallback
 import android.bluetooth.BluetoothProfile
+import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.os.Binder
 import android.os.IBinder
 import android.util.Log
+import androidx.core.app.ActivityCompat
 
 class BluetoothLeService : Service() {
     private val binder = LocalBinder()
     private var bluetoothGatt: BluetoothGatt? = null
+    private var connectionState = STATE_DISCONNECTED
 
     private val bluetoothGattCallback = object : BluetoothGattCallback() {
         override fun onConnectionStateChange(gatt: BluetoothGatt?, status: Int, newState: Int) {
             if (newState == BluetoothProfile.STATE_CONNECTED) {
                 // successfully connected to the GATT Server
+                connectionState = STATE_CONNECTED
+                broadcastUpdate(ACTION_GATT_CONNECTED)
             } else if (newState == BluetoothProfile.STATE_DISCONNECTED) {
                 // disconnected from the GATT Server
+                connectionState = STATE_DISCONNECTED
+                broadcastUpdate(ACTION_GATT_DISCONNECTED)
             }
         }
     }
@@ -66,7 +75,44 @@ class BluetoothLeService : Service() {
         }
     }
 
+    private fun broadcastUpdate(action: String) {
+        val intent = Intent(action)
+        sendBroadcast(intent)
+    }
+
+    override fun onUnbind(intent: Intent?): Boolean {
+        close()
+        return super.onUnbind(intent)
+    }
+
+    private fun close() {
+        bluetoothGatt?.let { gatt ->
+            if (ActivityCompat.checkSelfPermission(
+                    this,
+                    Manifest.permission.BLUETOOTH_CONNECT
+                ) != PackageManager.PERMISSION_GRANTED
+            ) {
+                // TODO: Consider calling
+                //    ActivityCompat#requestPermissions
+                // here to request the missing permissions, and then overriding
+                //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+                //                                          int[] grantResults)
+                // to handle the case where the user grants the permission. See the documentation
+                // for ActivityCompat#requestPermissions for more details.
+                return
+            }
+            gatt.close()
+            bluetoothGatt = null
+        }
+    }
+
     companion object {
         private const val TAG = "BluetoothLeService class"
+        private const val STATE_DISCONNECTED = 0
+        private const val STATE_CONNECTED = 2
+        const val ACTION_GATT_CONNECTED =
+            "com.example.bluetooth.le.ACTION_GATT_CONNECTED"
+        const val ACTION_GATT_DISCONNECTED =
+            "com.example.bluetooth.le.ACTION_GATT_DISCONNECTED"
     }
 }
