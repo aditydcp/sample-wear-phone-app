@@ -60,6 +60,7 @@ class BluetoothLeService : Service() {
             try {
                 val device = adapter.getRemoteDevice(address)
                 // connect to the GATT server on the device
+                Log.i(TAG, "Performing connection...")
                 BluetoothService.checkBluetoothPermission(this, activity)
                 bluetoothGatt = device.connectGatt(this,
                     false, bluetoothGattCallback)

@@ -36,6 +36,7 @@ class ConnectHrmActivity : AppCompatActivity() {
             service: IBinder
         ) {
             bluetoothLeService = (service as BluetoothLeService.LocalBinder).getService()
+            Log.d(TAG, "BluetoothLeService online")
             bluetoothLeService?.let { bluetooth ->
                 if (!bluetooth.initialize()) {
                     Log.e(TAG, "Unable to initialize Bluetooth")
@@ -46,6 +47,7 @@ class ConnectHrmActivity : AppCompatActivity() {
 
         override fun onServiceDisconnected(name: ComponentName) {
             bluetoothLeService = null
+            Log.d(TAG, "BluetoothLeService disconnected")
         }
     }
 
@@ -57,12 +59,14 @@ class ConnectHrmActivity : AppCompatActivity() {
                     Toast.makeText(applicationContext,
                         "BLE Device connected!",
                         Toast.LENGTH_LONG).show()
+                    Log.d(TAG, "BLE Device connected!")
                 }
                 BluetoothLeService.ACTION_GATT_DISCONNECTED -> {
                     isConnected = false
                     Toast.makeText(applicationContext,
                         "BLE Device disconnected!",
                         Toast.LENGTH_LONG).show()
+                    Log.d(TAG, "BLE Device disconnected!")
                 }
             }
         }
@@ -91,6 +95,7 @@ class ConnectHrmActivity : AppCompatActivity() {
         // bind this activity to BluetoothLeService
         val gattServiceIntent = Intent(this, BluetoothLeService::class.java)
         bindService(gattServiceIntent, serviceConnection, Context.BIND_AUTO_CREATE)
+            .also { Log.d(TAG, "bindService returns $it") }
 
         // start bluetooth device finder
         startSearch()
@@ -175,9 +180,8 @@ class ConnectHrmActivity : AppCompatActivity() {
                 "Device major class: ${deviceInfo.bluetoothClass.majorDeviceClass}")
 
         // perform connection
-        bluetoothLeService?.let { bluetooth ->
-            bluetooth.connect(targetDeviceAddress!!, this@ConnectHrmActivity)
-        }
+        Log.i(TAG, "Performing connection...")
+        bluetoothLeService?.connect(targetDeviceAddress!!, this@ConnectHrmActivity)
     }
 
     private fun getAcquaintedDevices() {
