@@ -6,12 +6,11 @@ import android.bluetooth.BluetoothAdapter
 import android.bluetooth.BluetoothDevice
 import android.bluetooth.BluetoothManager
 import android.bluetooth.le.ScanCallback
-import android.content.Context
-import android.content.Intent
-import android.content.IntentFilter
+import android.content.*
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Handler
+import android.os.IBinder
 import android.util.Log
 import androidx.core.app.ActivityCompat
 import androidx.core.app.ActivityCompat.startActivityForResult
@@ -24,14 +23,15 @@ object BluetoothService {
     private var isLeScanning = false
     private val handler = Handler()
 
-
     const val REQUEST_CODE_ENABLE_BLUETOOTH = 1
-    val DEVICE_FINDER_FILTER = IntentFilter(BluetoothDevice.ACTION_FOUND)
+//    val DEVICE_FINDER_FILTER = IntentFilter(BluetoothDevice.ACTION_FOUND)
     val BLUETOOTH_STATE_FILTER = IntentFilter(BluetoothAdapter.ACTION_STATE_CHANGED)
-    val BLUETOOTH_DISCOVERY_STATE_FILTER = IntentFilter().apply {
-        this.addAction(BluetoothAdapter.ACTION_DISCOVERY_FINISHED)
-        this.addAction(BluetoothAdapter.ACTION_DISCOVERY_STARTED)
-    }
+//    val BLUETOOTH_DISCOVERY_STATE_FILTER = IntentFilter().apply {
+//        this.addAction(BluetoothAdapter.ACTION_DISCOVERY_FINISHED)
+//        this.addAction(BluetoothAdapter.ACTION_DISCOVERY_STARTED)
+//    }
+    const val ACTION_DATA_AVAILABLE =
+        "com.example.bluetooth.le.ACTION_DATA_AVAILABLE"
 
     /**
      * Scan duration for LE Scan in ms.
@@ -53,6 +53,34 @@ object BluetoothService {
 //    fun setAdapter(adapter: BluetoothAdapter?) {
 //        this.adapter = adapter
 //    }
+
+    /**
+     * Property to access Bluetooth LE services
+     */
+    var bluetoothLeService : BluetoothLeService? = null
+
+    /**
+     * ServiceConnection object to the Bluetooth LE Service
+     */
+    val serviceConnection: ServiceConnection = object : ServiceConnection {
+        override fun onServiceConnected(
+            name: ComponentName,
+            service: IBinder
+        ) {
+            bluetoothLeService = (service as BluetoothLeService.LocalBinder).getService()
+            Log.d(TAG, "BluetoothLeService online")
+            bluetoothLeService?.let { bluetooth ->
+                if (!bluetooth.initialize()) {
+                    Log.e(TAG, "Unable to initialize Bluetooth")
+                }
+            }
+        }
+
+        override fun onServiceDisconnected(name: ComponentName) {
+            bluetoothLeService = null
+            Log.d(TAG, "BluetoothLeService disconnected")
+        }
+    }
 
     /**
      * Object property for ScanCallback.

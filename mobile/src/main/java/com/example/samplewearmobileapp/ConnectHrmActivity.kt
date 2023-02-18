@@ -10,6 +10,9 @@ import android.util.Log
 import android.view.View
 import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.forEach
+import com.example.samplewearmobileapp.BluetoothService.bluetoothLeService
+import com.example.samplewearmobileapp.BluetoothService.serviceConnection
 import com.example.samplewearmobileapp.databinding.ActivityConnectHrmBinding
 
 class ConnectHrmActivity : AppCompatActivity() {
@@ -18,7 +21,7 @@ class ConnectHrmActivity : AppCompatActivity() {
     private lateinit var devicesNewInfo: ArrayList<BluetoothDevice>
     private lateinit var listAcquaintedDevicesAdapter: ArrayAdapter<String>
     private lateinit var listNewDevicesAdapter: ArrayAdapter<String>
-    private var bluetoothLeService : BluetoothLeService? = null
+//    private var bluetoothLeService : BluetoothLeService? = null
     private var targetDeviceAddress : String? = null
     private var isConnected = false
 
@@ -30,26 +33,25 @@ class ConnectHrmActivity : AppCompatActivity() {
     private lateinit var textNewDevices: TextView
     private lateinit var listNewDevices: ListView
 
-    private val serviceConnection: ServiceConnection = object : ServiceConnection {
-        override fun onServiceConnected(
-            name: ComponentName,
-            service: IBinder
-        ) {
-            bluetoothLeService = (service as BluetoothLeService.LocalBinder).getService()
-            Log.d(TAG, "BluetoothLeService online")
-            bluetoothLeService?.let { bluetooth ->
-                if (!bluetooth.initialize()) {
-                    Log.e(TAG, "Unable to initialize Bluetooth")
-//                    finish()
-                }
-            }
-        }
-
-        override fun onServiceDisconnected(name: ComponentName) {
-            bluetoothLeService = null
-            Log.d(TAG, "BluetoothLeService disconnected")
-        }
-    }
+//    val serviceConnection: ServiceConnection = object : ServiceConnection {
+//        override fun onServiceConnected(
+//            name: ComponentName,
+//            service: IBinder
+//        ) {
+//            bluetoothLeService = (service as BluetoothLeService.LocalBinder).getService()
+//            Log.d(TAG, "BluetoothLeService online")
+//            bluetoothLeService?.let { bluetooth ->
+//                if (!bluetooth.initialize()) {
+//                    Log.e(TAG, "Unable to initialize Bluetooth")
+//                }
+//            }
+//        }
+//
+//        override fun onServiceDisconnected(name: ComponentName) {
+//            bluetoothLeService = null
+//            Log.d(TAG, "BluetoothLeService disconnected")
+//        }
+//    }
 
     private val gattUpdateReceiver: BroadcastReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
@@ -94,7 +96,8 @@ class ConnectHrmActivity : AppCompatActivity() {
 
         // bind this activity to BluetoothLeService
         val gattServiceIntent = Intent(this, BluetoothLeService::class.java)
-        bindService(gattServiceIntent, serviceConnection, Context.BIND_AUTO_CREATE)
+        bindService(gattServiceIntent,
+            serviceConnection, Context.BIND_AUTO_CREATE)
             .also { Log.d(TAG, "bindService returns $it") }
 
         // start bluetooth device finder
@@ -147,9 +150,27 @@ class ConnectHrmActivity : AppCompatActivity() {
                     this@ConnectHrmActivity
                 )
                 if (result != null) {
-                    devicesNewInfo.add(result.device)
-                    listNewDevicesAdapter.add(result.device.name)
-                    listNewDevicesAdapter.notifyDataSetChanged()
+                    // check if the scanned item is already present or not
+                    var isPresent = false
+                    devicesAcquaintedInfo.forEach {
+                        if ((result.device.name == it.name) &&
+                            (result.device.type == it.type) &&
+                            (result.device.address == it.address))
+                            isPresent = true
+                    }
+                    if (!isPresent) {
+                        devicesNewInfo.forEach {
+                            if ((result.device.name == it.name) &&
+                                (result.device.type == it.type) &&
+                                (result.device.address == it.address))
+                                isPresent = true
+                        }
+                    }
+                    if(!isPresent) {
+                        devicesNewInfo.add(result.device)
+                        listNewDevicesAdapter.add(result.device.name)
+                        listNewDevicesAdapter.notifyDataSetChanged()
+                    }
                 }
             }
         }
@@ -169,7 +190,6 @@ class ConnectHrmActivity : AppCompatActivity() {
     }
 
     private fun attemptConnection(deviceInfo: BluetoothDevice) {
-        // TODO: Connect to Bluetooth Device
         targetDeviceAddress = deviceInfo.address
 
         BluetoothService.checkBluetoothPermission(this, this)
@@ -240,8 +260,6 @@ class ConnectHrmActivity : AppCompatActivity() {
         // stop search
         BluetoothService.stopLeDeviceSearch(this, this)
         // unregister receiver
-//        unregisterReceiver(bluetoothDeviceFinderReceiver)
-//        unregisterReceiver(bluetoothDiscoveryStatusReceiver)
         unregisterReceiver(gattUpdateReceiver)
     }
 
@@ -251,8 +269,6 @@ class ConnectHrmActivity : AppCompatActivity() {
         // stop search
         BluetoothService.stopLeDeviceSearch(this, this)
         // unregister receiver
-//        unregisterReceiver(bluetoothDeviceFinderReceiver)
-//        unregisterReceiver(bluetoothDiscoveryStatusReceiver)
         unregisterReceiver(gattUpdateReceiver)
     }
 
