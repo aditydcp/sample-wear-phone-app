@@ -252,30 +252,32 @@ class MainActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks {
             mutableListOf()
         val mGattCharacteristics: MutableList<BluetoothGattCharacteristic> = mutableListOf()
 
-//        // Loops through available GATT Services.
-//        gattServices.forEach { gattService ->
-//            val currentServiceData = HashMap<String, String>()
-//            uuid = gattService.uuid.toString()
-//            currentServiceData[LIST_NAME] = SampleGattAttributes.lookup(uuid, unknownServiceString)
-//            currentServiceData[LIST_UUID] = uuid.toString()
-//            gattServiceData += currentServiceData
-//
-//            val gattCharacteristicGroupData: ArrayList<HashMap<String, String>> = arrayListOf()
-//            val gattCharacteristics = gattService.characteristics
-//            val charas: MutableList<BluetoothGattCharacteristic> = mutableListOf()
-//
-//            // Loops through available Characteristics.
-//            gattCharacteristics.forEach { gattCharacteristic ->
-//                charas += gattCharacteristic
-//                val currentCharaData: HashMap<String, String> = hashMapOf()
-//                uuid = gattCharacteristic.uuid.toString()
-//                currentCharaData[LIST_NAME] = SampleGattAttributes.lookup(uuid, unknownCharaString)
-//                currentCharaData[LIST_UUID] = uuid
-//                gattCharacteristicGroupData += currentCharaData
-//            }
-//            mGattCharacteristics += charas
-//            gattCharacteristicData += gattCharacteristicGroupData
-//        }
+        // Loops through available GATT Services.
+        gattServices.forEach { gattService ->
+            val currentServiceData = HashMap<String, String>()
+            var uuid: String? = null
+            if (gattService != null) {
+                uuid = gattService.uuid.toString()
+            }
+            currentServiceData[LIST_NAME] = SampleGattAttributes.lookup(uuid, unknownServiceString)
+            currentServiceData[LIST_UUID] = uuid.toString()
+            gattServiceData += currentServiceData
+
+            val gattCharacteristicGroupData: ArrayList<HashMap<String, String>> = arrayListOf()
+            val characteristics: MutableList<BluetoothGattCharacteristic> = mutableListOf()
+
+            // Loops through available Characteristics.
+            gattService?.characteristics?.forEach { gattCharacteristic ->
+                characteristics += gattCharacteristic
+                val currentCharaData: HashMap<String, String> = hashMapOf()
+                uuid = gattCharacteristic.uuid.toString()
+                currentCharaData[LIST_NAME] = SampleGattAttributes.lookup(uuid, unknownCharaString)
+                currentCharaData[LIST_UUID] = uuid!!
+                gattCharacteristicGroupData += currentCharaData
+            }
+            mGattCharacteristics += characteristics
+            gattCharacteristicData += gattCharacteristicGroupData
+        }
     }
 
     /**
@@ -442,6 +444,8 @@ class MainActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks {
 
     companion object {
         private const val TAG = "Mobile.MainActivity"
+        private const val LIST_NAME = "LIST_NAME"
+        private const val LIST_UUID = "LIST_UUID"
         const val REQUEST_CODE_CONNECT_HRM = 20
         const val REQUEST_CODE_PERMISSIONS = 10
         private val REQUIRED_PERMISSIONS =
