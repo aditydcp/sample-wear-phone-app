@@ -1,13 +1,13 @@
 package com.example.samplewearmobileapp
 
 import android.Manifest
-import android.bluetooth.BluetoothAdapter
 import android.bluetooth.BluetoothAdapter.*
+import android.bluetooth.BluetoothGattCharacteristic
+import android.bluetooth.BluetoothGattService
 import android.bluetooth.BluetoothManager
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
-import android.content.IntentFilter
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
@@ -21,6 +21,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import com.example.samplewearmobileapp.BluetoothService.REQUEST_CODE_ENABLE_BLUETOOTH
+import com.example.samplewearmobileapp.BluetoothService.bluetoothLeService
 import com.example.samplewearmobileapp.databinding.ActivityMainBinding
 import com.google.android.gms.common.api.GoogleApiClient
 import com.google.android.gms.wearable.Node
@@ -36,6 +37,7 @@ class MainActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks {
     private var wearMessage: Message? = null
     private var appState = 0
     private var bluetoothState = STATE_OFF
+    private var isBleConnected = false
 
     private lateinit var textWearStatus: TextView
     private lateinit var textWearHr: TextView
@@ -65,6 +67,31 @@ class MainActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks {
                     Toast.makeText(context,
                         "Bluetooth turning on",
                         Toast.LENGTH_SHORT).show()
+                }
+            }
+        }
+    }
+
+    private val gattUpdateReceiver: BroadcastReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context, intent: Intent) {
+            when (intent.action) {
+                BluetoothLeService.ACTION_GATT_CONNECTED -> {
+                    isBleConnected = true
+                    Toast.makeText(applicationContext,
+                        "BLE Device connected!",
+                        Toast.LENGTH_LONG).show()
+                    Log.d(TAG, "BLE Device connected!")
+                }
+                BluetoothLeService.ACTION_GATT_DISCONNECTED -> {
+                    isBleConnected = false
+                    Toast.makeText(applicationContext,
+                        "BLE Device disconnected!",
+                        Toast.LENGTH_LONG).show()
+                    Log.d(TAG, "BLE Device disconnected!")
+                }
+                BluetoothLeService.ACTION_GATT_SERVICES_DISCOVERED -> {
+                    // Show all the supported services and characteristics on the user interface.
+                    displayGattServices(bluetoothLeService?.getSupportedGattServices())
                 }
             }
         }
@@ -153,10 +180,13 @@ class MainActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks {
 
         buttonConnectHrm.setOnClickListener {
             val intent = Intent(this@MainActivity, ConnectHrmActivity::class.java)
-            startActivity(intent)
+            startActivityForResult(intent, REQUEST_CODE_CONNECT_HRM)
         }
     }
 
+    /**
+     * Callback function invoked when Node API successfully connects with Wear device.
+     */
     override fun onConnected(p0: Bundle?) {
         Wearable.NodeApi.getConnectedNodes(client).setResultCallback {
             connectedNode = it.nodes
@@ -186,6 +216,159 @@ class MainActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks {
         }
     }
 
+    private fun allPermissionsGranted() = REQUIRED_PERMISSIONS.all {
+        ContextCompat.checkSelfPermission(baseContext, it) ==
+                PackageManager.PERMISSION_GRANTED
+    }
+
+    /**
+     * Setup Bluetooth for the first time.
+     */
+    private fun setupBluetooth() {
+        // setup bluetooth adapter
+        BluetoothService.manager = getSystemService(BluetoothManager::class.java)
+        BluetoothService.adapter = BluetoothService.manager.adapter
+
+        // check bluetooth availability
+        if (BluetoothService.adapter == null) {
+            runOnUiThread {
+                textHrmStatus.text = getString(R.string.status_no_support)
+            }
+        }
+
+        BluetoothService.enableBluetooth(this, this)
+    }
+
+    /**
+     * Display all available services on a GATT server.
+     */
+    private fun displayGattServices(gattServices: List<BluetoothGattService?>?) {
+        if (gattServices == null) return
+        var uuid: String?
+        val unknownServiceString: String = "Unknown service"
+        val unknownCharaString: String = "Unknown characteristic"
+        val gattServiceData: MutableList<HashMap<String, String>> = mutableListOf()
+        val gattCharacteristicData: MutableList<ArrayList<HashMap<String, String>>> =
+            mutableListOf()
+        val mGattCharacteristics: MutableList<BluetoothGattCharacteristic> = mutableListOf()
+
+//        // Loops through available GATT Services.
+//        gattServices.forEach { gattService ->
+//            val currentServiceData = HashMap<String, String>()
+//            uuid = gattService.uuid.toString()
+//            currentServiceData[LIST_NAME] = SampleGattAttributes.lookup(uuid, unknownServiceString)
+//            currentServiceData[LIST_UUID] = uuid.toString()
+//            gattServiceData += currentServiceData
+//
+//            val gattCharacteristicGroupData: ArrayList<HashMap<String, String>> = arrayListOf()
+//            val gattCharacteristics = gattService.characteristics
+//            val charas: MutableList<BluetoothGattCharacteristic> = mutableListOf()
+//
+//            // Loops through available Characteristics.
+//            gattCharacteristics.forEach { gattCharacteristic ->
+//                charas += gattCharacteristic
+//                val currentCharaData: HashMap<String, String> = hashMapOf()
+//                uuid = gattCharacteristic.uuid.toString()
+//                currentCharaData[LIST_NAME] = SampleGattAttributes.lookup(uuid, unknownCharaString)
+//                currentCharaData[LIST_UUID] = uuid
+//                gattCharacteristicGroupData += currentCharaData
+//            }
+//            mGattCharacteristics += charas
+//            gattCharacteristicData += gattCharacteristicGroupData
+//        }
+    }
+
+    /**
+     * Responding incoming message from Message API according to the path.
+     */
+    private fun onMessageArrived(messagePath: String) {
+        wearMessage?.let {
+            when (messagePath) {
+                MessagePath.COMMAND -> {
+                    if (it.code == ActivityCode.STOP_ACTIVITY) { // reset this module's state
+                        toggleState(0)
+                    }
+                }
+                MessagePath.REQUEST -> {
+                    TODO("Not yet implemented")
+                }
+                MessagePath.INFO -> {
+                    when (it.code) {
+                        ActivityCode.START_ACTIVITY -> { // get Wear's current state
+                            toggleState(1)
+                        }
+                        ActivityCode.DO_NOTHING -> {
+                            toggleState(0)
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    /**
+     * Send a Message to Wear device on a path.
+     */
+    private fun sendMessage(message: Message, path: String) {
+        val gson = Gson()
+        connectedNode?.forEach { node ->
+            val bytes = gson.toJson(message).toByteArray()
+            Wearable.MessageApi.sendMessage(client, node.id, path, bytes)
+//            Toast.makeText(applicationContext, "Message sent!", Toast.LENGTH_LONG).show()
+        }
+    }
+
+    /**
+     * Set the code for MainActivity.Message object based on appState value.
+     *
+     * Optional parameter forceCode can be used to set custom code
+     * other than 0 and 1.
+     */
+    private fun setMessageCode(forceCode: Int = 99) {
+        if (forceCode != 99) {
+            message.code = forceCode
+        }
+        else if (appState == 0) {
+            message.code = ActivityCode.START_ACTIVITY
+        }
+        else if (appState == 1) {
+            message.code = ActivityCode.STOP_ACTIVITY
+        }
+    }
+
+    /**
+     * Toggle MainActivity.appState value and updates UI accordingly.
+     *
+     * Optional parameter forceCode can be used to set custom code
+     * other than 0 and 1.
+     */
+    private fun toggleState(forceCode: Int = 99) {
+        if (forceCode != 99) {
+            appState = forceCode
+        }
+        else if (appState == 0) {
+            appState = 1
+        }
+        else if (appState == 1) {
+            appState = 0
+        }
+        runOnUiThread {
+            if (appState == 0) {
+                buttonMain.text = getString(R.string.button_start)
+                textWearStatus.text = getString(R.string.status_stopped)
+            }
+            if (appState == 1) {
+                buttonMain.text = getString(R.string.button_stop)
+                textWearStatus.text = getString(R.string.status_running)
+            }
+            textTooltip.text = appState.toString()
+        }
+        Log.d(TAG,"stateNum changed to: $appState")
+    }
+
+    /**
+     * Callback function invoked when Node API connection with Wear device is suspended.
+     */
     override fun onConnectionSuspended(p0: Int) {
         connectedNode = null
         runOnUiThread {
@@ -195,21 +378,29 @@ class MainActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks {
 
     @Deprecated("Deprecated in Java")
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        if (requestCode == REQUEST_CODE_ENABLE_BLUETOOTH) {
-            when (resultCode) {
-                RESULT_OK -> {
-                    Toast.makeText(this,
-                        "Bluetooth enabled.",
-                        Toast.LENGTH_SHORT).show()
-                }
-                RESULT_CANCELED -> {
-                    Toast.makeText(this,
-                        "Bluetooth has not been enabled.",
-                        Toast.LENGTH_SHORT).show()
+        when (requestCode) {
+            REQUEST_CODE_ENABLE_BLUETOOTH -> {
+                when (resultCode) {
+                    RESULT_OK -> {
+                        Toast.makeText(this,
+                            "Bluetooth enabled.",
+                            Toast.LENGTH_SHORT).show()
+                    }
+                    RESULT_CANCELED -> {
+                        Toast.makeText(this,
+                            "Bluetooth has not been enabled.",
+                            Toast.LENGTH_SHORT).show()
+                    }
                 }
             }
+            REQUEST_CODE_CONNECT_HRM -> {
+                Log.i(TAG, "Mobile.ConnectHrmActivity results received.\n" +
+                        "Result code: $resultCode")
+            }
+            else -> {
+                super.onActivityResult(requestCode, resultCode, data)
+            }
         }
-        else super.onActivityResult(requestCode, resultCode, data)
     }
 
     override fun onRequestPermissionsResult(
@@ -249,98 +440,9 @@ class MainActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks {
         unregisterReceiver(bluetoothStateReceiver)
     }
 
-    private fun allPermissionsGranted() = REQUIRED_PERMISSIONS.all {
-        ContextCompat.checkSelfPermission(baseContext, it) ==
-                PackageManager.PERMISSION_GRANTED
-    }
-
-    private fun setupBluetooth() {
-        // setup bluetooth adapter
-        BluetoothService.manager = getSystemService(BluetoothManager::class.java)
-        BluetoothService.adapter = BluetoothService.manager.adapter
-
-        // check bluetooth availability
-        if (BluetoothService.adapter == null) {
-            runOnUiThread {
-                textHrmStatus.text = getString(R.string.status_no_support)
-            }
-        }
-
-        BluetoothService.enableBluetooth(this, this)
-    }
-
-    private fun onMessageArrived(messagePath: String) {
-        wearMessage?.let {
-            when (messagePath) {
-                MessagePath.COMMAND -> {
-                    if (it.code == ActivityCode.STOP_ACTIVITY) { // reset this module's state
-                        toggleState(0)
-                    }
-                }
-                MessagePath.REQUEST -> {
-                    TODO("Not yet implemented")
-                }
-                MessagePath.INFO -> {
-                    when (it.code) {
-                        ActivityCode.START_ACTIVITY -> { // get Wear's current state
-                            toggleState(1)
-                        }
-                        ActivityCode.DO_NOTHING -> {
-                            toggleState(0)
-                        }
-                    }
-                }
-            }
-        }
-    }
-
-    private fun sendMessage(message: Message, path: String) {
-        val gson = Gson()
-        connectedNode?.forEach { node ->
-            val bytes = gson.toJson(message).toByteArray()
-            Wearable.MessageApi.sendMessage(client, node.id, path, bytes)
-//            Toast.makeText(applicationContext, "Message sent!", Toast.LENGTH_LONG).show()
-        }
-    }
-
-    private fun setMessageCode(forceCode: Int = 99) {
-        if (forceCode != 99) {
-            message.code = forceCode
-        }
-        else if (appState == 0) {
-            message.code = ActivityCode.START_ACTIVITY
-        }
-        else if (appState == 1) {
-            message.code = ActivityCode.STOP_ACTIVITY
-        }
-    }
-
-    private fun toggleState(forceCode: Int = 99) {
-        if (forceCode != 99) {
-            appState = forceCode
-        }
-        else if (appState == 0) {
-            appState = 1
-        }
-        else if (appState == 1) {
-            appState = 0
-        }
-        runOnUiThread {
-            if (appState == 0) {
-                buttonMain.text = getString(R.string.button_start)
-                textWearStatus.text = getString(R.string.status_stopped)
-            }
-            if (appState == 1) {
-                buttonMain.text = getString(R.string.button_stop)
-                textWearStatus.text = getString(R.string.status_running)
-            }
-            textTooltip.text = appState.toString()
-        }
-        Log.d(TAG,"stateNum changed to: $appState")
-    }
-
     companion object {
         private const val TAG = "Mobile.MainActivity"
+        const val REQUEST_CODE_CONNECT_HRM = 20
         const val REQUEST_CODE_PERMISSIONS = 10
         private val REQUIRED_PERMISSIONS =
             mutableListOf(

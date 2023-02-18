@@ -62,12 +62,15 @@ class ConnectHrmActivity : AppCompatActivity() {
                         "BLE Device connected!",
                         Toast.LENGTH_LONG).show()
                     Log.d(TAG, "BLE Device connected!")
+                    setResult(RESULT_CODE_CONNECTION_SUCCESS)
+                    finish()
                 }
                 BluetoothLeService.ACTION_GATT_DISCONNECTED -> {
                     isConnected = false
                     Toast.makeText(applicationContext,
                         "BLE Device disconnected!",
                         Toast.LENGTH_LONG).show()
+                    setResult(RESULT_CODE_CONNECTION_FAILED)
                     Log.d(TAG, "BLE Device disconnected!")
                 }
             }
@@ -78,6 +81,7 @@ class ConnectHrmActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         binding = ActivityConnectHrmBinding.inflate(layoutInflater)
         Log.i(TAG, "Lifecycle: onCreate()")
+        setResult(RESULT_CODE_CONNECTION_FAILED)
 
         textStatus = binding.connectStatusText
         spinnerStatus = binding.connectSpinner
@@ -201,7 +205,19 @@ class ConnectHrmActivity : AppCompatActivity() {
 
         // perform connection
         Log.i(TAG, "Performing connection...")
+        runOnUiThread {
+            textStatus.text = getString(R.string.connect_status_connecting)
+            spinnerStatus.visibility = View.VISIBLE
+        }
         bluetoothLeService?.connect(targetDeviceAddress!!, this@ConnectHrmActivity)
+            .also {
+                if (!it!!) {
+                    setResult(RESULT_CODE_CONNECTION_FAILED)
+                    runOnUiThread {
+                        textStatus.text = getString(R.string.connect_status_connection_failed)
+                        spinnerStatus.visibility = View.INVISIBLE
+                    }
+            } }
     }
 
     private fun getAcquaintedDevices() {
@@ -274,5 +290,7 @@ class ConnectHrmActivity : AppCompatActivity() {
 
     companion object {
         private const val TAG = "Mobile.ConnectHrmActivity"
+        const val RESULT_CODE_CONNECTION_SUCCESS = 1
+        const val RESULT_CODE_CONNECTION_FAILED = 0
     }
 }
