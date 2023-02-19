@@ -84,7 +84,14 @@ class BluetoothLeService : Service() {
         }
     }
 
+    fun discoverGattServices(activity: Activity): Boolean? {
+        Log.d(TAG, "Discovering Gatt services...")
+        BluetoothService.checkBluetoothPermission(applicationContext, activity)
+        return bluetoothGatt?.discoverServices()
+    }
+
     fun getSupportedGattServices(): List<BluetoothGattService?>? {
+        Log.d(TAG, "Getting supported Gatt services...")
         return bluetoothGatt?.services
     }
 
@@ -143,6 +150,7 @@ class BluetoothLeService : Service() {
 
     private fun broadcastUpdate(action: String) {
         val intent = Intent(action)
+        Log.d(TAG, "Broadcasting $action")
         sendBroadcast(intent)
     }
 

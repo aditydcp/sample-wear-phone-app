@@ -22,6 +22,9 @@ import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import com.example.samplewearmobileapp.BluetoothService.REQUEST_CODE_ENABLE_BLUETOOTH
 import com.example.samplewearmobileapp.BluetoothService.bluetoothLeService
+import com.example.samplewearmobileapp.BluetoothService.makeGattUpdateIntentFilter
+import com.example.samplewearmobileapp.ConnectHrmActivity.Companion.RESULT_CODE_CONNECTION_FAILED
+import com.example.samplewearmobileapp.ConnectHrmActivity.Companion.RESULT_CODE_CONNECTION_SUCCESS
 import com.example.samplewearmobileapp.databinding.ActivityMainBinding
 import com.google.android.gms.common.api.GoogleApiClient
 import com.google.android.gms.wearable.Node
@@ -31,7 +34,6 @@ import com.google.gson.Gson
 class MainActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks {
     private lateinit var binding: ActivityMainBinding
     private lateinit var client: GoogleApiClient
-    // TODO: Consider creating a shared object for Bluetooth manager
     private var connectedNode: List<Node>? = null
     private var message: Message = Message()
     private var wearMessage: Message? = null
@@ -81,6 +83,9 @@ class MainActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks {
                         "BLE Device connected!",
                         Toast.LENGTH_LONG).show()
                     Log.d(TAG, "BLE Device connected!")
+                    runOnUiThread {
+                        textHrmStatus.text = getString(R.string.status_connected)
+                    }
                 }
                 BluetoothLeService.ACTION_GATT_DISCONNECTED -> {
                     isBleConnected = false
@@ -88,8 +93,18 @@ class MainActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks {
                         "BLE Device disconnected!",
                         Toast.LENGTH_LONG).show()
                     Log.d(TAG, "BLE Device disconnected!")
+                    runOnUiThread {
+                        textHrmStatus.text = getString(R.string.status_disconnected)
+
+                        buttonConnectHrm.text = getString(R.string.button_connect_hrm)
+                    }
+                    buttonConnectHrm.setOnClickListener {
+                        val intent = Intent(this@MainActivity, ConnectHrmActivity::class.java)
+                        startActivityForResult(intent, REQUEST_CODE_CONNECT_HRM)
+                    }
                 }
                 BluetoothLeService.ACTION_GATT_SERVICES_DISCOVERED -> {
+                    Log.d(TAG,"Discovered Service Broadcast is received")
                     // Show all the supported services and characteristics on the user interface.
                     displayGattServices(bluetoothLeService?.getSupportedGattServices())
                 }
@@ -135,8 +150,15 @@ class MainActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks {
             buttonView.visibility = View.GONE
         }
 
+        // bind this activity to BluetoothLeService
+        val gattServiceIntent = Intent(this, BluetoothLeService::class.java)
+        bindService(gattServiceIntent,
+            BluetoothService.serviceConnection, Context.BIND_AUTO_CREATE)
+            .also { Log.d(TAG, "bindService returns $it") }
+
         // register bluetooth state broadcast receiver
         registerReceiver(bluetoothStateReceiver, BluetoothService.BLUETOOTH_STATE_FILTER)
+        registerReceiver(gattUpdateReceiver, makeGattUpdateIntentFilter())
 
         // build Google API Client with access to Wearable API
         client = GoogleApiClient.Builder(this)
@@ -243,6 +265,8 @@ class MainActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks {
      * Display all available services on a GATT server.
      */
     private fun displayGattServices(gattServices: List<BluetoothGattService?>?) {
+        Log.d(TAG,"Displaying Gatt Services...")
+
         if (gattServices == null) return
         var uuid: String?
         val unknownServiceString: String = "Unknown service"
@@ -278,6 +302,9 @@ class MainActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks {
             mGattCharacteristics += characteristics
             gattCharacteristicData += gattCharacteristicGroupData
         }
+        Log.i(TAG, "Services: $gattServiceData")
+        Log.i(TAG, "Characteristics: $gattCharacteristicData")
+        Log.i(TAG, "mCharacteristics: $mGattCharacteristics")
     }
 
     /**
@@ -424,22 +451,49 @@ class MainActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks {
     override fun onRestart() {
         super.onRestart()
         Log.i(TAG,"Lifecycle: onRestart()")
-        // re-register bluetooth state receiver
-        registerReceiver(bluetoothStateReceiver, BluetoothService.BLUETOOTH_STATE_FILTER)
+        // re-register receivers
+        try {
+            registerReceiver(bluetoothStateReceiver, BluetoothService.BLUETOOTH_STATE_FILTER)
+        } catch (e: Exception) {
+            Log.d(TAG, "Bluetooth State Receiver is already registered")
+        }
+        try {
+            registerReceiver(gattUpdateReceiver, makeGattUpdateIntentFilter())
+        } catch (e: Exception) {
+            Log.d(TAG, "Gatt Update Receiver is already registered")
+        }
     }
 
     override fun onStop() {
         super.onStop()
         Log.i(TAG, "Lifecycle: onStop()")
-        // unregister receiver
-        unregisterReceiver(bluetoothStateReceiver)
+        // unregister receivers
+        try {
+            unregisterReceiver(bluetoothStateReceiver)
+        } catch (e: Exception) {
+            Log.d(TAG,"Bluetooth State Receiver is already unregistered")
+        }
+        try {
+            unregisterReceiver(gattUpdateReceiver)
+        } catch (e: Exception) {
+            Log.d(TAG,"Gatt Update Receiver is already unregistered")
+        }
     }
 
     override fun onDestroy() {
         super.onDestroy()
         Log.i(TAG,"Lifecycle: onDestroy()")
-        // unregister receiver
-        unregisterReceiver(bluetoothStateReceiver)
+        // unregister receivers
+        try {
+            unregisterReceiver(bluetoothStateReceiver)
+        } catch (e: Exception) {
+            Log.d(TAG,"Bluetooth State Receiver is already unregistered")
+        }
+        try {
+            unregisterReceiver(gattUpdateReceiver)
+        } catch (e: Exception) {
+            Log.d(TAG,"Gatt Update Receiver is already unregistered")
+        }
     }
 
     companion object {

@@ -12,6 +12,7 @@ import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.forEach
 import com.example.samplewearmobileapp.BluetoothService.bluetoothLeService
+import com.example.samplewearmobileapp.BluetoothService.makeGattUpdateIntentFilter
 import com.example.samplewearmobileapp.BluetoothService.serviceConnection
 import com.example.samplewearmobileapp.databinding.ActivityConnectHrmBinding
 
@@ -72,6 +73,10 @@ class ConnectHrmActivity : AppCompatActivity() {
                         Toast.LENGTH_LONG).show()
                     setResult(RESULT_CODE_CONNECTION_FAILED)
                     Log.d(TAG, "BLE Device disconnected!")
+                    runOnUiThread {
+                        textStatus.text = getString(R.string.connect_status_connection_failed)
+                        spinnerStatus.visibility = View.INVISIBLE
+                    }
                 }
             }
         }
@@ -103,6 +108,9 @@ class ConnectHrmActivity : AppCompatActivity() {
         bindService(gattServiceIntent,
             serviceConnection, Context.BIND_AUTO_CREATE)
             .also { Log.d(TAG, "bindService returns $it") }
+
+        // register broadcast receiver
+        registerReceiver(gattUpdateReceiver, makeGattUpdateIntentFilter())
 
         // start bluetooth device finder
         startSearch()
@@ -209,6 +217,7 @@ class ConnectHrmActivity : AppCompatActivity() {
             textStatus.text = getString(R.string.connect_status_connecting)
             spinnerStatus.visibility = View.VISIBLE
         }
+        BluetoothService.stopLeDeviceSearch(this, this)
         bluetoothLeService?.connect(targetDeviceAddress!!, this@ConnectHrmActivity)
             .also {
                 if (!it!!) {
@@ -243,21 +252,24 @@ class ConnectHrmActivity : AppCompatActivity() {
         listAcquaintedDevicesAdapter.notifyDataSetChanged()
     }
 
-    private fun makeGattUpdateIntentFilter(): IntentFilter? {
-        return IntentFilter().apply {
-            addAction(BluetoothLeService.ACTION_GATT_CONNECTED)
-            addAction(BluetoothLeService.ACTION_GATT_DISCONNECTED)
-        }
+    override fun finish() {
+        Log.i(TAG,"Activity finished on code: " +
+                if (isConnected) {
+                    "$RESULT_CODE_CONNECTION_SUCCESS"
+                } else {
+                    "$RESULT_CODE_CONNECTION_FAILED"
+                })
+        super.finish()
     }
 
     override fun onRestart() {
         super.onRestart()
         Log.i(TAG, "Lifecycle: onRestart()")
-    }
-
-    override fun onResume() {
-        super.onResume()
-        registerReceiver(gattUpdateReceiver, makeGattUpdateIntentFilter())
+        try {
+            registerReceiver(gattUpdateReceiver, makeGattUpdateIntentFilter())
+        } catch (e: Exception) {
+            Log.d(TAG,"Gatt Update Receiver is already registered")
+        }
         if (bluetoothLeService != null) {
             val result = bluetoothLeService!!
                 .connect(targetDeviceAddress!!, this)
@@ -265,10 +277,19 @@ class ConnectHrmActivity : AppCompatActivity() {
         }
     }
 
-    override fun onPause() {
-        super.onPause()
-        unregisterReceiver(gattUpdateReceiver)
-    }
+//    override fun onResume() {
+//        super.onResume()
+//        try {
+//            registerReceiver(gattUpdateReceiver, makeGattUpdateIntentFilter())
+//        } catch (e: Exception) {
+//            Log.d(TAG,"Gatt Update Receiver is already registered")
+//        }
+//        if (bluetoothLeService != null) {
+//            val result = bluetoothLeService!!
+//                .connect(targetDeviceAddress!!, this)
+//            Log.d(TAG, "Connect request result=$result")
+//        }
+//    }
 
     override fun onStop() {
         super.onStop()
@@ -276,7 +297,11 @@ class ConnectHrmActivity : AppCompatActivity() {
         // stop search
         BluetoothService.stopLeDeviceSearch(this, this)
         // unregister receiver
-        unregisterReceiver(gattUpdateReceiver)
+        try {
+            unregisterReceiver(gattUpdateReceiver)
+        } catch (e: Exception) {
+            Log.d(TAG,"Gatt Update Receiver is already unregistered")
+        }
     }
 
     override fun onDestroy() {
@@ -285,7 +310,11 @@ class ConnectHrmActivity : AppCompatActivity() {
         // stop search
         BluetoothService.stopLeDeviceSearch(this, this)
         // unregister receiver
-        unregisterReceiver(gattUpdateReceiver)
+        try {
+            unregisterReceiver(gattUpdateReceiver)
+        } catch (e: Exception) {
+            Log.d(TAG,"Gatt Update Receiver is already unregistered")
+        }
     }
 
     companion object {

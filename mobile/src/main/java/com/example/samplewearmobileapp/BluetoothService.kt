@@ -153,13 +153,12 @@ object BluetoothService {
      */
     fun stopLeDeviceSearch(context: Context, activity: Activity) {
         checkBluetoothPermission(context, activity)
-        if (isLeScanning && leScanCallback != null)
-            adapter?.bluetoothLeScanner?.stopScan(leScanCallback)
-        else {
-            Log.e(TAG, "Error: stopDeviceSearch() encountered an error!\n" +
-                    "Possible cause:\n" +
-                    "\t(1) LE device search has not started yet.\n" +
-                    "\t(2) property leScanCallback is null.")
+        if (isLeScanning) {
+            if (leScanCallback != null)
+                adapter?.bluetoothLeScanner?.stopScan(leScanCallback)
+            else {
+                Log.e(TAG, "Error: stopDeviceSearch(): leScanCallback is null")
+            }
         }
     }
 
@@ -197,6 +196,17 @@ object BluetoothService {
                 )
                 return
             }
+        }
+    }
+
+    /**
+     * Generate Gatt Update Intent Filter for broadcast receiver filter.
+     */
+    fun makeGattUpdateIntentFilter(): IntentFilter {
+        return IntentFilter().apply {
+            addAction(BluetoothLeService.ACTION_GATT_CONNECTED)
+            addAction(BluetoothLeService.ACTION_GATT_DISCONNECTED)
+            addAction(BluetoothLeService.ACTION_GATT_SERVICES_DISCOVERED)
         }
     }
 }
