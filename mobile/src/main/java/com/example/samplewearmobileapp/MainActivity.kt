@@ -425,6 +425,45 @@ class MainActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks {
             REQUEST_CODE_CONNECT_HRM -> {
                 Log.i(TAG, "Mobile.ConnectHrmActivity results received.\n" +
                         "Result code: $resultCode")
+                when (resultCode) {
+                    RESULT_CODE_CONNECTION_SUCCESS -> {
+                        runOnUiThread {
+                            textHrmStatus.text = getString(R.string.status_connected)
+
+                            buttonConnectHrm.text = getString(R.string.button_discover_services)
+                        }
+
+                        // re-register receivers
+                        try {
+                            registerReceiver(bluetoothStateReceiver,
+                                BluetoothService.BLUETOOTH_STATE_FILTER)
+                        } catch (e: Exception) {
+                            Log.d(TAG, "Bluetooth State Receiver is already registered")
+                        }
+                        try {
+                            registerReceiver(gattUpdateReceiver,
+                                makeGattUpdateIntentFilter())
+                        } catch (e: Exception) {
+                            Log.d(TAG, "Gatt Update Receiver is already registered")
+                        }
+
+                        buttonConnectHrm.setOnClickListener {
+                            bluetoothLeService?.discoverGattServices(this)
+                        }
+
+//                        if (bluetoothLeService?.discoverGattServices(this)
+//                            == true) {
+//                            Log.d(TAG, "Discovering Gatt services...")
+//                        } else {
+//                            Log.d(TAG, "Gatt service discover encountered a problem.")
+//                        }
+                    }
+                    RESULT_CODE_CONNECTION_FAILED -> {
+                        runOnUiThread {
+                            textHrmStatus.text = getString(R.string.status_disconnected)
+                        }
+                    }
+                }
             }
             else -> {
                 super.onActivityResult(requestCode, resultCode, data)
