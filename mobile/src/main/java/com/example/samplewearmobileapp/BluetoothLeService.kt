@@ -49,6 +49,8 @@ class BluetoothLeService : Service() {
             characteristic: BluetoothGattCharacteristic,
             status: Int
         ) {
+            Log.d(TAG,"Characteristic read! Status: $status\n" +
+                    "UUID: ${characteristic.uuid}")
             if (status == BluetoothGatt.GATT_SUCCESS) {
                 broadcastUpdate(ACTION_DATA_AVAILABLE, characteristic)
             }
@@ -59,6 +61,8 @@ class BluetoothLeService : Service() {
             gatt: BluetoothGatt,
             characteristic: BluetoothGattCharacteristic
         ) {
+            Log.d(TAG,"Characteristic changed.\n" +
+                    "UUID: ${characteristic.uuid}")
             broadcastUpdate(ACTION_DATA_AVAILABLE, characteristic)
         }
     }
@@ -124,12 +128,14 @@ class BluetoothLeService : Service() {
         enabled: Boolean,
         activity: Activity
     ) {
+        Log.i(TAG,"Setting characteristic Notification for ${characteristic.uuid}")
         bluetoothGatt?.let { gatt ->
             BluetoothService.checkBluetoothPermission(applicationContext, activity)
             gatt.setCharacteristicNotification(characteristic, enabled)
 
             // This is specific to Heart Rate Measurement.
             if (toUUID(UUID_HEART_RATE_MEASUREMENT) == characteristic.uuid) {
+                Log.i(TAG, "Setting up descriptor...")
                 val descriptor = characteristic
                     .getDescriptor(UUID.fromString(
                         SampleGattAttributes.CLIENT_CHARACTERISTIC_CONFIG))
@@ -147,6 +153,8 @@ class BluetoothLeService : Service() {
      * This will invoke onCharacteristicRead on BluetoothGattCallback.
      */
     fun readCharacteristic(characteristic: BluetoothGattCharacteristic, activity: Activity) {
+        Log.i(TAG,"Attempting to read characteristic...\n" +
+                "UUID: ${characteristic.uuid}")
         bluetoothGatt?.let { gatt ->
             BluetoothService.checkBluetoothPermission(applicationContext, activity)
             gatt.readCharacteristic(characteristic)
@@ -167,14 +175,28 @@ class BluetoothLeService : Service() {
         serviceUUID: String,
         characteristicUUID: String)
     : BluetoothGattCharacteristic? {
+        var service: BluetoothGattService? = null
         var characteristic: BluetoothGattCharacteristic? = null
         try {
-            characteristic = bluetoothGatt?.getService(
-                toUUID(serviceUUID))?.getCharacteristic(
-                toUUID(characteristicUUID))
+            Log.d(TAG, "Getting service of UUID: ${toUUID(serviceUUID)}")
+            service = bluetoothGatt?.getService(toUUID(serviceUUID))
+            if (service != null) {
+                Log.d(TAG, "Service correct!")
+
+                Log.d(TAG, "Getting characteristic of UUID: ${toUUID(characteristicUUID)}")
+                characteristic = service.getCharacteristic(toUUID(characteristicUUID))
+            }
+            else Log.w(TAG, "Service is still null")
+
+//            characteristic = bluetoothGatt?.getService(
+//                toUUID(serviceUUID))?.getCharacteristic(
+//                toUUID(characteristicUUID))
         } catch (e: Exception) {
             Log.w(TAG, "Service and Characteristics did not match", e)
         }
+
+        if (characteristic != null) Log.d(TAG, "Characteristic returned successfully.")
+        else Log.w(TAG, "Returned characteristic is null")
         return characteristic
     }
 
@@ -186,6 +208,9 @@ class BluetoothLeService : Service() {
 
     private fun broadcastUpdate(action: String, characteristic: BluetoothGattCharacteristic) {
         val intent = Intent(action)
+
+        Log.d(TAG,"Characteristic UUID: ${characteristic.uuid}")
+        Log.d(TAG,"Validator: ${toUUID(UUID_HEART_RATE_MEASUREMENT)}")
 
         // This is special handling for the Heart Rate Measurement profile. Data
         // parsing is carried out as per profile specifications.
@@ -208,6 +233,7 @@ class BluetoothLeService : Service() {
             }
             else -> {
                 // For all other profiles, writes the data formatted in HEX.
+                Log.d(TAG,"Unknown profile arrived.")
                 val data: ByteArray? = characteristic.value
                 if (data?.isNotEmpty() == true) {
                     val hexString: String = data.joinToString(separator = " ") {
@@ -229,6 +255,8 @@ class BluetoothLeService : Service() {
         }
         uuidString = uuidString.plus(uuid)
             .plus("-0000-1000-8000-00805F9B34FB")
+
+        Log.d(TAG, "Converting string $uuidString to UUID...")
 
         return UUID.fromString(uuidString)
     }

@@ -36,7 +36,7 @@
     <string name="button_normal_view">Normal View</string>
     <string name="button_connect_hrm">Connect to HRM ></string>
     <string name="button_discover_services">Discover services ></string>
-    <string name="button_start_receiving">Start receiving data ></string>
+    <string name="button_start_receiving">Start data stream</string>
 
     <string name="connect_status_searching">Searching for devices…</string>
     <string name="connect_status_stopped">Search timeout.</string>

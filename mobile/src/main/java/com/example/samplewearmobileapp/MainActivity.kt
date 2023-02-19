@@ -457,6 +457,7 @@ class MainActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks {
                         }
 
                         buttonConnectHrm.setOnClickListener {
+                            Log.d(TAG, "Start receiving Button clicked!")
                             val characteristic = bluetoothLeService?.getCharacteristicFromService(
                                 UUID_HEART_RATE_SERVICE, UUID_HEART_RATE_MEASUREMENT)
                             if (characteristic != null) {
@@ -466,15 +467,19 @@ class MainActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks {
                                 bluetoothLeService?.readCharacteristic(
                                     characteristic, this)
                             }
+
+                            runOnUiThread {
+                                textHrmStatus.text = getString(R.string.status_running)
+                            }
 //                            bluetoothLeService?.discoverGattServices(this)
                         }
 
-//                        if (bluetoothLeService?.discoverGattServices(this)
-//                            == true) {
-//                            Log.d(TAG, "Discovering Gatt services...")
-//                        } else {
-//                            Log.d(TAG, "Gatt service discover encountered a problem.")
-//                        }
+                        if (bluetoothLeService?.discoverGattServices(this)
+                            == true) {
+                            Log.d(TAG, "Discovering Gatt services...")
+                        } else {
+                            Log.d(TAG, "Gatt service discover encountered a problem.")
+                        }
                     }
                     RESULT_CODE_CONNECTION_FAILED -> {
                         runOnUiThread {
