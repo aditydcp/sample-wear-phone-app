@@ -227,7 +227,7 @@ class BluetoothLeService : Service() {
                         BluetoothGattCharacteristic.FORMAT_UINT8
                     }
                 }
-                val hasEE = when (flag and 0x04 shr 2) {
+                val hasEE = when (flag and 0x08 shr 3) {
                     0x01 -> {
                         Log.d(TAG,"Energy Expended field is present. Units: kilo Joules")
                         true
@@ -237,7 +237,7 @@ class BluetoothLeService : Service() {
                         false
                     }
                 }
-                val hasRR = when (flag and 0x08 shr 3) {
+                val hasRR = when (flag and 0x10 shr 4) {
                     0x01 -> {
                         Log.d(TAG,"One or more RR-Interval values are present.")
                         true
