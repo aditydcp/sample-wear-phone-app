@@ -116,6 +116,9 @@ class BluetoothLeService : Service() {
         }
     }
 
+    /**
+     * Enable/disable notification on characteristic according to `enabled` parameter.
+     */
     fun setCharacteristicNotification(
         characteristic: BluetoothGattCharacteristic,
         enabled: Boolean,
@@ -138,6 +141,11 @@ class BluetoothLeService : Service() {
         }
     }
 
+    /**
+     * Asynchronously read the characteristic value.
+     *
+     * This will invoke onCharacteristicRead on BluetoothGattCallback.
+     */
     fun readCharacteristic(characteristic: BluetoothGattCharacteristic, activity: Activity) {
         bluetoothGatt?.let { gatt ->
             BluetoothService.checkBluetoothPermission(applicationContext, activity)
