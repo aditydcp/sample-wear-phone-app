@@ -9,6 +9,7 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.nfc.NfcAdapter.EXTRA_DATA
 import android.os.Build
 import android.os.Bundle
 import android.util.Log
@@ -20,6 +21,8 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import com.example.samplewearmobileapp.BluetoothLeService.Companion.UUID_HEART_RATE_MEASUREMENT
+import com.example.samplewearmobileapp.BluetoothLeService.Companion.UUID_HEART_RATE_SERVICE
 import com.example.samplewearmobileapp.BluetoothService.REQUEST_CODE_ENABLE_BLUETOOTH
 import com.example.samplewearmobileapp.BluetoothService.bluetoothLeService
 import com.example.samplewearmobileapp.BluetoothService.makeGattUpdateIntentFilter
@@ -105,8 +108,14 @@ class MainActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks {
                 }
                 BluetoothLeService.ACTION_GATT_SERVICES_DISCOVERED -> {
                     Log.d(TAG,"Discovered Service Broadcast is received")
-                    // Show all the supported services and characteristics on the user interface.
-                    displayGattServices(bluetoothLeService?.getSupportedGattServices())
+
+//                    // Show all the supported services and characteristics on the user interface.
+//                    displayGattServices(bluetoothLeService?.getSupportedGattServices())
+                }
+                BluetoothService.ACTION_DATA_AVAILABLE -> {
+                    Log.d(TAG, "Available data received!")
+                    val data = intent.getStringExtra(EXTRA_DATA)
+                    Log.i(TAG,"Data arrived: $data")
                 }
             }
         }
@@ -261,51 +270,51 @@ class MainActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks {
         BluetoothService.enableBluetooth(this, this)
     }
 
-    /**
-     * Display all available services on a GATT server.
-     */
-    private fun displayGattServices(gattServices: List<BluetoothGattService?>?) {
-        Log.d(TAG,"Displaying Gatt Services...")
-
-        if (gattServices == null) return
-        var uuid: String?
-        val unknownServiceString: String = "Unknown service"
-        val unknownCharaString: String = "Unknown characteristic"
-        val gattServiceData: MutableList<HashMap<String, String>> = mutableListOf()
-        val gattCharacteristicData: MutableList<ArrayList<HashMap<String, String>>> =
-            mutableListOf()
-        val mGattCharacteristics: MutableList<BluetoothGattCharacteristic> = mutableListOf()
-
-        // Loops through available GATT Services.
-        gattServices.forEach { gattService ->
-            val currentServiceData = HashMap<String, String>()
-            var uuid: String? = null
-            if (gattService != null) {
-                uuid = gattService.uuid.toString()
-            }
-            currentServiceData[LIST_NAME] = SampleGattAttributes.lookup(uuid, unknownServiceString)
-            currentServiceData[LIST_UUID] = uuid.toString()
-            gattServiceData += currentServiceData
-
-            val gattCharacteristicGroupData: ArrayList<HashMap<String, String>> = arrayListOf()
-            val characteristics: MutableList<BluetoothGattCharacteristic> = mutableListOf()
-
-            // Loops through available Characteristics.
-            gattService?.characteristics?.forEach { gattCharacteristic ->
-                characteristics += gattCharacteristic
-                val currentCharaData: HashMap<String, String> = hashMapOf()
-                uuid = gattCharacteristic.uuid.toString()
-                currentCharaData[LIST_NAME] = SampleGattAttributes.lookup(uuid, unknownCharaString)
-                currentCharaData[LIST_UUID] = uuid!!
-                gattCharacteristicGroupData += currentCharaData
-            }
-            mGattCharacteristics += characteristics
-            gattCharacteristicData += gattCharacteristicGroupData
-        }
-        Log.i(TAG, "Services: $gattServiceData")
-        Log.i(TAG, "Characteristics: $gattCharacteristicData")
-        Log.i(TAG, "mCharacteristics: $mGattCharacteristics")
-    }
+//    /**
+//     * Display all available services on a GATT server.
+//     */
+//    private fun displayGattServices(gattServices: List<BluetoothGattService?>?) {
+//        Log.d(TAG,"Displaying Gatt Services...")
+//
+//        if (gattServices == null) return
+//        var uuid: String?
+//        val unknownServiceString: String = "Unknown service"
+//        val unknownCharaString: String = "Unknown characteristic"
+//        val gattServiceData: MutableList<HashMap<String, String>> = mutableListOf()
+//        val gattCharacteristicData: MutableList<ArrayList<HashMap<String, String>>> =
+//            mutableListOf()
+//        val mGattCharacteristics: MutableList<BluetoothGattCharacteristic> = mutableListOf()
+//
+//        // Loops through available GATT Services.
+//        gattServices.forEach { gattService ->
+//            val currentServiceData = HashMap<String, String>()
+//            var uuid: String? = null
+//            if (gattService != null) {
+//                uuid = gattService.uuid.toString()
+//            }
+//            currentServiceData[LIST_NAME] = SampleGattAttributes.lookup(uuid, unknownServiceString)
+//            currentServiceData[LIST_UUID] = uuid.toString()
+//            gattServiceData += currentServiceData
+//
+//            val gattCharacteristicGroupData: ArrayList<HashMap<String, String>> = arrayListOf()
+//            val characteristics: MutableList<BluetoothGattCharacteristic> = mutableListOf()
+//
+//            // Loops through available Characteristics.
+//            gattService?.characteristics?.forEach { gattCharacteristic ->
+//                characteristics += gattCharacteristic
+//                val currentCharaData: HashMap<String, String> = hashMapOf()
+//                uuid = gattCharacteristic.uuid.toString()
+//                currentCharaData[LIST_NAME] = SampleGattAttributes.lookup(uuid, unknownCharaString)
+//                currentCharaData[LIST_UUID] = uuid!!
+//                gattCharacteristicGroupData += currentCharaData
+//            }
+//            mGattCharacteristics += characteristics
+//            gattCharacteristicData += gattCharacteristicGroupData
+//        }
+//        Log.i(TAG, "Services: $gattServiceData")
+//        Log.i(TAG, "Characteristics: $gattCharacteristicData")
+//        Log.i(TAG, "mCharacteristics: $mGattCharacteristics")
+//    }
 
     /**
      * Responding incoming message from Message API according to the path.
@@ -430,7 +439,7 @@ class MainActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks {
                         runOnUiThread {
                             textHrmStatus.text = getString(R.string.status_connected)
 
-                            buttonConnectHrm.text = getString(R.string.button_discover_services)
+                            buttonConnectHrm.text = getString(R.string.button_start_receiving)
                         }
 
                         // re-register receivers
@@ -448,7 +457,16 @@ class MainActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks {
                         }
 
                         buttonConnectHrm.setOnClickListener {
-                            bluetoothLeService?.discoverGattServices(this)
+                            val characteristic = bluetoothLeService?.getCharacteristicFromService(
+                                UUID_HEART_RATE_SERVICE, UUID_HEART_RATE_MEASUREMENT)
+                            if (characteristic != null) {
+                                bluetoothLeService?.setCharacteristicNotification(
+                                    characteristic, true, this
+                                )
+                                bluetoothLeService?.readCharacteristic(
+                                    characteristic, this)
+                            }
+//                            bluetoothLeService?.discoverGattServices(this)
                         }
 
 //                        if (bluetoothLeService?.discoverGattServices(this)

@@ -207,6 +207,7 @@ object BluetoothService {
             addAction(BluetoothLeService.ACTION_GATT_CONNECTED)
             addAction(BluetoothLeService.ACTION_GATT_DISCONNECTED)
             addAction(BluetoothLeService.ACTION_GATT_SERVICES_DISCOVERED)
+            addAction(ACTION_DATA_AVAILABLE)
         }
     }
 }

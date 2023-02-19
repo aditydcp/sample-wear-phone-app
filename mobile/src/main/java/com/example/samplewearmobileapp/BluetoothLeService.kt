@@ -156,6 +156,28 @@ class BluetoothLeService : Service() {
         }
     }
 
+    /**
+     * Get a BluetoothGattCharacteristic type by Service and Characteristic UUID.
+     *
+     * The parameters are the 16 bit UUID (4 digits HEX) in String.
+     *
+     * Returns null if any UUID not valid, supported or not a valid combination.
+     */
+    fun getCharacteristicFromService(
+        serviceUUID: String,
+        characteristicUUID: String)
+    : BluetoothGattCharacteristic? {
+        var characteristic: BluetoothGattCharacteristic? = null
+        try {
+            characteristic = bluetoothGatt?.getService(
+                toUUID(serviceUUID))?.getCharacteristic(
+                toUUID(characteristicUUID))
+        } catch (e: Exception) {
+            Log.w(TAG, "Service and Characteristics did not match", e)
+        }
+        return characteristic
+    }
+
     private fun broadcastUpdate(action: String) {
         val intent = Intent(action)
         Log.d(TAG, "Broadcasting $action")
