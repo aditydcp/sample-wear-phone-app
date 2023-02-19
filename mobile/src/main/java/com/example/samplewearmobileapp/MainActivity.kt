@@ -21,6 +21,8 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import com.example.samplewearmobileapp.BluetoothLeService.Companion.EXTRA_HR
+import com.example.samplewearmobileapp.BluetoothLeService.Companion.EXTRA_RR
 import com.example.samplewearmobileapp.BluetoothLeService.Companion.UUID_HEART_RATE_MEASUREMENT
 import com.example.samplewearmobileapp.BluetoothLeService.Companion.UUID_HEART_RATE_SERVICE
 import com.example.samplewearmobileapp.BluetoothService.REQUEST_CODE_ENABLE_BLUETOOTH
@@ -33,6 +35,8 @@ import com.google.android.gms.common.api.GoogleApiClient
 import com.google.android.gms.wearable.Node
 import com.google.android.gms.wearable.Wearable
 import com.google.gson.Gson
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
 
 class MainActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks {
     private lateinit var binding: ActivityMainBinding
@@ -114,8 +118,35 @@ class MainActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks {
                 }
                 BluetoothService.ACTION_DATA_AVAILABLE -> {
                     Log.d(TAG, "Available data received!")
+                    runOnUiThread {
+                        textHrmTimestamp.text =
+                            LocalDateTime.now()
+                                .format(DateTimeFormatter.ISO_DATE_TIME)
+                                .toString()
+                    }
+                    val hr = intent.getStringExtra(EXTRA_HR)
+                    if (hr != null) {
+                        runOnUiThread {
+                            textHrmHr.text = hr
+                        }
+                    } else {
+                        runOnUiThread {
+                            textHrmHr.text = getString(R.string.default_value)
+                        }
+                    }
+                    val rr = intent.getStringExtra(EXTRA_RR)
+                    if (rr != null) {
+                        runOnUiThread {
+                            textHrmIbi.text = rr
+                        }
+                    } else {
+                        runOnUiThread {
+                            textHrmIbi.text = getString(R.string.default_value)
+                        }
+                    }
                     val data = intent.getStringExtra(EXTRA_DATA)
-                    Log.i(TAG,"Data arrived: $data")
+                    if (data != null)
+                        Log.i(TAG,"Data arrived: $data")
                 }
             }
         }

@@ -255,17 +255,64 @@ class BluetoothLeService : Service() {
                         String.format("%02X", it)
                     }
                 }
+                val size = data?.size
                 Log.d(TAG, "Raw characteristic value: $data\n" +
+                        "Size: $size\n" +
                         "HEX: $hexString")
 
                 val heartRate = characteristic.getIntValue(format, 1)
-                Log.d(TAG, String.format("Received heart rate: %d", heartRate))
-                intent.putExtra(EXTRA_DATA, (heartRate).toString())
-//                if (hasRR) {
-//                    if (!hasEE) {
-//
-//                    }
-//                }
+                var rrValue = 0
+                Log.d(TAG, String.format("Received heart rate: %d bpm", heartRate))
+                intent.putExtra(EXTRA_HR, (heartRate).toString())
+                if (hasRR) {
+                    if (!hasEE) {
+                        if (size != null) {
+                            // TODO: Need other way to approach multiple RR readings
+                            // Problem: No timestamp received from the device
+                            for (i in 2 until size step 2) {
+                                Log.d(TAG, "For loop -> i = $i")
+                                rrValue += characteristic
+                                    .getIntValue(
+                                        BluetoothGattCharacteristic.FORMAT_UINT16,
+                                        i
+                                    )
+                            }
+                            rrValue /= ((size - 2) / 2)
+                            Log.d(TAG, "Average RR Value this measurement: $rrValue ms")
+                        }
+                        intent.putExtra(EXTRA_RR, rrValue.toString())
+                    //                        when (size) {
+                    //                            6 -> {
+                    //                                val oldEventTimeUint16 = characteristic
+                    //                                    .getIntValue(BluetoothGattCharacteristic.FORMAT_UINT16,
+                    //                                        2)
+                    //                                val oldEventTime = characteristic
+                    //                                    .getIntValue(BluetoothGattCharacteristic.FORMAT_UINT8,
+                    //                                        2) +
+                    //                                        characteristic
+                    //                                            .getIntValue(BluetoothGattCharacteristic.FORMAT_UINT8,
+                    //                                                3) shl 8
+                    //                                val newEventTimeUint16 = characteristic
+                    //                                    .getIntValue(BluetoothGattCharacteristic.FORMAT_UINT16,
+                    //                                        4)
+                    //                                val newEventTime = characteristic
+                    //                                    .getIntValue(BluetoothGattCharacteristic.FORMAT_UINT8,
+                    //                                        4) +
+                    //                                        characteristic
+                    //                                            .getIntValue(BluetoothGattCharacteristic.FORMAT_UINT8,
+                    //                                                5) shl 8
+                    //                                Log.d(TAG,"Timestamps:\n" +
+                    //                                        "Old Event Time: $oldEventTime\n" +
+                    //                                        "Old Event Time in uint16: $oldEventTimeUint16\n" +
+                    //                                        "New Event Time: $newEventTime\n" +
+                    //                                        "New Event Time in uint16: $newEventTimeUint16")
+                    //                            }
+                    //                            4 -> {
+                    //
+                    //                            }
+                    //                        }
+                    }
+                }
             }
             else -> {
                 // For all other profiles, writes the data formatted in HEX.
@@ -340,5 +387,10 @@ class BluetoothLeService : Service() {
         const val UUID_HEART_RATE_SERVICE = "180D"
         const val UUID_BATTERY_LEVEL = "2A19"
         const val UUID_BATTERY_SERVICE = "180F"
+
+        const val EXTRA_HR =
+            "com.example.samplewearmobileapp.mobile.bluetooth.le.EXTRA_HR"
+        const val EXTRA_RR =
+            "com.example.samplewearmobileapp.mobile.bluetooth.le.EXTRA_RR"
     }
 }
