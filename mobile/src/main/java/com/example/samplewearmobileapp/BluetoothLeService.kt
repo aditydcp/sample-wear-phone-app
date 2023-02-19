@@ -227,9 +227,45 @@ class BluetoothLeService : Service() {
                         BluetoothGattCharacteristic.FORMAT_UINT8
                     }
                 }
+                val hasEE = when (flag and 0x04 shr 2) {
+                    0x01 -> {
+                        Log.d(TAG,"Energy Expended field is present. Units: kilo Joules")
+                        true
+                    }
+                    else -> {
+                        Log.d(TAG,"Energy Expended field is not present.")
+                        false
+                    }
+                }
+                val hasRR = when (flag and 0x08 shr 3) {
+                    0x01 -> {
+                        Log.d(TAG,"One or more RR-Interval values are present.")
+                        true
+                    }
+                    else -> {
+                        Log.d(TAG,"RR-Interval values are not present.")
+                        false
+                    }
+                }
+                // raw data
+                val data: ByteArray? = characteristic.value
+                var hexString: String? = null
+                if (data?.isNotEmpty() == true) {
+                    hexString = data.joinToString(separator = " ") {
+                        String.format("%02X", it)
+                    }
+                }
+                Log.d(TAG, "Raw characteristic value: $data\n" +
+                        "HEX: $hexString")
+
                 val heartRate = characteristic.getIntValue(format, 1)
                 Log.d(TAG, String.format("Received heart rate: %d", heartRate))
                 intent.putExtra(EXTRA_DATA, (heartRate).toString())
+//                if (hasRR) {
+//                    if (!hasEE) {
+//
+//                    }
+//                }
             }
             else -> {
                 // For all other profiles, writes the data formatted in HEX.
