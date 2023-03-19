@@ -20,6 +20,14 @@ class TrackerDataNotifier {
         })
     }
 
+    fun notifyPpgGreenTrackerObservers(ppgGreenData: PpgGreenData) {
+        observers.forEach(Consumer { observer: TrackerDataObserver ->
+            observer.onPpgGreenTrackerDataChanged(
+                ppgGreenData
+            )
+        })
+    }
+
     fun notifyError(errorResourceId: Int) {
         observers.forEach(Consumer { observer: TrackerDataObserver ->
             observer.onError(

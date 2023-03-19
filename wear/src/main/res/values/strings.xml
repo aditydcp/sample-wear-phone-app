@@ -8,23 +8,25 @@
     <string name="updated_message">Message just arrived.</string>
     <string name="message_placeholder">Please click the button on the phone app.</string>
     <string name="status_text">App Status : </string>
-    <string name="default_status">No status</string>
 
     <string name="BodySensors">android.permission.BODY_SENSORS</string>
 
     <string name="heart_rate_text">Heart Rate : </string>
-    <string name="default_heart_rate">0</string>
     <string name="heart_rate_status_text">HR Status : </string>
-    <string name="default_heart_rate_status">No status</string>
+
     <string name="ibi_text">Heart Rate IBI : </string>
-    <string name="default_ibi">0</string>
     <string name="ibi_status_text">IBI Status : </string>
-    <string name="default_ibi_status">No status</string>
     <string name="ibi_status_good">Good</string>
     <string name="ibi_status_bad">Bad</string>
 
+    <string name="ppg_green_batch_text">PPG Green Batch : </string>
+    <string name="ppg_green_text">PPG Green : </string>
+    <string name="ppg_green_timestamp">PPG Green Timestamp : </string>
+
     <string name="status_running">Running</string>
     <string name="status_stopped">Stopped</string>
+    <string name="default_status">No status</string>
+    <string name="default_value">0</string>
 
     <string name="no_content">Message received without content</string>
 

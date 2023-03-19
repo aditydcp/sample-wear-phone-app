@@ -47,6 +47,12 @@ class ConnectionManager(observer: ConnectionObserver) {
         setHandlerForListener(heartRateListener)
     }
 
+    fun initPpgGreen(ppgGreenListener: PpgGreenListener) {
+        val healthTracker = healthTrackingService.getHealthTracker(HealthTrackerType.PPG_GREEN)
+        ppgGreenListener.setHealthTracker(healthTracker)
+        setHandlerForListener(ppgGreenListener)
+    }
+
     private fun setHandlerForListener(listener: Listener) {
         listener.setHandler(Handler(Looper.getMainLooper()))
     }

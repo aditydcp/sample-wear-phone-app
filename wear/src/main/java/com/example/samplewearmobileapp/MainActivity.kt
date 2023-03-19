@@ -28,21 +28,28 @@ class MainActivity : Activity(), GoogleApiClient.ConnectionCallbacks {
     private var message: Message = Message()
     private var currentMessage: Message? = null
     private var currentState = 0
+    private var currentDataBatchNumber = 0
 
     private lateinit var textStatus : TextView
     private lateinit var textTip : TextView
-    private lateinit var container : LinearLayout
+    private lateinit var hrContainer : LinearLayout
     private lateinit var textHeartRate : TextView
     private lateinit var textHeartRateStatus : TextView
     private lateinit var textIbi : TextView
     private lateinit var textIbiStatus : TextView
+    private lateinit var ppgGreenContainer : LinearLayout
+    private lateinit var textPpgGreen : TextView
+    private lateinit var textPpgGreenBatch : TextView
+    private lateinit var textPpgGreenTimestamp : TextView
 
     lateinit var uiUpdateThread: Thread
     private lateinit var connectionManager: ConnectionManager
     private lateinit var heartRateListener: HeartRateListener
+    private lateinit var ppgGreenListener: PpgGreenListener
     private var connected = false
     private var permissionGranted = false
     private var heartRateDataLast = HeartRateData()
+    private var ppgGreenDataLast = PpgGreenData()
 
     val trackerDataObserver: TrackerDataObserver = object : TrackerDataObserver {
         override fun onHeartRateTrackerDataChanged(hrData: HeartRateData) {
@@ -95,12 +102,34 @@ class MainActivity : Activity(), GoogleApiClient.ConnectionCallbacks {
                     else -> {
                         Log.i(tag, "None")
                         textHeartRateStatus.text = HeartRateStatus.HR_STATUS_NONE.statusText
-                        textHeartRate.text = getString(R.string.default_heart_rate)
+                        textHeartRate.text = getString(R.string.default_value)
                     }
                 }
                 sendHrData(hrData)
                 heartRateDataLast = hrData
             })
+        }
+
+        override fun onPpgGreenTrackerDataChanged(ppgGreenData: PpgGreenData) {
+            Log.i(tag,"PPG Green Status: " + ppgGreenData.status)
+            when(ppgGreenData.status) {
+                PpgGreenStatus.PPG_GREEN_STATUS_GOOD.code -> {
+                    Log.i(tag, "Green PPG Data received")
+                    currentDataBatchNumber++
+                    this@MainActivity.runOnUiThread {
+                        textPpgGreen.text = ppgGreenData.ppgValue.toString()
+                        Log.i(tag, "PPG Green : ${ppgGreenData.ppgValue}")
+                        textPpgGreenTimestamp.text = ppgGreenData.timestamp.toString()
+                        Log.i(tag, "PPG Green Timestamp : ${ppgGreenData.timestamp}")
+                        textPpgGreenBatch.text = currentDataBatchNumber.toString()
+                    }
+                }
+                PpgGreenStatus.PPG_GREEN_STATUS_NONE.code -> {
+                    Log.i(tag, "No Green PPG Data")
+                }
+            }
+            sendPpgGreenData(ppgGreenData)
+            ppgGreenDataLast = ppgGreenData
         }
 
         override fun onError(errorResourceId: Int) {
@@ -128,7 +157,9 @@ class MainActivity : Activity(), GoogleApiClient.ConnectionCallbacks {
             connected = true
             TrackerDataNotifier.instance?.addObserver(trackerDataObserver)
             heartRateListener = HeartRateListener()
+            ppgGreenListener = PpgGreenListener()
             connectionManager.initHeartRate(heartRateListener)
+            connectionManager.initPpgGreen(ppgGreenListener)
 
             // commented out because tracker started at other point of the app
             //heartRateListener.startTracker()
@@ -171,6 +202,8 @@ class MainActivity : Activity(), GoogleApiClient.ConnectionCallbacks {
 
         message.sender = Entity.WEAR_APP
 
+        currentDataBatchNumber = 0
+
         uiUpdateThread = Thread {}
         uiUpdateThread.start()
 
@@ -192,22 +225,42 @@ class MainActivity : Activity(), GoogleApiClient.ConnectionCallbacks {
         // set UI vars
         textStatus = binding.statusMsg
         textTip = binding.message
-        container = binding.valueContainer
+        hrContainer = binding.heartRateContainer
         textHeartRate = binding.heartRate
         textHeartRateStatus = binding.heartRateStatus
         textIbi = binding.ibi
         textIbiStatus = binding.ibiStatus
+        ppgGreenContainer = binding.ppgGreenContainer
+        textPpgGreenBatch = binding.ppgGreenBatch
+        textPpgGreen = binding.ppgGreen
+        textPpgGreenTimestamp = binding.ppgGreenTimestamp
 
         // set initial UI
         textStatus.text = getString(R.string.default_status)
         textTip.text = getString(R.string.message_placeholder)
-        textHeartRate.text = getString(R.string.default_heart_rate)
-        textHeartRateStatus.text = getString(R.string.default_heart_rate_status)
-        textIbi.text = getString(R.string.default_ibi)
-        textIbiStatus.text = getString(R.string.default_ibi_status)
+        textHeartRate.text = getString(R.string.default_value)
+        textHeartRateStatus.text = getString(R.string.default_status)
+        textIbi.text = getString(R.string.default_value)
+        textIbiStatus.text = getString(R.string.default_status)
+        textPpgGreenBatch.text = getString(R.string.default_value)
+        textPpgGreen.text = getString(R.string.default_value)
+        textPpgGreenTimestamp.text = getString(R.string.default_value)
 
         textTip.visibility = View.VISIBLE
-        container.visibility = View.GONE
+        hrContainer.visibility = View.GONE
+        ppgGreenContainer.visibility = View.GONE
+
+        // set clickables
+        hrContainer.setOnClickListener { // hide the HR container
+            runOnUiThread {
+                hrContainer.visibility = View.GONE
+            }
+        }
+        ppgGreenContainer.setOnClickListener { // show the HR container
+            runOnUiThread {
+                hrContainer.visibility = View.VISIBLE
+            }
+        }
 
         // build Google API Client with access to Wearable API
         client = GoogleApiClient.Builder(this)
@@ -222,6 +275,7 @@ class MainActivity : Activity(), GoogleApiClient.ConnectionCallbacks {
         Log.d(tag, "onDestroy")
         super.onDestroy()
         heartRateListener.stopTracker()
+        ppgGreenListener.stopTracker()
         TrackerDataNotifier.instance?.removeObserver(trackerDataObserver)
         connectionManager.disconnect()
     }
@@ -265,13 +319,14 @@ class MainActivity : Activity(), GoogleApiClient.ConnectionCallbacks {
                     when (it.code) {
                         ActivityCode.START_ACTIVITY -> {
                             runOnUiThread {
-                                container.visibility = View.VISIBLE
+                                hrContainer.visibility = View.VISIBLE
                                 textTip.visibility = View.GONE
                                 textStatus.text = getString(R.string.status_running)
                             }
 
                             switchState(1)
                             heartRateListener.startTracker()
+                            ppgGreenListener.startTracker()
                         }
                         ActivityCode.STOP_ACTIVITY -> {
                             runOnUiThread {
@@ -280,11 +335,14 @@ class MainActivity : Activity(), GoogleApiClient.ConnectionCallbacks {
 
                             switchState(0)
                             heartRateListener.stopTracker()
+                            ppgGreenListener.stopTracker()
                         }
                         ActivityCode.DO_NOTHING -> {
                             runOnUiThread {
                                 Toast.makeText(
-                                    applicationContext, getString(R.string.no_content), Toast.LENGTH_LONG
+                                    applicationContext,
+                                    getString(R.string.no_content),
+                                    Toast.LENGTH_LONG
                                 ).show()
                             }
                         }
@@ -321,9 +379,22 @@ class MainActivity : Activity(), GoogleApiClient.ConnectionCallbacks {
         )
         val bytes = Gson().toJson(heartData).toByteArray()
         Wearable.DataApi.putDataItem(client,
-            PutDataRequest.create(MessagePath.INFO).setData(bytes).setUrgent()
+            PutDataRequest.create(MessagePath.DATA_HR).setData(bytes).setUrgent()
         )
         Log.i("Wear","Heart Data sent via DataApi!")
+    }
+
+    private fun sendPpgGreenData(ppgGreenData: PpgGreenData) {
+        val ppgData = PpgData(
+            currentDataBatchNumber,
+            ppgGreenData.ppgValue,
+            ppgGreenData.timestamp
+        )
+        val bytes = Gson().toJson(ppgData).toByteArray()
+        Wearable.DataApi.putDataItem(client,
+            PutDataRequest.create(MessagePath.DATA_PPG_GREEN).setData(bytes).setUrgent()
+        )
+        Log.i("Wear","PPG Green Data sent via DataApi!")
     }
 
     private fun switchState(forceCode: Int = 99) {
