@@ -177,12 +177,20 @@ class MainActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks {
             onMessageArrived(messageEvent.path)
         }
         Wearable.DataApi.addListener(client) { data ->
-            val receivedData = Gson().fromJson(String(data[0].dataItem.data), HeartData::class.java)
-            runOnUiThread {
-                textWearHr.text = receivedData.hr.toString()
-                textWearIbi.text = receivedData.ibi.toString()
-                textWearTimestamp.text = receivedData.timestamp
+            Log.d(TAG, "Data count arrived : ${data.count}")
+            for (dataEvent in data) {
+                Log.d(TAG, "Data Event\n" +
+                        "URI Last Path Segment: ${dataEvent.dataItem.uri.lastPathSegment}\n" +
+                        "URI Path: ${dataEvent.dataItem.uri.path}\n" +
+                        "URI encoded path: ${dataEvent.dataItem.uri.encodedPath}\n" +
+                        "URI Host: ${dataEvent.dataItem.uri.host}")
             }
+//            val receivedData = Gson().fromJson(String(data[0].dataItem.data), HeartData::class.java)
+//            runOnUiThread {
+//                textWearHr.text = receivedData.hr.toString()
+//                textWearIbi.text = receivedData.ibi.toString()
+//                textWearTimestamp.text = receivedData.timestamp
+//            }
         }
     }
 
