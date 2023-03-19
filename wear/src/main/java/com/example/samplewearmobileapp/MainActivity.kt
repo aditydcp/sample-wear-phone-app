@@ -320,6 +320,7 @@ class MainActivity : Activity(), GoogleApiClient.ConnectionCallbacks {
                         ActivityCode.START_ACTIVITY -> {
                             runOnUiThread {
                                 hrContainer.visibility = View.VISIBLE
+                                ppgGreenContainer.visibility = View.VISIBLE
                                 textTip.visibility = View.GONE
                                 textStatus.text = getString(R.string.status_running)
                             }
