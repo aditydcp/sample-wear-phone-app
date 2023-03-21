@@ -6,220 +6,179 @@
     android:layout_height="match_parent"
     tools:context=".MainActivity">
 
-    <LinearLayout
-        android:id="@+id/main_container"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        app:layout_constraintBottom_toTopOf="@id/button_main"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent">
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/ppg_container"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        app:layout_constraintBottom_toTopOf="@id/ecg_container"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_chainStyle="spread"
+        app:layout_constraintVertical_weight="0.5">
 
-        <LinearLayout
-            android:id="@+id/wear_container"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:layout_margin="16dp">
+    </androidx.constraintlayout.widget.ConstraintLayout>
 
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/title_wear"
-                android:textStyle="bold"
-                android:textSize="24sp" />
-
-            <LinearLayout
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal">
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/status"
-                    android:layout_marginEnd="8dp"/>
-                <TextView
-                    android:id="@+id/wear_status"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:hint="@string/status_default"
-                    android:layout_marginEnd="8dp"/>
-            </LinearLayout>
-
-            <LinearLayout
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal">
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/hr"
-                    android:layout_marginEnd="8dp"/>
-                <TextView
-                    android:id="@+id/wear_hr"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:hint="@string/default_value" />
-            </LinearLayout>
-
-            <LinearLayout
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal">
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/ibi"
-                    android:layout_marginEnd="8dp"/>
-                <TextView
-                    android:id="@+id/wear_ibi"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:hint="@string/default_value" />
-            </LinearLayout>
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="vertical">
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/timestamp"
-                    android:layout_marginEnd="8dp"/>
-                <TextView
-                    android:id="@+id/wear_time"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:hint="@string/default_value" />
-            </LinearLayout>
-        </LinearLayout>
-
-        <LinearLayout
-            android:id="@+id/hrm_container"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:layout_margin="16dp">
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/title_hrm"
-                android:textStyle="bold"
-                android:textSize="24sp" />
-
-            <LinearLayout
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal">
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/status"
-                    android:layout_marginEnd="8dp"/>
-                <TextView
-                    android:id="@+id/hrm_status"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:hint="@string/status_default"
-                    android:layout_marginEnd="8dp"/>
-            </LinearLayout>
-
-            <LinearLayout
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal">
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/hr"
-                    android:layout_marginEnd="8dp"/>
-                <TextView
-                    android:id="@+id/hrm_hr"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:hint="@string/default_value" />
-            </LinearLayout>
-
-            <LinearLayout
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal">
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/ibi"
-                    android:layout_marginEnd="8dp"/>
-                <TextView
-                    android:id="@+id/hrm_ibi"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:hint="@string/default_value" />
-            </LinearLayout>
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="vertical">
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/timestamp"
-                    android:layout_marginEnd="8dp"/>
-                <TextView
-                    android:id="@+id/hrm_time"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:hint="@string/default_value" />
-            </LinearLayout>
-
-            <TextView
-                android:id="@+id/hrm_connect"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                android:textColor="@color/purple_200"
-                android:textStyle="bold"
-                android:text="@string/button_connect_hrm" />
-        </LinearLayout>
-    </LinearLayout>
-
-    <TextView
-        android:id="@+id/button_view"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="@string/button_normal_view"
-        app:layout_constraintBottom_toTopOf="@+id/button_tooltip"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/main_container"
-        app:layout_constraintVertical_bias="0.2" />
-
-    <TextView
-        android:id="@+id/button_tooltip"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:hint="@string/click_me_text"
-        app:layout_constraintBottom_toTopOf="@id/button_main"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/main_container"
-        app:layout_constraintVertical_bias="0.75" />
-
-    <Button
-        android:id="@+id/button_main"
-        android:layout_width="125dp"
-        android:layout_height="125dp"
-        android:background="@drawable/circle"
-        android:hint="@string/button_start"
-        android:textSize="16sp"
-        android:textColor="@color/white"
-        android:textStyle="bold"
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/ecg_container"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/main_container" />
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/ppg_container"
+        app:layout_constraintVertical_chainStyle="spread"
+        app:layout_constraintVertical_weight="0.5">
 
+        <com.androidplot.xy.XYPlot
+            android:id="@+id/ecg_plot"
+            style="@style/FullScreenGraph"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_marginTop="10dp"
+
+            app:graphBackgroundColor="@color/white"
+            app:graphMarginBottom="10dp"
+            app:graphMarginLeft="10dp"
+            app:graphMarginRight="10dp"
+            app:graphMarginTop="10dp"
+            app:gridBackgroundColor="@color/black"
+            app:layout_constraintHorizontal_bias="0.0"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintRight_toRightOf="parent"
+
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintVertical_bias="1.0"
+            app:lineLabelInsetLeft="15dp"
+            app:renderMode="use_background_thread"
+            app:title="@string/ecg_plot_title"
+            app:titleTextColor="#000000"
+            app:titleTextSize="15dp" />
+
+        <TextView
+            android:id="@+id/ecg_hr"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="30dp"
+            android:layout_marginTop="30dp"
+            android:textAlignment="center"
+            android:textColor="#C00000"
+            android:textSize="30sp"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <TextView
+            android:id="@+id/ecg_time"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="30dp"
+            android:layout_marginTop="30dp"
+            android:layout_marginRight="30dp"
+            android:layout_marginBottom="8dp"
+            android:textAlignment="center"
+            android:textColor="#000000"
+            android:textSize="14sp"
+            app:layout_constraintBottom_toBottomOf="@id/ecg_hr"
+            app:layout_constraintRight_toRightOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <TextView
+            android:id="@+id/ecg_info"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="8dp"
+            android:layout_marginRight="8dp"
+            android:layout_marginBottom="8dp"
+            android:textColor="#000000"
+            android:textSize="14sp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintRight_toRightOf="parent" />
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/analysis_container"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        app:layout_constraintTop_toBottomOf="@id/ecg_container"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintVertical_weight="0.5"
+        android:visibility="invisible">
+
+        <com.androidplot.xy.XYPlot
+            android:id="@+id/qrs_plot"
+            style="@style/FullScreenGraph"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+
+            app:backgroundColor="#000000"
+            app:domainLineColor="#555555"
+            app:domainOriginLineColor="#555555"
+            app:domainTitleTextColor="#FFFFFF"
+            app:domainTitleTextSize="14dp"
+            app:graphBackgroundColor="#000000"
+
+            app:graphMarginBottom="20dp"
+            app:graphMarginLeft="30dp"
+            app:graphMarginRight="30dp"
+            app:graphMarginTop="20dp"
+            app:gridBackgroundColor="#000000"
+            app:layout_constraintBottom_toTopOf="@id/hr_plot"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintRight_toRightOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintVertical_chainStyle="spread"
+            app:layout_constraintVertical_weight="0.5"
+            app:paddingLeft="5dp"
+            app:rangeLineColor="#555555"
+            app:rangeOriginLineColor="#555555"
+            app:rangeTitle="@string/qrs_range_title"
+            app:rangeTitleTextColor="#FFFFFF"
+            app:rangeTitleTextSize="14dp"
+            app:renderMode="use_background_thread"
+            app:title="@string/hr_title"
+            app:titleTextColor="#000000"
+            app:titleTextSize="15dp" />
+
+        <com.androidplot.xy.XYPlot
+            android:id="@+id/hr_plot"
+            style="@style/FullScreenGraph"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            app:backgroundColor="#000000"
+            app:domainLineColor="#555555"
+            app:domainOriginLineColor="#555555"
+            app:domainTitle="@string/hr_domain_title_time"
+
+            app:domainTitleTextColor="#FFFFFF"
+            app:domainTitleTextSize="14dp"
+            app:graphBackgroundColor="#000000"
+            app:graphMarginBottom="20dp"
+            app:graphMarginLeft="30dp"
+
+            app:graphMarginRight="30dp"
+            app:graphMarginTop="20dp"
+            app:gridBackgroundColor="#000000"
+            app:gridInsetBottom="20dp"
+            app:gridInsetLeft="25dp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintRight_toRightOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/qrs_plot"
+            app:layout_constraintVertical_chainStyle="spread"
+            app:layout_constraintVertical_weight="0.5"
+            app:paddingBottom="5dp"
+            app:paddingLeft="5dp"
+            app:paddingRight="5dp"
+            app:paddingTop="5dp"
+            app:rangeLineColor="#555555"
+            app:rangeOriginLineColor="#555555"
+            app:rangeTitle="@string/hr_range_title"
+            app:rangeTitleTextColor="#FFFFFF"
+            app:rangeTitleTextSize="14dp"
+            app:renderMode="use_background_thread"
+            app:title="@string/hr_title"
+            app:titleTextColor="#000000"
+            app:titleTextSize="15dp" />
+    </androidx.constraintlayout.widget.ConstraintLayout>
 </androidx.constraintlayout.widget.ConstraintLayout>

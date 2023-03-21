@@ -1,44 +1,103 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
     <string name="app_name">Sample Wear Mobile App</string>
-    <string name="title">Message Control</string>
+<!--    <string name="title">Message Control</string>-->
 
-    <string name="click_me_text">Click the button to start/stop measurement</string>
-    <string name="clicked_text">Button clicked!</string>
-    <string name="success_message">Message successfully sent.<br />Check your Smartwatch! </string>
-    <string name="click_view_button">Click the Normal View text to toggle view</string>
+<!--    <string name="click_me_text">Click the button to start/stop measurement</string>-->
+<!--    <string name="clicked_text">Button clicked!</string>-->
+<!--    <string name="success_message">Message successfully sent.<br />Check your Smartwatch! </string>-->
+<!--    <string name="click_view_button">Click the Normal View text to toggle view</string>-->
 
-    <string name="click_me_button">Click Me</string>
+<!--    <string name="click_me_button">Click Me</string>-->
 
-    <string name="message_content">This is the message</string>
+<!--    <string name="message_content">This is the message</string>-->
 
-    <string name="title_wear">Wear App</string>
-    <string name="title_hrm">HRM</string>
-    <string name="status">Status :</string>
-    <string name="hr">HR :</string>
-    <string name="ibi">IBI :</string>
-    <string name="default_value">0</string>
+<!--    <string name="title_wear">Wear App</string>-->
+<!--    <string name="title_hrm">HRM</string>-->
+<!--    <string name="status">Status :</string>-->
+<!--    <string name="hr">HR :</string>-->
+<!--    <string name="ibi">IBI :</string>-->
+<!--    <string name="default_value">0</string>-->
 
-    <string name="message_on_button_click">App button clicked</string>
+<!--    <string name="message_on_button_click">App button clicked</string>-->
 
-    <string name="status_default">No Status</string>
-    <string name="status_connected">Connected</string>
-    <string name="status_disconnected">Disconnected</string>
-    <string name="status_running">Running</string>
-    <string name="status_stopped">Stopped</string>
-    <string name="status_no_support">Not supported</string>
+<!--    <string name="status_default">No Status</string>-->
+<!--    <string name="status_connected">Connected</string>-->
+<!--    <string name="status_disconnected">Disconnected</string>-->
+<!--    <string name="status_running">Running</string>-->
+<!--    <string name="status_stopped">Stopped</string>-->
+<!--    <string name="status_no_support">Not supported</string>-->
 
-    <string name="reset">Reset from Wear starting</string>
-    <string name="wear_running">Wear currently running</string>
+<!--    <string name="reset">Reset from Wear starting</string>-->
+<!--    <string name="wear_running">Wear currently running</string>-->
 
-    <string name="button_start">Start</string>
-    <string name="button_stop">Stop</string>
-    <string name="timestamp">Timestamp</string>
-    <string name="button_normal_view">Normal View</string>
-    <string name="button_connect_hrm">Connect to HRM ></string>
+<!--    <string name="button_start">Start</string>-->
+<!--    <string name="button_stop">Stop</string>-->
+<!--    <string name="timestamp">Timestamp</string>-->
+<!--    <string name="button_normal_view">Normal View</string>-->
+<!--    <string name="button_connect_hrm">Connect to HRM ></string>-->
 
-    <string name="connect_status_searching">Searching for devices…</string>
-    <string name="connect_status_stopped">Search timeout.</string>
-    <string name="connect_button_search">Search again</string>
-    <string name="devices_acquainted">Already Connected Devices:</string>
-    <string name="devices_found_new">Devices Found In Scan:</string>
+<!--    <string name="connect_status_searching">Searching for devices…</string>-->
+<!--    <string name="connect_status_stopped">Search timeout.</string>-->
+<!--    <string name="connect_button_search">Search again</string>-->
+<!--    <string name="devices_acquainted">Already Connected Devices:</string>-->
+<!--    <string name="devices_found_new">Devices Found In Scan:</string>-->
+
+    <string name="ecg_plot_title">25 mm/s, 10 mm/mV</string>
+
+    <string name="device_id_label">Device ID</string>
+
+    <string name="ok">OK</string>
+    <string name="cancel">Cancel</string>
+    <string name="error">Error</string>
+    <string name="warning">Warning</string>
+    <string name="info">Info</string>
+    <string name="exception">Exception</string>
+
+    <string name="pause_item">Pause</string>
+    <string name="play_item">Play</string>
+    <string name="stop_item">Stop</string>
+    <string name="save_item">Save</string>
+    <string name="save_data_item">Save Data</string>
+    <string name="save_plot_item">Save Plot</string>
+    <string name="save_both_item">Save Data &amp; Plot</string>
+    <string name="save_all_item">Save All</string>
+    <string name="save_device_data_item">Save Device HR Data</string>
+    <string name="save_qrs_data_item">Save Calculated HR Data</string>
+    <string name="choose_data_directory_item">Set Data Directory</string>
+    <string name="info_item">Info</string>
+    <string name="redo_setup_plots_item">Redo Plot Setup</string>
+    <string name="restart_api_item">Restart Polar API</string>
+    <string name="device_id_item">Set Device ID</string>
+    <string name="settings_item">Settings</string>
+    <string name="help_item">Help</string>
+
+    <!-- Plots -->
+    <string name="label_hr">Heart Rate: </string>
+    <string name="label_rr">R-R: </string>
+    <string name="hr_title">HR and RR vs. Time</string>
+    <string name="qrs_title">ECG vs. Time</string>
+    <string name="hr_range_title">HR, bpm RR, ms/10</string>
+    <string name="qrs_range_title">QRS Peak Detection</string>
+    <string name="hr_domain_title_time">Time</string>
+    <string name="hr_domain_title_sample">Sample</string>
+
+    <string name="device_id_dialog_title">Set Device ID</string>
+    <string name="note_dialog_title">Enter a Note</string>
+
+    <string name="info_string">%1$s\nBattery level: %2$s\nFirmware: %3$s\nID: %4$s\n</string>
+    <string name="elapsed_time">%1$.1f sec"</string>
+    <string name="connecting">Connecting to Polar Sensor</string>
+    <string name="connected_string">Connected to %1$s</string>
+    <string name="ble_not_supported">Bluetooth LE is not supported.</string>
+    <string name="no_device">Device not found.</string>
+
+    <!-- Settings -->
+    <string name="settings_title">Settings</string>
+    <string name="device_id_title">Device ID</string>
+    <string name="device_id_summary">Polar device ID or MAC address</string>
+    <string name="patient_name_title">Patient Name</string>
+    <string name="patient_name_summary">Patient name for ECG image file</string>
+    <string name="analysis_visibility_title">Analysis Visibility</string>
+    <string name="analysis_visibility_summary_on">Analysis plots will be shown</string>
+    <string name="analysis_visibility_summary_off">Analysis plots will not be shown</string>
 </resources>

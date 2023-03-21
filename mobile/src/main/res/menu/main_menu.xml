@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+    <item
+        android:id="@+id/pause"
+        android:icon="@drawable/ic_pause_white_36dp"
+        android:title="@string/pause_item"
+        app:showAsAction="ifRoom" />
+    <item
+        android:id="@+id/save"
+        android:title="@string/save_item">
+        <menu>
+            <item
+                android:id="@+id/save_all"
+                android:title="@string/save_all_item"
+                app:showAsAction="never" />
+            <item
+                android:id="@+id/save_both"
+                android:title="@string/save_both_item"
+                app:showAsAction="never" />
+            <item
+                android:id="@+id/save_plot"
+                android:title="@string/save_plot_item"
+                app:showAsAction="never" />
+            <item
+                android:id="@+id/save_data"
+                android:title="@string/save_data_item"
+                app:showAsAction="never" />
+            <item
+                android:id="@+id/save_device_data"
+                android:title="@string/save_device_data_item"
+                app:showAsAction="never" />
+            <item
+                android:id="@+id/save_qrs_data"
+                android:title="@string/save_qrs_data_item"
+                app:showAsAction="never" />
+        </menu>
+    </item>
+    <item
+        android:id="@+id/device_id"
+        android:title="@string/device_id_item"
+        app:showAsAction="never" />
+    <item
+        android:id="@+id/choose_data_directory"
+        android:title="@string/choose_data_directory_item"
+        app:showAsAction="never" />
+    <item
+        android:id="@+id/info"
+        android:title="@string/info_item"
+        app:showAsAction="never" />
+    <item
+        android:id="@+id/redo_plot_setup"
+        android:title="@string/redo_setup_plots_item"
+        app:showAsAction="never" />
+    <item
+        android:id="@+id/restart_api"
+        android:title="@string/restart_api_item"
+        app:showAsAction="never" />
+    <item
+        android:id="@+id/help"
+        android:title="@string/help_item"
+        app:showAsAction="never" />
+    <item
+        android:id="@+id/menu_settings"
+        android:orderInCategory="50"
+        android:title="@string/settings_item"
+        app:showAsAction="never" />
+</menu>

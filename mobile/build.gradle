@@ -42,9 +42,13 @@ dependencies {
     implementation 'androidx.appcompat:appcompat:1.5.1'
     implementation 'com.google.android.material:material:1.7.0'
     implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
+    implementation 'androidx.preference:preference-ktx:1.2.0'
     testImplementation 'junit:junit:4.13.2'
     androidTestImplementation 'androidx.test.ext:junit:1.1.4'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.5.0'
+
+    // Polar SDK
+    implementation fileTree(dir: 'libs', include: '*.aar')
 
     // implement shared module
     implementation project(path: ':shared')
@@ -54,4 +58,11 @@ dependencies {
 
     // Gson
     implementation 'com.google.code.gson:gson:2.8.2'
+
+    // Android Plot
+    implementation 'com.androidplot:androidplot-core:1.5.10'
+
+    // ReactiveX
+    implementation 'io.reactivex.rxjava3:rxjava:3.1.5'
+    implementation 'io.reactivex.rxjava3:rxandroid:3.0.0'
 }
