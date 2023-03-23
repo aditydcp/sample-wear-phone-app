@@ -469,8 +469,7 @@ class MainActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks,
         } else if (id == R.id.save_both) {
             saveDataWithNote(SaveType.BOTH)
             return true
-        }
-         else if (id == R.id.info) {
+        } else if (id == R.id.info) {
             displayInfo()
             return true
         } else if (id == R.id.restart_api) {
