@@ -326,7 +326,7 @@ class MainActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks,
         Log.d(TAG, "    mDeviceId=$deviceId")
         val gson = Gson()
         val type = object : TypeToken<LinkedList<DeviceInfo?>?>() {}.type
-        val json: String = sharedPreferences!!.getString(PREF_ACQ_DEVICE_IDS, null).toString()
+        val json: String? = sharedPreferences!!.getString(PREF_ACQ_DEVICE_IDS, null)
         acquaintedDevices = gson.fromJson(json, type)
         if (acquaintedDevices == null) {
             acquaintedDevices = ArrayList<DeviceInfo>()
