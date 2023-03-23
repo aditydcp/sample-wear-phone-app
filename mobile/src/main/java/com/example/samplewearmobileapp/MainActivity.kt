@@ -1254,7 +1254,7 @@ class MainActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks,
                 val arrays: PlotArrays = getPlotArrays()
                 val ecgValues: DoubleArray = arrays.ecg
                 val peakValues: BooleanArray = arrays.peaks
-                ecgPlotter!!.getVisibleSeries().getyVals()
+//                ecgPlotter!!.getVisibleSeries().getyVals()
                 val sampleCount = ecgValues.size
                 val bm: Bitmap = createImage(
                     ECG_SAMPLE_RATE,
@@ -1500,9 +1500,9 @@ class MainActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks,
         val arrays: PlotArrays
         // Remove any out-of-range values peak values
         qrsPlotter!!.removeOutOfRangePlotPeakValues()
-        val ecgValues: LinkedList<Number> = qrsPlotter!!.seriesPlotEcg.getyVals()
-        val peakValues: LinkedList<Number> = qrsPlotter!!.seriesPlotPeaks.getyVals()
-        val peakXValues: LinkedList<Number> = qrsPlotter!!.seriesPlotPeaks.getxVals()
+        val ecgValues: LinkedList<Number> = qrsPlotter!!.seriesDataEcg.getyVals()
+        val peakValues: LinkedList<Number> = qrsPlotter!!.seriesDataPeaks.getyVals()
+        val peakXValues: LinkedList<Number> = qrsPlotter!!.seriesDataPeaks.getxVals()
         val timestampValues: LinkedList<Number> = qrsPlotter!!.seriesTimestamp.getyVals()
         val ecgLength = ecgValues.size
         val peaksLength = peakValues.size
