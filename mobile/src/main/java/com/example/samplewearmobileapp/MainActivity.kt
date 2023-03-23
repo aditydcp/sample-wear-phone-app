@@ -1269,7 +1269,7 @@ class MainActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks,
                     calculatedStopHr,
                     java.lang.String.format(
                         Locale.US, "%d",
-                        qrsPlotter!!.seriesPlotPeaks.size()
+                        qrsPlotter!!.seriesDataPeaks.size()
                     ),
                     java.lang.String.format(
                         Locale.US,
@@ -1330,7 +1330,7 @@ class MainActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks,
                     val ecgValues: DoubleArray = arrays.ecg
                     val peakValues: BooleanArray = arrays.peaks
                     val timestamps: LongArray = arrays.timestamp
-                    val peakCount: Int = qrsPlotter!!.seriesPlotPeaks.size()
+                    val peakCount: Int = qrsPlotter!!.seriesDataPeaks.size()
                     val sampleCount = ecgValues.size
                     val duration = java.lang.String.format(
                         Locale.US, "%.1f sec",
@@ -1514,21 +1514,25 @@ class MainActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks,
             peaks[i] = false
             timestamp[i] = timestampValues[i].toLong()
         }
-        // The peak values correspond to an index related to when they came in.
-        // This is different from the index in the arrays, which goes from 0
-        // to no more than N_TOTAL_VISIBLE_POINTS.
-        var offset = 0
+//        // The peak values correspond to an index related to when they came in.
+//        // This is different from the index in the arrays, which goes from 0
+//        // to no more than N_TOTAL_VISIBLE_POINTS.
+//        var offset = 0
 //        if (qrsPlotter!!.dataIndex > N_TOTAL_VISIBLE_POINTS) {
 //            offset = (-(qrsPlotter!!.dataIndex - N_TOTAL_VISIBLE_POINTS)).toInt()
 //        }
+
         var index: Int
         for (j in 0 until peaksLength) {
-            index = peakXValues[j].toInt() + offset
-            //            Log.d(TAG, String.format("j=%d indx=%d xval=%d",
-//                    j, indx, peakxvals.get(j).intValue()));
+            index = peakXValues[j].toInt()
+//            + offset
+//            Log.d(TAG, String.format("j=%d indx=%d xval=%d",
+//            j, indx, peakxvals.get(j).intValue()));
             peaks[index] = true
         }
-        arrays = PlotArrays(ecg, peaks, timestamp)
+        arrays = PlotArrays(ecg
+            , peaks
+            , timestamp)
         return arrays
     }
 
