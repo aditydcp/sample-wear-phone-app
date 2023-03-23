@@ -872,7 +872,8 @@ class MainActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks,
      * Sets the analysis plots visibility using the current value of isUsingAnalysis.
      */
     private fun setAnalysisVisibility() {
-        Log.d(TAG, this.javaClass.simpleName + " setQRSVisibility:")
+        Log.d(TAG, this.javaClass.simpleName + " setAnalysisVisibility: " +
+                "$isUsingAnalysis")
         if (isUsingAnalysis) {
             analysisContainer.visibility = View.VISIBLE
         } else {
