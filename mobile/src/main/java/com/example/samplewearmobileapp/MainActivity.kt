@@ -27,7 +27,7 @@ import androidx.core.content.res.ResourcesCompat
 import com.androidplot.xy.XYPlot
 import com.example.samplewearmobileapp.BluetoothService.REQUEST_CODE_ENABLE_BLUETOOTH
 import com.example.samplewearmobileapp.Constants.ECG_SAMPLE_RATE
-import com.example.samplewearmobileapp.Constants.N_TOTAL_POINTS
+import com.example.samplewearmobileapp.Constants.N_TOTAL_VISIBLE_POINTS
 //import com.example.samplewearmobileapp.Constants.PREF_ACQ_DEVICE_IDS
 import com.example.samplewearmobileapp.Constants.PREF_ANALYSIS_VISIBILITY
 import com.example.samplewearmobileapp.Constants.PREF_DEVICE_ID
@@ -35,7 +35,6 @@ import com.example.samplewearmobileapp.Constants.PREF_PATIENT_NAME
 import com.example.samplewearmobileapp.Constants.PREF_TREE_URI
 import com.example.samplewearmobileapp.EcgImager.createImage
 import com.example.samplewearmobileapp.databinding.ActivityMainBinding
-import com.example.samplewearmobileapp.model.DeviceInfo
 import com.example.samplewearmobileapp.model.PlotArrays
 import com.example.samplewearmobileapp.utils.AppUtils
 import com.example.samplewearmobileapp.utils.UriUtils
@@ -43,7 +42,6 @@ import com.google.android.gms.common.api.GoogleApiClient
 import com.google.android.gms.wearable.Node
 import com.google.android.gms.wearable.Wearable
 import com.google.gson.Gson
-import com.google.gson.reflect.TypeToken
 import com.polar.sdk.api.PolarBleApi
 import com.polar.sdk.api.PolarBleApi.DeviceStreamingFeature
 import com.polar.sdk.api.PolarBleApiCallback
@@ -88,7 +86,8 @@ class MainActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks,
      * Whether to save as CSV, Plot, or both.
      */
     private enum class SaveType {
-        DATA, PLOT, BOTH, DEVICE_HR, QRS_HR, ALL
+        DATA, PLOT, BOTH
+//        , DEVICE_HR, QRS_HR, ALL
     }
 
     private var isConnected = false
@@ -1200,13 +1199,13 @@ class MainActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks,
                     saveData(input.text.toString())
                     savePlot(input.text.toString())
                 }
-                SaveType.ALL -> {
-                    saveData(input.text.toString())
-                    savePlot(input.text.toString())
-                    saveSessionData(SaveType.DEVICE_HR)
-                    saveSessionData(SaveType.QRS_HR)
-                }
-                SaveType.DEVICE_HR, SaveType.QRS_HR -> saveSessionData(saveType)
+//                SaveType.ALL -> {
+//                    saveData(input.text.toString())
+//                    savePlot(input.text.toString())
+//                    saveSessionData(SaveType.DEVICE_HR)
+//                    saveSessionData(SaveType.QRS_HR)
+//                }
+//                SaveType.DEVICE_HR, SaveType.QRS_HR -> saveSessionData(saveType)
             }
         }
         dialog.setNegativeButton(
@@ -1217,6 +1216,7 @@ class MainActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks,
 
     /**
      * Finishes the savePlot after getting the note.
+     * This only saves plot of the last 30 seconds of recording.
      *
      * @param note The note.
      */
@@ -1254,7 +1254,7 @@ class MainActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks,
                 val arrays: PlotArrays = getPlotArrays()
                 val ecgValues: DoubleArray = arrays.ecg
                 val peakValues: BooleanArray = arrays.peaks
-                ecgPlotter!!.getSeries().getyVals()
+                ecgPlotter!!.getVisibleSeries().getyVals()
                 val sampleCount = ecgValues.size
                 val bm: Bitmap = createImage(
                     ECG_SAMPLE_RATE,
@@ -1269,7 +1269,7 @@ class MainActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks,
                     calculatedStopHr,
                     java.lang.String.format(
                         Locale.US, "%d",
-                        qrsPlotter!!.seriesPeaks.size()
+                        qrsPlotter!!.seriesPlotPeaks.size()
                     ),
                     java.lang.String.format(
                         Locale.US,
@@ -1308,7 +1308,7 @@ class MainActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks,
         var msg: String
         val format = "yyyy-MM-dd_HH-mm"
         val df = SimpleDateFormat(format, Locale.US)
-        val fileName = "PolarECG-" + df.format(stopTime!!) + ".csv"
+        val fileName = "ECG-" + df.format(stopTime!!) + ".csv"
         try {
             val treeUri = Uri.parse(treeUriStr)
             val treeDocumentId = DocumentsContract.getTreeDocumentId(treeUri)
@@ -1329,7 +1329,8 @@ class MainActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks,
                     val arrays: PlotArrays = getPlotArrays()
                     val ecgValues: DoubleArray = arrays.ecg
                     val peakValues: BooleanArray = arrays.peaks
-                    val peakCount: Int = qrsPlotter!!.seriesPeaks.size()
+                    val timestamps: LongArray = arrays.timestamp
+                    val peakCount: Int = qrsPlotter!!.seriesPlotPeaks.size()
                     val sampleCount = ecgValues.size
                     val duration = java.lang.String.format(
                         Locale.US, "%.1f sec",
@@ -1366,8 +1367,10 @@ class MainActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks,
                     for (i in 0 until sampleCount) {
                         out.write(
                             String.format(
-                                Locale.US, "%.3f,%d\n", ecgValues[i],
-                                if (peakValues[i]) 1 else 0
+                                Locale.US, "%.3f,%d,%l\n",
+                                ecgValues[i],
+                                if (peakValues[i]) 1 else 0,
+                                timestamps[i]
                             )
                         )
                     }
@@ -1386,90 +1389,90 @@ class MainActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks,
         }
     }
 
-    /**
-     * Finishes the saveData.
-     *
-     * @param saveType The saveType (either DEVICE_HR or QRS_HR).
-     */
-    private fun saveSessionData(saveType: SaveType) {
-        val prefs = getPreferences(MODE_PRIVATE)
-        val treeUriStr = prefs.getString(PREF_TREE_URI, null)
-        if (treeUriStr == null) {
-            AppUtils.errMsg(this, "There is no data directory set")
-            return
-        }
-        var msg: String
-        val format = "yyyy-MM-dd_HH-mm"
-        val df = SimpleDateFormat(format, Locale.US)
-        val fileName: String
-        val dataList: List<HrPlotter.HrRrSessionData>
-        try {
-//            if (saveType == SaveType.DEVICE_HR) {
-//                fileName = "PolarECG-DeviceHR-" + df.format(stopTime) + ".csv"
-//                dataList = hrPlotter!!.hrRrList1
-//            } else if (saveType == SaveType.QRS_HR) {
-//                fileName = "PolarECG-QRSHR-" + df.format(stopTime) + ".csv"
-//                dataList = hrPlotter!!.hrRrList2
-//            } else {
-//                AppUtils.errMsg(
-//                    this,
-//                    "Invalid saveType (" + saveType + "0 in " +
-//                            "doSaveSessionData"
-//                )
-//                return
+//    /**
+//     * Finishes the saveData.
+//     *
+//     * @param saveType The saveType (either DEVICE_HR or QRS_HR).
+//     */
+//    private fun saveSessionData(saveType: SaveType) {
+//        val prefs = getPreferences(MODE_PRIVATE)
+//        val treeUriStr = prefs.getString(PREF_TREE_URI, null)
+//        if (treeUriStr == null) {
+//            AppUtils.errMsg(this, "There is no data directory set")
+//            return
+//        }
+//        var msg: String
+//        val format = "yyyy-MM-dd_HH-mm"
+//        val df = SimpleDateFormat(format, Locale.US)
+//        val fileName: String
+//        val dataList: List<HrPlotter.HrRrSessionData>
+//        try {
+////            if (saveType == SaveType.DEVICE_HR) {
+////                fileName = "PolarECG-DeviceHR-" + df.format(stopTime) + ".csv"
+////                dataList = hrPlotter!!.hrRrList1
+////            } else if (saveType == SaveType.QRS_HR) {
+////                fileName = "PolarECG-QRSHR-" + df.format(stopTime) + ".csv"
+////                dataList = hrPlotter!!.hrRrList2
+////            } else {
+////                AppUtils.errMsg(
+////                    this,
+////                    "Invalid saveType (" + saveType + "0 in " +
+////                            "doSaveSessionData"
+////                )
+////                return
+////            }
+//            when (saveType) {
+//                SaveType.DEVICE_HR -> {
+//                    fileName = "PolarECG-DeviceHR-" + df.format(stopTime!!) + ".csv"
+//                    dataList = hrPlotter!!.hrRrList1
+//                }
+//                SaveType.QRS_HR -> {
+//                    fileName = "PolarECG-QRSHR-" + df.format(stopTime!!) + ".csv"
+//                    dataList = hrPlotter!!.hrRrList2
+//                }
+//                else -> {
+//                    AppUtils.errMsg(
+//                        this,
+//                        "Invalid saveType (" + saveType + "0 in " +
+//                                "doSaveSessionData"
+//                    )
+//                    return
+//                }
 //            }
-            when (saveType) {
-                SaveType.DEVICE_HR -> {
-                    fileName = "PolarECG-DeviceHR-" + df.format(stopTime!!) + ".csv"
-                    dataList = hrPlotter!!.hrRrList1
-                }
-                SaveType.QRS_HR -> {
-                    fileName = "PolarECG-QRSHR-" + df.format(stopTime!!) + ".csv"
-                    dataList = hrPlotter!!.hrRrList2
-                }
-                else -> {
-                    AppUtils.errMsg(
-                        this,
-                        "Invalid saveType (" + saveType + "0 in " +
-                                "doSaveSessionData"
-                    )
-                    return
-                }
-            }
-            val treeUri = Uri.parse(treeUriStr)
-            val treeDocumentId = DocumentsContract.getTreeDocumentId(treeUri)
-            val docTreeUri = DocumentsContract.buildDocumentUriUsingTree(
-                treeUri,
-                treeDocumentId
-            )
-            val resolver = this.contentResolver
-            val pfd: ParcelFileDescriptor?
-            val docUri = DocumentsContract.createDocument(
-                resolver, docTreeUri,
-                "text/csv", fileName
-            )
-            pfd = contentResolver.openFileDescriptor((docUri)!!, "w")
-            FileWriter(pfd!!.fileDescriptor).use { writer ->
-                PrintWriter((writer)).use { out ->
-                    // Write header (None)
-                    // Write samples
-                    for (data: HrPlotter.HrRrSessionData in dataList) {
-                        out.write(data.csvString + "\n")
-                    }
-                    out.flush()
-                    msg = "Wrote " + docUri.lastPathSegment
-                    AppUtils.infoMsg(this, msg)
-                    Log.d(TAG, "    Wrote " + dataList.size + " items")
-                }
-            }
-            pfd.close()
-        } catch (ex: java.lang.Exception) {
-            msg = "Error writing $saveType CSV file"
-            Log.e(TAG, msg)
-            Log.e(TAG, Log.getStackTraceString(ex))
-            AppUtils.excMsg(this, msg, ex)
-        }
-    }
+//            val treeUri = Uri.parse(treeUriStr)
+//            val treeDocumentId = DocumentsContract.getTreeDocumentId(treeUri)
+//            val docTreeUri = DocumentsContract.buildDocumentUriUsingTree(
+//                treeUri,
+//                treeDocumentId
+//            )
+//            val resolver = this.contentResolver
+//            val pfd: ParcelFileDescriptor?
+//            val docUri = DocumentsContract.createDocument(
+//                resolver, docTreeUri,
+//                "text/csv", fileName
+//            )
+//            pfd = contentResolver.openFileDescriptor((docUri)!!, "w")
+//            FileWriter(pfd!!.fileDescriptor).use { writer ->
+//                PrintWriter((writer)).use { out ->
+//                    // Write header (None)
+//                    // Write samples
+//                    for (data: HrPlotter.HrRrSessionData in dataList) {
+//                        out.write(data.csvString + "\n")
+//                    }
+//                    out.flush()
+//                    msg = "Wrote " + docUri.lastPathSegment
+//                    AppUtils.infoMsg(this, msg)
+//                    Log.d(TAG, "    Wrote " + dataList.size + " items")
+//                }
+//            }
+//            pfd.close()
+//        } catch (ex: java.lang.Exception) {
+//            msg = "Error writing $saveType CSV file"
+//            Log.e(TAG, msg)
+//            Log.e(TAG, Log.getStackTraceString(ex))
+//            AppUtils.excMsg(this, msg, ex)
+//        }
+//    }
 
     /**
      * Brings up a system file chooser to get the data directory
@@ -1487,31 +1490,36 @@ class MainActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks,
      * Gets ECG and Peaks and converts them into doubles. This relies on the
      * ecg arrays in EcgPlotter and QRSPlotter being the same and also the
      * respective DataIndex's. The ones in QRSPlotter are used. It also has
-     * the peak values.
+     * the peak values in form of binary value of `0` or `1`,
+     * and also has timestamp taken from Polar device in `Long` type.
      *
-     * @return PlotArrays with the ECG and peak values.
+     * @return PlotArrays with the ECG values, binary values that shows
+     * whether it is a peak or not, and the timestamp.
      */
     private fun getPlotArrays(): PlotArrays {
         val arrays: PlotArrays
         // Remove any out-of-range values peak values
-        qrsPlotter!!.removeOutOfRangeValues()
-        val ecgValues: LinkedList<Number> = qrsPlotter!!.seriesEcg.getyVals()
-        val peakValues: LinkedList<Number> = qrsPlotter!!.seriesPeaks.getyVals()
-        val peakXValues: LinkedList<Number> = qrsPlotter!!.seriesPeaks.getxVals()
+        qrsPlotter!!.removeOutOfRangePlotPeakValues()
+        val ecgValues: LinkedList<Number> = qrsPlotter!!.seriesPlotEcg.getyVals()
+        val peakValues: LinkedList<Number> = qrsPlotter!!.seriesPlotPeaks.getyVals()
+        val peakXValues: LinkedList<Number> = qrsPlotter!!.seriesPlotPeaks.getxVals()
+        val timestampValues: LinkedList<Number> = qrsPlotter!!.seriesTimestamp.getyVals()
         val ecgLength = ecgValues.size
         val peaksLength = peakValues.size
         val ecg = DoubleArray(ecgLength)
         val peaks = BooleanArray(ecgLength)
+        val timestamp = LongArray(ecgLength)
         for ((i, value) in ecgValues.withIndex()) {
             ecg[i] = value.toDouble()
             peaks[i] = false
+            timestamp[i] = timestampValues[i].toLong()
         }
         // The peak values correspond to an index related to when they came in.
         // This is different from the index in the arrays, which goes from 0
-        // to no more than N_TOTAL_POINTS.
+        // to no more than N_TOTAL_VISIBLE_POINTS.
         var offset = 0
-        if (qrsPlotter!!.dataIndex > N_TOTAL_POINTS) {
-            offset = (-(qrsPlotter!!.dataIndex - N_TOTAL_POINTS)).toInt()
+        if (qrsPlotter!!.dataIndex > N_TOTAL_VISIBLE_POINTS) {
+            offset = (-(qrsPlotter!!.dataIndex - N_TOTAL_VISIBLE_POINTS)).toInt()
         }
         var index: Int
         for (j in 0 until peaksLength) {
@@ -1520,7 +1528,7 @@ class MainActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks,
 //                    j, indx, peakxvals.get(j).intValue()));
             peaks[index] = true
         }
-        arrays = PlotArrays(ecg, peaks)
+        arrays = PlotArrays(ecg, peaks, timestamp)
         return arrays
     }
 
@@ -1685,7 +1693,7 @@ class MainActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks,
         msg.append("Playing: ").append(isPlaying).append("\n")
         msg.append("Receiving ECG: ").append(ecgDisposable != null)
             .append("\n")
-        if (ecgPlotter != null && ecgPlotter!!.getSeries() != null && ecgPlotter!!.getSeries()
+        if (ecgPlotter != null && ecgPlotter!!.getVisibleSeries() != null && ecgPlotter!!.getVisibleSeries()
                 .getyVals() != null
         ) {
             val elapsed: Double = ecgPlotter!!.getDataIndex() / ECG_SAMPLE_RATE
@@ -1693,7 +1701,7 @@ class MainActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks,
                 .append(getString(R.string.elapsed_time, elapsed))
                 .append("\n")
             msg.append("Points plotted: ")
-                .append(ecgPlotter!!.getSeries().getyVals().size)
+                .append(ecgPlotter!!.getVisibleSeries().getyVals().size)
                 .append("\n")
         }
         var versionName: String? = "NA"

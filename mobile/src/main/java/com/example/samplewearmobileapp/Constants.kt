@@ -24,9 +24,9 @@ object Constants {
         (ECG_SAMPLE_RATE / N_SMALL_BOXES_PER_LARGE_BOX).toInt() // =26
 
     /**
-     * The total number of points to keep.
+     * The total number of points to display.
      */
-    var N_TOTAL_POINTS: Int =
+    var N_TOTAL_VISIBLE_POINTS: Int =
         (30 * ECG_SAMPLE_RATE).toInt() // =3900 -> 30 sec
 
     /**

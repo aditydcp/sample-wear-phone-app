@@ -58,8 +58,8 @@ class QrsDetector(activity: MainActivity) {
         ecgPlotter()?.addValues(polarEcgData)
 
         // samples contains the ecgValues values in μV, mv = .001 * μV;
-        for (ecgValue in polarEcgData.samples) {
-            detectQrs(MICRO_TO_MILLI_VOLT * ecgValue)
+        for (ecgDataSample in polarEcgData.samples) {
+            detectQrs(ecgDataSample)
         }
     }
 
@@ -68,7 +68,8 @@ class QrsDetector(activity: MainActivity) {
      *
      * @param ecg The value to process.
      */
-    private fun detectQrs(ecg: Double) {
+    private fun detectQrs(ecgDataSample: PolarEcgData.PolarEcgDataSample) {
+        val ecg = MICRO_TO_MILLI_VOLT * ecgDataSample.voltage
         // Record the start time as now.
         if (java.lang.Double.isNaN(startTime)) startTime = Date().time.toDouble()
         ecgValues.add(ecg)
@@ -232,8 +233,10 @@ class QrsDetector(activity: MainActivity) {
         // Multipliers on curSquare and curScore should be the same
         val scaleFactor = 5.0
         qrsPlotter()!!.addValues(
-            ecg, scaleFactor * cursorDerivative.last,
-            scaleFactor * cursorScore.last
+            ecg,
+            scaleFactor * cursorDerivative.last,
+            scaleFactor * cursorScore.last,
+            ecgDataSample.timeStamp
         )
     }
 

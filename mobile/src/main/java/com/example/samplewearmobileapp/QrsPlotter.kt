@@ -8,7 +8,7 @@ import com.androidplot.xy.*
 import com.example.samplewearmobileapp.Constants.N_DOMAIN_LARGE_BOXES
 import com.example.samplewearmobileapp.Constants.N_ECG_PLOT_POINTS
 import com.example.samplewearmobileapp.Constants.N_LARGE
-import com.example.samplewearmobileapp.Constants.N_TOTAL_POINTS
+import com.example.samplewearmobileapp.Constants.N_TOTAL_VISIBLE_POINTS
 import com.example.samplewearmobileapp.utils.AppUtils
 
 class QrsPlotter {
@@ -17,19 +17,63 @@ class QrsPlotter {
 
     // ECG
     private lateinit var formatterEcg: XYSeriesFormatter<XYRegionFormatter>
-    lateinit var seriesEcg: SimpleXYSeries
+    /**
+     * The series that contain *only* the ecg data
+     * used for displaying the plot in the app.
+     * This series is limited by `N_TOTAL_VISIBLE_POINTS`.
+     */
+    lateinit var seriesPlotEcg: SimpleXYSeries
+    /**
+     * The series that contain **all** ecg data.
+     */
+    lateinit var seriesDataEcg: SimpleXYSeries
 
     // Square
     private lateinit var formatterSquares: XYSeriesFormatter<XYRegionFormatter>
-    lateinit var seriesSquares: SimpleXYSeries
+    /**
+     * The series that contain *only* the squares data
+     * used for displaying the plot in the app.
+     * This series is limited by `N_TOTAL_VISIBLE_POINTS`.
+     */
+    lateinit var seriesPlotSquares: SimpleXYSeries
+    /**
+     * The series that contain **all** squares data.
+     */
+    lateinit var seriesDataSquares: SimpleXYSeries
 
     // Score
     private lateinit var formatterScores: XYSeriesFormatter<XYRegionFormatter>
-    lateinit var seriesScores: SimpleXYSeries
+    /**
+     * The series that contain *only* the scores data
+     * used for displaying the plot in the app.
+     * This series is limited by `N_TOTAL_VISIBLE_POINTS`.
+     */
+    lateinit var seriesPlotScores: SimpleXYSeries
+    /**
+     * The series that contain **all** scores data.
+     */
+    lateinit var seriesDataScores: SimpleXYSeries
 
     // Peaks
     private lateinit var formatterPeaks: XYSeriesFormatter<XYRegionFormatter>
-    lateinit var seriesPeaks: SimpleXYSeries
+    /**
+     * The series that contain *only* the peaks data
+     * used for displaying the plot in the app.
+     * This series is limited by `N_TOTAL_VISIBLE_POINTS`.
+     */
+    lateinit var seriesPlotPeaks: SimpleXYSeries
+    /**
+     * The series that contain **all** peaks data.
+     */
+    lateinit var seriesDataPeaks: SimpleXYSeries
+
+    /**
+     * The series that contain **all** timestamp data.
+     * Timestamp is taken from Polar device and is in `Long` type.
+     * The timestamp corresponds to the timestamp of
+     * ECG value of the same index.
+     */
+    lateinit var seriesTimestamp: SimpleXYSeries
 
     /**
      * The next index in the data (or the length of the series.)
@@ -56,33 +100,45 @@ class QrsPlotter {
         this.parentActivity = activity
         this.plot = plot
         dataIndex = 0
+
         formatterEcg = LineAndPointFormatter(
             Color.rgb(0, 153, 255),
             null, null, null
         )
         formatterEcg.isLegendIconEnabled = false
-        seriesEcg = SimpleXYSeries("ECG")
+        seriesPlotEcg = SimpleXYSeries("ECG")
+        seriesDataEcg = SimpleXYSeries("ECG")
+
         formatterSquares = LineAndPointFormatter(
             Color.rgb(255, 216, 0),
             null, null, null
         )
         formatterSquares.isLegendIconEnabled = false
-        seriesSquares = SimpleXYSeries("Derivative")
+        seriesPlotSquares = SimpleXYSeries("Derivative")
+        seriesDataSquares = SimpleXYSeries("Derivative")
+
         formatterScores = LineAndPointFormatter(
             Color.rgb(50, 205, 50),
             null, null, null
         ) // Crimson
         formatterScores.isLegendIconEnabled = false
-        seriesScores = SimpleXYSeries("Square")
+        seriesPlotScores = SimpleXYSeries("Square")
+        seriesDataScores = SimpleXYSeries("Square")
+
         formatterPeaks = LineAndPointFormatter(null, Color.RED, null, null)
         formatterPeaks.isLegendIconEnabled = false
 //        ((LineAndPointFormatter)mFormatter4).getVertexPaint()
 //        .setStrokeWidth(20);
-        seriesPeaks = SimpleXYSeries("Peaks")
-        this.plot.addSeries(seriesSquares, formatterSquares)
-        this.plot.addSeries(seriesScores, formatterScores)
-        this.plot.addSeries(seriesPeaks, formatterPeaks)
-        this.plot.addSeries(seriesEcg, formatterEcg)
+        seriesPlotPeaks = SimpleXYSeries("Peaks")
+        seriesDataPeaks = SimpleXYSeries("Peaks")
+
+        seriesTimestamp = SimpleXYSeries("Timestamp")
+
+        // only add the "plot series" to the plot for displaying
+        this.plot.addSeries(seriesPlotSquares, formatterSquares)
+        this.plot.addSeries(seriesPlotScores, formatterScores)
+        this.plot.addSeries(seriesPlotPeaks, formatterPeaks)
+        this.plot.addSeries(seriesPlotEcg, formatterEcg)
         setupPlot()
     }
 
@@ -149,8 +205,14 @@ class QrsPlotter {
      * @param ecg Value for the first series. Ecg
      * @param square Value for the second series. Square
      * @param score Value for the third series. Score
+     * @param timestamp The timestamp of the other values.
      */
-    fun addValues(ecg: Number?, square: Number?, score: Number?) {
+    fun addValues(
+        ecg: Number?,
+        square: Number?,
+        score: Number?,
+        timestamp:  Long?
+    ) {
 //        Log.d(TAG, this.getClass().getSimpleName()
 //                + "addValues: dataIndex=" + mDataIndex + " mSeriesSize="
 //                + mSeries1.size() + " mSeries2Size=" + mSeries2.size()
@@ -158,22 +220,32 @@ class QrsPlotter {
         // Add the new values, removing old values if needed
         // Convert from  μV to mV
         if (ecg != null) {
-            if (seriesEcg.size() >= N_TOTAL_POINTS) {
-                seriesEcg.removeFirst()
+            // only remove old values in the "plot series"
+            if (seriesPlotEcg.size() >= N_TOTAL_VISIBLE_POINTS) {
+                seriesPlotEcg.removeFirst()
             }
-            seriesEcg.addLast(dataIndex, ecg)
+            // add the new values to both series
+            seriesPlotEcg.addLast(dataIndex, ecg)
+            seriesDataEcg.addLast(dataIndex, ecg)
         }
         if (square != null) {
-            if (seriesSquares.size() >= N_TOTAL_POINTS) {
-                seriesSquares.removeFirst()
+            // only remove old values in the "plot series"
+            if (seriesPlotSquares.size() >= N_TOTAL_VISIBLE_POINTS) {
+                seriesPlotSquares.removeFirst()
             }
-            seriesSquares.addLast(dataIndex, square)
+            seriesPlotSquares.addLast(dataIndex, square)
+            seriesDataSquares.addLast(dataIndex, square)
         }
         if (score != null) {
-            if (seriesScores.size() >= N_TOTAL_POINTS) {
-                seriesScores.removeFirst()
+            // only remove old values in the "plot series"
+            if (seriesPlotScores.size() >= N_TOTAL_VISIBLE_POINTS) {
+                seriesPlotScores.removeFirst()
             }
-            seriesScores.addLast(dataIndex, score)
+            seriesPlotScores.addLast(dataIndex, score)
+            seriesDataScores.addLast(dataIndex, score)
+        }
+        if (timestamp != null) {
+            seriesTimestamp.addLast(dataIndex, timestamp)
         }
         dataIndex++
         // Reset the domain boundaries
@@ -188,8 +260,9 @@ class QrsPlotter {
 //                + " sample=" + sample + " ecg=" + ecg);
 //
         // Remove old values if needed
-        removeOutOfRangeValues()
-        seriesPeaks.addLast(sample, ecg)
+        removeOutOfRangePlotPeakValues()
+        seriesPlotPeaks.addLast(sample, ecg)
+        seriesDataPeaks.addLast(sample, ecg)
 //        Log.d(TAG, "Added peak value: sample=" + sample + " size=" +
 //        mSeries4.size()
 //                + " ecg=" + ecg + " mDataIndex=" + mDataIndex);
@@ -202,9 +275,11 @@ class QrsPlotter {
 //                + " sample=" + sample + " ecg=" + ecg);
 //
         // Remove old values if needed
-        removeOutOfRangeValues()
-        seriesPeaks.removeLast()
-        seriesPeaks.addLast(sample, ecg)
+        removeOutOfRangePlotPeakValues()
+        seriesPlotPeaks.removeLast()
+        seriesDataPeaks.removeLast()
+        seriesPlotPeaks.addLast(sample, ecg)
+        seriesDataPeaks.addLast(sample, ecg)
 //            Log.d(TAG, "Replaced peak value: sample=" + sample + " size=" +
 //            mSeries4.size()
 //                    + " ecg=" + ecg + " mDataIndex=" + mDataIndex);
@@ -213,11 +288,11 @@ class QrsPlotter {
     /**
      * Removes peaks with indices that are no longer in range.
      */
-    fun removeOutOfRangeValues() {
+    fun removeOutOfRangePlotPeakValues() {
         // Remove old values if needed
-        val xMin = dataIndex - N_TOTAL_POINTS
-        while (seriesPeaks.size() > 0 && seriesPeaks.getxVals().first.toInt() < xMin) {
-            seriesPeaks.removeFirst()
+        val xMin = dataIndex - N_TOTAL_VISIBLE_POINTS
+        while (seriesPlotPeaks.size() > 0 && seriesPlotPeaks.getxVals().first.toInt() < xMin) {
+            seriesPlotPeaks.removeFirst()
         }
     }
 
@@ -269,10 +344,14 @@ class QrsPlotter {
      */
     fun clear() {
         dataIndex = 0
-        seriesEcg.clear()
-        seriesSquares.clear()
-        seriesScores.clear()
-        seriesPeaks.clear()
+        seriesPlotEcg.clear()
+        seriesDataEcg.clear()
+        seriesPlotSquares.clear()
+        seriesDataSquares.clear()
+        seriesPlotScores.clear()
+        seriesDataScores.clear()
+        seriesPlotPeaks.clear()
+        seriesDataPeaks.clear()
         update()
     }
 

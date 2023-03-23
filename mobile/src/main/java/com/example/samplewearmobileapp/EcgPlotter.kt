@@ -8,7 +8,7 @@ import com.example.samplewearmobileapp.Constants.MICRO_TO_MILLI_VOLT
 import com.example.samplewearmobileapp.Constants.N_DOMAIN_LARGE_BOXES
 import com.example.samplewearmobileapp.Constants.N_ECG_PLOT_POINTS
 import com.example.samplewearmobileapp.Constants.N_LARGE
-import com.example.samplewearmobileapp.Constants.N_TOTAL_POINTS
+import com.example.samplewearmobileapp.Constants.N_TOTAL_VISIBLE_POINTS
 import com.example.samplewearmobileapp.utils.AppUtils
 import com.polar.sdk.api.model.PolarEcgData
 import java.util.*
@@ -17,7 +17,26 @@ class EcgPlotter {
     private lateinit var parentActivity: MainActivity
     private var plot: XYPlot
     private lateinit var formatter: XYSeriesFormatter<XYRegionFormatter>
-    private lateinit var series: SimpleXYSeries
+
+    /**
+     * The series that contain *only* the data
+     * used for displaying the plot in the app.
+     * This series is limited by `N_TOTAL_VISIBLE_POINTS`.
+     */
+    private lateinit var seriesVisible: SimpleXYSeries
+
+    /**
+     * The series that contain **all** data.
+     */
+    private lateinit var seriesAll: SimpleXYSeries
+
+    /**
+     * The series that contain **all** timestamp data.
+     * Timestamp is taken from Polar device and is in `Long` type.
+     * The timestamp corresponds to the timestamp of
+     * ECG value of the same index.
+     */
+    private lateinit var seriesTimestamp: SimpleXYSeries
 
     /**
      * The next index in the data (or the length of the series.)
@@ -53,8 +72,10 @@ class EcgPlotter {
             if (showVertices) lineColor else null, null, null
         )
         formatter.isLegendIconEnabled = false
-        series = SimpleXYSeries(title)
-        plot.addSeries(series, formatter)
+        seriesVisible = SimpleXYSeries(title)
+        seriesAll = SimpleXYSeries(title)
+        // only add to plot the visible series
+        plot.addSeries(seriesVisible, formatter)
         setupPlot()
     }
 
@@ -72,8 +93,10 @@ class EcgPlotter {
         newPlotter.parentActivity = this.parentActivity
         newPlotter.dataIndex = this.dataIndex
         newPlotter.formatter = this.formatter
-        newPlotter.series = this.series
-        newPlotter.plot.addSeries(series, formatter)
+        newPlotter.seriesVisible = this.seriesVisible
+        newPlotter.seriesAll = this.seriesAll
+        // only add to plot the visible series
+        newPlotter.plot.addSeries(seriesVisible, formatter)
         newPlotter.setupPlot()
         return newPlotter
     }
@@ -145,12 +168,17 @@ class EcgPlotter {
         if (sampleCount == 0) return
 
         // Add the new values, removing old values if needed
-        for (`val` in polarEcgData.samples) {
-            if (series.size() >= N_TOTAL_POINTS) {
-                series.removeFirst()
+        for (ecgDataSample in polarEcgData.samples) {
+            // remove old values only on visible series
+            if (seriesVisible.size() >= N_TOTAL_VISIBLE_POINTS) {
+                seriesVisible.removeFirst()
             }
             // Convert from  μV to mV and add to series
-            series.addLast(dataIndex++, MICRO_TO_MILLI_VOLT * `val`)
+            seriesVisible.addLast(dataIndex, MICRO_TO_MILLI_VOLT * ecgDataSample.voltage)
+            // Add the value to the all series as well
+            seriesAll.addLast(dataIndex, MICRO_TO_MILLI_VOLT * ecgDataSample.voltage)
+            seriesTimestamp.addLast(dataIndex, ecgDataSample.timeStamp)
+            dataIndex++
         }
         // Reset the domain boundaries
         updateDomainBoundaries()
@@ -219,10 +247,10 @@ class EcgPlotter {
             .append(lf)
         sb.append("DataIndex=").append(dataIndex)
             .append(lf)
-        if (series != null) {
-            if (series.getxVals() != null) {
+        if (seriesVisible != null) {
+            if (seriesVisible.getxVals() != null) {
                 sb.append("Series Size=")
-                    .append(series.getxVals().size)
+                    .append(seriesVisible.getxVals().size)
                     .append(lf)
             }
         } else {
@@ -231,8 +259,43 @@ class EcgPlotter {
         return sb.toString()
     }
 
-    fun getSeries(): SimpleXYSeries {
-        return series
+    /**
+     * Get a series containing *only* the data used for display
+     * @return a `SimpleXYSeries` containing display plot data
+     */
+    fun getVisibleSeries(): SimpleXYSeries {
+        return seriesVisible
+    }
+
+    /**
+     * Get a series containing *all* ECG data during recording
+     * @return a `SimpleXYSeries` containing complete ECG data
+     */
+    fun getDataSeries(): SimpleXYSeries {
+        return seriesAll
+    }
+
+    /**
+     * Get a series of the timestamp taken from Polar device
+     * @return a `SimpleXYSeries` containing timestamp values
+     */
+    fun getTimestampSeries(): SimpleXYSeries {
+        return seriesTimestamp
+    }
+
+    /**
+     * Get a series with the full data with
+     * the timestamp taken from Polar device
+     * @return a `SimpleXYSeries` with
+     * timestamp as the Y values and
+     * ECG as the X values
+     */
+    fun getCompiledDataSeries(): SimpleXYSeries {
+        return SimpleXYSeries(
+            seriesAll.getyVals().toMutableList(),
+            seriesTimestamp.getyVals().toMutableList(),
+            "Complete-ECG"
+        )
     }
 
     fun getDataIndex(): Long {
@@ -244,7 +307,8 @@ class EcgPlotter {
      */
     fun clear() {
         dataIndex = 0
-        series.clear()
+        seriesVisible.clear()
+        seriesAll.clear()
         update()
     }
 
