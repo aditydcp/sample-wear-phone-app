@@ -30,8 +30,8 @@ object EcgImager {
         firmware: String?,
         batteryLevel: String?,
         notes: String?,
-        devhr: String?,
-        calchr: String?,
+        deviceHr: String?,
+        calculatedHr: String?,
         peaksCount: String?,
         duration: String?,
         ecgValues: DoubleArray,
@@ -100,12 +100,12 @@ object EcgImager {
         paint.typeface = fontBold
         canvas.drawText("Device HR:", 100f, 300f, paint)
         paint.typeface = font
-        canvas.drawText(devhr!!, 300f, 300f, paint)
+        canvas.drawText(deviceHr!!, 300f, 300f, paint)
 
         paint.typeface = fontBold
         canvas.drawText("Calc HR:", 500f, 300f, paint)
         paint.typeface = font
-        canvas.drawText(calchr!!, 700f, 300f, paint)
+        canvas.drawText(calculatedHr!!, 700f, 300f, paint)
 
         paint.typeface = fontBold
         canvas.drawText("Peaks:", 850f, 300f, paint)
