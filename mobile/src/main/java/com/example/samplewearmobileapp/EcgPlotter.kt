@@ -74,6 +74,7 @@ class EcgPlotter {
         formatter.isLegendIconEnabled = false
         seriesVisible = SimpleXYSeries(title)
         seriesAll = SimpleXYSeries(title)
+        seriesTimestamp = SimpleXYSeries("Ecg-Timestamp")
         // only add to plot the visible series
         plot.addSeries(seriesVisible, formatter)
         setupPlot()
@@ -95,6 +96,7 @@ class EcgPlotter {
         newPlotter.formatter = this.formatter
         newPlotter.seriesVisible = this.seriesVisible
         newPlotter.seriesAll = this.seriesAll
+        newPlotter.seriesTimestamp = this.seriesTimestamp
         // only add to plot the visible series
         newPlotter.plot.addSeries(seriesVisible, formatter)
         newPlotter.setupPlot()

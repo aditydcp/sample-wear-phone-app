@@ -1367,7 +1367,7 @@ class MainActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks,
                     for (i in 0 until sampleCount) {
                         out.write(
                             String.format(
-                                Locale.US, "%.3f,%d,%l\n",
+                                Locale.US, "%.3f,%d,%d\n",
                                 ecgValues[i],
                                 if (peakValues[i]) 1 else 0,
                                 timestamps[i]
@@ -1518,9 +1518,9 @@ class MainActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks,
         // This is different from the index in the arrays, which goes from 0
         // to no more than N_TOTAL_VISIBLE_POINTS.
         var offset = 0
-        if (qrsPlotter!!.dataIndex > N_TOTAL_VISIBLE_POINTS) {
-            offset = (-(qrsPlotter!!.dataIndex - N_TOTAL_VISIBLE_POINTS)).toInt()
-        }
+//        if (qrsPlotter!!.dataIndex > N_TOTAL_VISIBLE_POINTS) {
+//            offset = (-(qrsPlotter!!.dataIndex - N_TOTAL_VISIBLE_POINTS)).toInt()
+//        }
         var index: Int
         for (j in 0 until peaksLength) {
             index = peakXValues[j].toInt() + offset
