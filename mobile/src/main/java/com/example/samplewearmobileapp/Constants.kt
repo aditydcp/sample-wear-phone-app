@@ -2,7 +2,7 @@ package com.example.samplewearmobileapp
 
 object Constants {
     var PREF_DEVICE_ID = "deviceId"
-    var PREF_ACQ_DEVICE_IDS = "mruDeviceIds"
+//    var PREF_ACQ_DEVICE_IDS = "mruDeviceIds"
     var PREF_TREE_URI = "treeUri"
     var PREF_PATIENT_NAME = "patientName"
     var PREF_ANALYSIS_VISIBILITY = "analysisVisibility"

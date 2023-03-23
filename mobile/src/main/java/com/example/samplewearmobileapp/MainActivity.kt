@@ -28,7 +28,7 @@ import com.androidplot.xy.XYPlot
 import com.example.samplewearmobileapp.BluetoothService.REQUEST_CODE_ENABLE_BLUETOOTH
 import com.example.samplewearmobileapp.Constants.ECG_SAMPLE_RATE
 import com.example.samplewearmobileapp.Constants.N_TOTAL_POINTS
-import com.example.samplewearmobileapp.Constants.PREF_ACQ_DEVICE_IDS
+//import com.example.samplewearmobileapp.Constants.PREF_ACQ_DEVICE_IDS
 import com.example.samplewearmobileapp.Constants.PREF_ANALYSIS_VISIBILITY
 import com.example.samplewearmobileapp.Constants.PREF_DEVICE_ID
 import com.example.samplewearmobileapp.Constants.PREF_PATIENT_NAME
@@ -69,7 +69,7 @@ class MainActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks,
     private lateinit var binding: ActivityMainBinding
     private lateinit var client: GoogleApiClient
     private lateinit var menu: Menu
-    private lateinit var acquaintedDevices: MutableList<DeviceInfo>
+//    private lateinit var acquaintedDevices: MutableList<DeviceInfo>
     private var polarApi: PolarBleApi? = null
     private var ecgDisposable: Disposable? = null
     var ecgPlotter: EcgPlotter? = null
@@ -238,7 +238,7 @@ class MainActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks,
         Log.d(
             TAG, "settingsLauncher: resultCode=" + code
                     + " oldDeviceId=" + oldDeviceId
-                    + " mDeviceId=" + deviceId
+                    + " DeviceId=" + deviceId
         )
         if (oldDeviceId != deviceId) {
             resetDeviceId(oldDeviceId)
@@ -321,20 +321,21 @@ class MainActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks,
         setLastHr()
         stopTime = Date()
 
-        // Start Bluetooth
+//        // Start Bluetooth
         deviceId = sharedPreferences!!.getString(PREF_DEVICE_ID, "").toString()
         Log.d(TAG, "    mDeviceId=$deviceId")
-        val gson = Gson()
-        val type = object : TypeToken<LinkedList<DeviceInfo?>?>() {}.type
-        val json: String? = sharedPreferences!!.getString(PREF_ACQ_DEVICE_IDS, null)
-        acquaintedDevices = gson.fromJson(json, type)
-        if (acquaintedDevices == null) {
-            acquaintedDevices = ArrayList<DeviceInfo>()
-        }
+//        val gson = Gson()
+//        val type = object : TypeToken<LinkedList<DeviceInfo?>?>() {}.type
+//        val json: String? = sharedPreferences!!.getString(PREF_ACQ_DEVICE_IDS, null)
+//        acquaintedDevices = gson.fromJson(json, type)
+//        if (acquaintedDevices == null) {
+//            acquaintedDevices = ArrayList<DeviceInfo>()
+//        }
 
-        if (deviceId == null || deviceId == "") {
-            selectDeviceId()
-        }
+//        TODO: selectDeviceId and connect to it when prompted to
+//        if (deviceId == null || deviceId == "") {
+//            selectDeviceId()
+//        }
 
         // register bluetooth state broadcast receiver
         registerReceiver(bluetoothStateReceiver, BluetoothService.BLUETOOTH_STATE_FILTER)
@@ -673,8 +674,8 @@ class MainActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks,
                 deviceAddress = s.address
                 deviceName = s.name
                 isConnected = true
-                // Set the MRU preference here after we know the name
-                setDevicePreferences(DeviceInfo(deviceName, deviceId))
+//                // Set the MRU preference here after we know the name
+//                setDevicePreferences(DeviceInfo(deviceName, deviceId))
                 Toast.makeText(
                     this@MainActivity,
                     getString(R.string.connected_string, s.name),
@@ -973,91 +974,93 @@ class MainActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks,
         hrPlotter?.setupPlot()
     }
 
-    /**
-     * Setup a new device into the shared preferences.
-     * This will remove the earliest device added to the list
-     * if the list is on max capacity.
-     * @param deviceInfo info of the new device
-     */
-    private fun setDevicePreferences(deviceInfo: DeviceInfo) {
-        val editor: SharedPreferences.Editor = sharedPreferences!!.edit()
-        // Remove any found so the new one will be added at the beginning
-        val removeList: MutableList<DeviceInfo> = ArrayList()
-        for (acquaintedDeviceInfo in acquaintedDevices) {
-            if (deviceInfo.name == acquaintedDeviceInfo.name &&
-                deviceInfo.id == acquaintedDeviceInfo.id) {
-                removeList.add(acquaintedDeviceInfo)
-            }
-        }
-        for (device in removeList) {
-            acquaintedDevices.remove(device)
-        }
-        // Remove at end if size exceed max
-        if (acquaintedDevices.size != 0 && acquaintedDevices.size == MAX_DEVICES) {
-            acquaintedDevices.removeAt(acquaintedDevices.size - 1)
-        }
-        // Add at the beginning
-        acquaintedDevices.add(0, deviceInfo)
-        val gson = Gson()
-        val json = gson.toJson(acquaintedDevices)
-        editor.putString(PREF_ACQ_DEVICE_IDS, json)
-        deviceId = deviceInfo.id
-        editor.putString(PREF_DEVICE_ID, deviceInfo.id)
-        editor.apply()
-    }
+//    /**
+//     * Setup a new device into the shared preferences.
+//     * This will remove the earliest device added to the list
+//     * if the list is on max capacity.
+//     * @param deviceInfo info of the new device
+//     */
+//    private fun setDevicePreferences(deviceInfo: DeviceInfo) {
+//        val editor: SharedPreferences.Editor = sharedPreferences!!.edit()
+//        // Remove any found so the new one will be added at the beginning
+//        val removeList: MutableList<DeviceInfo> = ArrayList()
+//        for (acquaintedDeviceInfo in acquaintedDevices) {
+//            if (deviceInfo.name == acquaintedDeviceInfo.name &&
+//                deviceInfo.id == acquaintedDeviceInfo.id) {
+//                removeList.add(acquaintedDeviceInfo)
+//            }
+//        }
+//        for (device in removeList) {
+//            acquaintedDevices.remove(device)
+//        }
+//        // Remove at end if size exceed max
+//        if (acquaintedDevices.size != 0 && acquaintedDevices.size == MAX_DEVICES) {
+//            acquaintedDevices.removeAt(acquaintedDevices.size - 1)
+//        }
+//        // Add at the beginning
+//        acquaintedDevices.add(0, deviceInfo)
+//        val gson = Gson()
+//        val json = gson.toJson(acquaintedDevices)
+//        editor.putString(PREF_ACQ_DEVICE_IDS, json)
+//        deviceId = deviceInfo.id
+//        editor.putString(PREF_DEVICE_ID, deviceInfo.id)
+//        editor.apply()
+//    }
 
     /**
      * Commence selecting device ID.
      */
     private fun selectDeviceId() {
-        if (acquaintedDevices.size == 0) {
-            showDeviceIdDialog(null)
-            return
-        }
-        val dialog = arrayOf(AlertDialog.Builder(
-                this@MainActivity,
-                R.style.InverseTheme)
-        )
-        dialog[0].setTitle(R.string.device_id_item)
-        val items = arrayOfNulls<String>(acquaintedDevices.size + 1)
-        var deviceInfo: DeviceInfo
-        for (i in acquaintedDevices.indices) {
-            deviceInfo = acquaintedDevices[i]
-            items[i] = deviceInfo.name
-        }
-        items[acquaintedDevices.size] = "New"
-        val checkedItem = 0
-        dialog[0].setSingleChoiceItems(
-            items, checkedItem
-        ) { dialogInterface: DialogInterface, which: Int ->
-            if (which < acquaintedDevices.size) {
-                val deviceInfo1: DeviceInfo = acquaintedDevices[which]
-                val oldDeviceId: String = deviceId
-                setDevicePreferences(deviceInfo1)
-                Log.d(
-                    TAG, "which=" + which
-                            + " name=" + deviceInfo1.name + " id="
-                            + deviceInfo1.id
-                )
-                Log.d(
-                    TAG,
-                    "selectDeviceId: oldDeviceId=" + oldDeviceId
-                            + " mDeviceId=" + deviceId
-                )
-                if (oldDeviceId != deviceId) {
-                    resetDeviceId(oldDeviceId)
-                }
-            } else {
-                showDeviceIdDialog(null)
-            }
-            dialogInterface.dismiss()
-        }
-        dialog[0].setNegativeButton(
-            R.string.cancel
-        ) { dialog1, _ -> dialog1.dismiss() }
-        val alert = dialog[0].create()
-        alert.setCanceledOnTouchOutside(false)
-        alert.show()
+//        if (acquaintedDevices.size == 0) {
+//            showDeviceIdDialog(null)
+//            return
+//        }
+//        val dialog = arrayOf(AlertDialog.Builder(
+//                this@MainActivity,
+//                R.style.InverseTheme)
+//        )
+//        dialog[0].setTitle(R.string.device_id_item)
+//        val items = arrayOfNulls<String>(acquaintedDevices.size + 1)
+//        var deviceInfo: DeviceInfo
+//        for (i in acquaintedDevices.indices) {
+//            deviceInfo = acquaintedDevices[i]
+//            items[i] = deviceInfo.name
+//        }
+//        items[acquaintedDevices.size] = "New"
+//        val checkedItem = 0
+//        dialog[0].setSingleChoiceItems(
+//            items, checkedItem
+//        ) { dialogInterface: DialogInterface, which: Int ->
+//            if (which < acquaintedDevices.size) {
+//                val deviceInfo1: DeviceInfo = acquaintedDevices[which]
+//                val oldDeviceId: String = deviceId
+//                setDevicePreferences(deviceInfo1)
+//                Log.d(
+//                    TAG, "which=" + which
+//                            + " name=" + deviceInfo1.name + " id="
+//                            + deviceInfo1.id
+//                )
+//                Log.d(
+//                    TAG,
+//                    "selectDeviceId: oldDeviceId=" + oldDeviceId
+//                            + " mDeviceId=" + deviceId
+//                )
+//                if (oldDeviceId != deviceId) {
+//                    resetDeviceId(oldDeviceId)
+//                }
+//            } else {
+//                showDeviceIdDialog(null)
+//            }
+//            dialogInterface.dismiss()
+//        }
+//        dialog[0].setNegativeButton(
+//            R.string.cancel
+//        ) { dialog1, _ -> dialog1.dismiss() }
+//        val alert = dialog[0].create()
+//        alert.setCanceledOnTouchOutside(false)
+//        alert.show()
+
+        showDeviceIdDialog(null)
     }
 
     /**
