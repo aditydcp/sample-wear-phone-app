@@ -4,8 +4,10 @@ import android.Manifest
 import android.app.Activity
 import android.content.pm.PackageManager
 import android.os.Bundle
+import android.os.CountDownTimer
 import android.util.Log
 import android.view.View
+import android.view.WindowManager
 import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
@@ -19,6 +21,7 @@ import com.google.gson.Gson
 import com.samsung.android.service.health.tracking.HealthTrackerException
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
+import java.util.concurrent.atomic.AtomicBoolean
 
 class MainActivity : Activity(), GoogleApiClient.ConnectionCallbacks {
     private val tag = "Wear: MainActivity"
@@ -28,28 +31,69 @@ class MainActivity : Activity(), GoogleApiClient.ConnectionCallbacks {
     private var message: Message = Message()
     private var currentMessage: Message? = null
     private var currentState = 0
-    private var currentDataBatchNumber = 0
+    private var currentPpgGreenDataNumber = 0
+    private var currentPpgIrDataNumber = 0
+    private var currentPpgRedDataNumber = 0
+    private var isOnDemandMeasurementRunning = AtomicBoolean(false)
 
-    private lateinit var textStatus : TextView
-    private lateinit var textTip : TextView
-//    private lateinit var hrContainer : LinearLayout
-//    private lateinit var textHeartRate : TextView
-//    private lateinit var textHeartRateStatus : TextView
-//    private lateinit var textIbi : TextView
-//    private lateinit var textIbiStatus : TextView
-    private lateinit var ppgGreenContainer : LinearLayout
-    private lateinit var textPpgGreen : TextView
-    private lateinit var textPpgGreenNumber : TextView
-    private lateinit var textPpgGreenTimestamp : TextView
+    private lateinit var textStatus: TextView
+    private lateinit var textTip: TextView
+//    private lateinit var hrContainer: LinearLayout
+//    private lateinit var textHeartRate: TextView
+//    private lateinit var textHeartRateStatus: TextView
+//    private lateinit var textIbi: TextView
+//    private lateinit var textIbiStatus: TextView
+    private lateinit var ppgGreenContainer: LinearLayout
+    private lateinit var textPpgGreen: TextView
+    private lateinit var textPpgGreenNumber: TextView
+    private lateinit var textPpgGreenTimestamp: TextView
+    private lateinit var ppgIrContainer: LinearLayout
+    private lateinit var textPpgIr: TextView
+    private lateinit var textPpgIrStatus: TextView
+    private lateinit var textPpgIrNumber: TextView
+    private lateinit var textPpgIrTimestamp: TextView
+    private lateinit var ppgRedContainer: LinearLayout
+    private lateinit var textPpgRed: TextView
+    private lateinit var textPpgRedStatus: TextView
+    private lateinit var textPpgRedNumber: TextView
+    private lateinit var textPpgRedTimestamp: TextView
+
 
     lateinit var uiUpdateThread: Thread
     private lateinit var connectionManager: ConnectionManager
 //    private lateinit var heartRateListener: HeartRateListener
     private lateinit var ppgGreenListener: PpgGreenListener
+    private lateinit var ppgIrListener: PpgIrListener
+    private lateinit var ppgRedListener: PpgRedListener
     private var connected = false
     private var permissionGranted = false
 //    private var heartRateDataLast = HeartRateData()
     private var ppgGreenDataLast = PpgGreenData()
+    private var ppgIrDataLast = PpgIrData()
+    private var ppgRedDataLast = PpgRedData()
+
+    private val onDemandCountDownTimer: CountDownTimer = object : CountDownTimer(
+        ON_DEMAND_MEASUREMENT_DURATION.toLong(),
+        ON_DEMAND_MEASUREMENT_TICK.toLong()
+    ) {
+        override fun onTick(timeLeft: Long) {
+            if (!isOnDemandMeasurementRunning.get())
+                cancel()
+        }
+
+        override fun onFinish() {
+            if (!isOnDemandMeasurementRunning.get()) return
+            Log.i(tag, "On-Demand measurement finished")
+            runOnUiThread {
+                textPpgIrStatus.setText(R.string.status_finished)
+                textPpgRedStatus.setText(R.string.status_finished)
+            }
+            ppgIrListener.stopTracker()
+            ppgRedListener.stopTracker()
+            window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+            isOnDemandMeasurementRunning.set(false)
+        }
+    }
 
     val trackerDataObserver: TrackerDataObserver = object : TrackerDataObserver {
 //        override fun onHeartRateTrackerDataChanged(hrData: HeartRateData) {
@@ -115,21 +159,54 @@ class MainActivity : Activity(), GoogleApiClient.ConnectionCallbacks {
             when(ppgGreenData.status) {
                 PpgGreenStatus.PPG_GREEN_STATUS_GOOD.code -> {
                     Log.i(tag, "Green PPG Data received")
-                    currentDataBatchNumber++
+                    currentPpgGreenDataNumber++
                     this@MainActivity.runOnUiThread {
                         textPpgGreen.text = ppgGreenData.ppgValue.toString()
                         Log.i(tag, "PPG Green : ${ppgGreenData.ppgValue}")
                         textPpgGreenTimestamp.text = ppgGreenData.timestamp.toString()
                         Log.i(tag, "PPG Green Timestamp : ${ppgGreenData.timestamp}")
-                        textPpgGreenNumber.text = currentDataBatchNumber.toString()
+                        textPpgGreenNumber.text = currentPpgGreenDataNumber.toString()
                     }
                 }
                 PpgGreenStatus.PPG_GREEN_STATUS_NONE.code -> {
                     Log.i(tag, "No Green PPG Data")
                 }
             }
-            sendPpgGreenData(ppgGreenData)
+            // commented out sending data for trial
+//            sendPpgGreenData(ppgGreenData)
             ppgGreenDataLast = ppgGreenData
+        }
+
+        override fun onPpgIrTrackerDataChanged(ppgIrData: PpgIrData) {
+            Log.i(tag, "InfraRed PPG Data received")
+            currentPpgIrDataNumber++
+            this@MainActivity.runOnUiThread {
+                textPpgIrStatus.text = getString(R.string.status_measuring)
+                textPpgIr.text = ppgIrData.ppgValue.toString()
+                Log.i(tag, "PPG IR : ${ppgIrData.ppgValue}")
+                textPpgIrTimestamp.text = ppgIrData.timestamp.toString()
+                Log.i(tag, "PPG IR Timestamp : ${ppgIrData.timestamp}")
+                textPpgIrNumber.text = currentPpgIrDataNumber.toString()
+            }
+            // commented out sending data for trial
+//            sendPpgIrData(ppgIrData)
+            ppgIrDataLast = ppgIrData
+        }
+
+        override fun onPpgRedTrackerDataChanged(ppgRedData: PpgRedData) {
+            Log.i(tag, "Red PPG Data received")
+            currentPpgRedDataNumber++
+            this@MainActivity.runOnUiThread {
+                textPpgRedStatus.text = getString(R.string.status_measuring)
+                textPpgRed.text = ppgRedData.ppgValue.toString()
+                Log.i(tag, "PPG Red : ${ppgRedData.ppgValue}")
+                textPpgRedTimestamp.text = ppgRedData.timestamp.toString()
+                Log.i(tag, "PPG Red Timestamp : ${ppgRedData.timestamp}")
+                textPpgRedNumber.text = currentPpgRedDataNumber.toString()
+            }
+            // commented out sending data for trial
+//            sendPpgRedData(ppgRedData)
+            ppgRedDataLast = ppgRedData
         }
 
         override fun onError(errorResourceId: Int) {
@@ -158,8 +235,13 @@ class MainActivity : Activity(), GoogleApiClient.ConnectionCallbacks {
             TrackerDataNotifier.instance?.addObserver(trackerDataObserver)
 //            heartRateListener = HeartRateListener()
             ppgGreenListener = PpgGreenListener()
+            ppgIrListener = PpgIrListener()
+            ppgRedListener = PpgRedListener()
+
 //            connectionManager.initHeartRate(heartRateListener)
             connectionManager.initPpgGreen(ppgGreenListener)
+            connectionManager.initPpgIr(ppgIrListener)
+            connectionManager.initPpgRed(ppgRedListener)
 
             // commented out because tracker started at other point of the app
             //heartRateListener.startTracker()
@@ -202,7 +284,7 @@ class MainActivity : Activity(), GoogleApiClient.ConnectionCallbacks {
 
         message.sender = Entity.WEAR_APP
 
-        currentDataBatchNumber = 0
+        currentPpgGreenDataNumber = 0
 
         uiUpdateThread = Thread {}
         uiUpdateThread.start()
@@ -231,9 +313,19 @@ class MainActivity : Activity(), GoogleApiClient.ConnectionCallbacks {
 //        textIbi = binding.ibi
 //        textIbiStatus = binding.ibiStatus
         ppgGreenContainer = binding.ppgGreenContainer
-        textPpgGreenNumber = binding.ppgGreenBatch
+        textPpgGreenNumber = binding.ppgGreenNumber
         textPpgGreen = binding.ppgGreen
         textPpgGreenTimestamp = binding.ppgGreenTimestamp
+        ppgIrContainer = binding.ppgIrContainer
+        textPpgIrStatus = binding.ppgIrStatus
+        textPpgIrNumber = binding.ppgIrNumber
+        textPpgIr = binding.ppgIr
+        textPpgIrTimestamp = binding.ppgIrTimestamp
+        ppgRedContainer = binding.ppgRedContainer
+        textPpgRedStatus = binding.ppgRedStatus
+        textPpgRedNumber = binding.ppgRedNumber
+        textPpgRed = binding.ppgRed
+        textPpgRedTimestamp = binding.ppgRedTimestamp
 
         // set initial UI
         textStatus.text = getString(R.string.default_status)
@@ -245,10 +337,20 @@ class MainActivity : Activity(), GoogleApiClient.ConnectionCallbacks {
         textPpgGreenNumber.text = getString(R.string.default_value)
         textPpgGreen.text = getString(R.string.default_value)
         textPpgGreenTimestamp.text = getString(R.string.default_value)
+        textPpgIrStatus.text = getString(R.string.default_status)
+        textPpgIrNumber.text = getString(R.string.default_value)
+        textPpgIr.text = getString(R.string.default_value)
+        textPpgIrTimestamp.text = getString(R.string.default_value)
+        textPpgRedStatus.text = getString(R.string.default_status)
+        textPpgRedNumber.text = getString(R.string.default_value)
+        textPpgRed.text = getString(R.string.default_value)
+        textPpgRedTimestamp.text = getString(R.string.default_value)
 
         textTip.visibility = View.VISIBLE
 //        hrContainer.visibility = View.GONE
         ppgGreenContainer.visibility = View.GONE
+        ppgIrContainer.visibility = View.GONE
+        ppgRedContainer.visibility = View.GONE
 
         // set clickables
 //        hrContainer.setOnClickListener { // hide the HR container
@@ -276,6 +378,8 @@ class MainActivity : Activity(), GoogleApiClient.ConnectionCallbacks {
         super.onDestroy()
 //        heartRateListener.stopTracker()
         ppgGreenListener.stopTracker()
+        ppgIrListener.stopTracker()
+        ppgRedListener.stopTracker()
         TrackerDataNotifier.instance?.removeObserver(trackerDataObserver)
         connectionManager.disconnect()
     }
@@ -321,6 +425,8 @@ class MainActivity : Activity(), GoogleApiClient.ConnectionCallbacks {
                             runOnUiThread {
 //                                hrContainer.visibility = View.VISIBLE
                                 ppgGreenContainer.visibility = View.VISIBLE
+                                ppgIrContainer.visibility = View.VISIBLE
+                                ppgRedContainer.visibility = View.VISIBLE
                                 textTip.visibility = View.GONE
                                 textStatus.text = getString(R.string.status_running)
                             }
@@ -328,6 +434,8 @@ class MainActivity : Activity(), GoogleApiClient.ConnectionCallbacks {
                             switchState(1)
 //                            heartRateListener.startTracker()
                             ppgGreenListener.startTracker()
+                            ppgIrListener.startTracker()
+                            ppgRedListener.startTracker()
                         }
                         ActivityCode.STOP_ACTIVITY -> {
                             runOnUiThread {
@@ -337,6 +445,8 @@ class MainActivity : Activity(), GoogleApiClient.ConnectionCallbacks {
                             switchState(0)
 //                            heartRateListener.stopTracker()
                             ppgGreenListener.stopTracker()
+                            ppgIrListener.stopTracker()
+                            ppgRedListener.stopTracker()
                         }
                         ActivityCode.DO_NOTHING -> {
                             runOnUiThread {
@@ -387,7 +497,7 @@ class MainActivity : Activity(), GoogleApiClient.ConnectionCallbacks {
 
     private fun sendPpgGreenData(ppgGreenData: PpgGreenData) {
         val ppgData = PpgData(
-            currentDataBatchNumber,
+            currentPpgGreenDataNumber,
             ppgGreenData.ppgValue,
             ppgGreenData.timestamp
         )
@@ -398,6 +508,21 @@ class MainActivity : Activity(), GoogleApiClient.ConnectionCallbacks {
         Log.i("Wear","PPG Green Data sent via DataApi!")
     }
 
+    /**
+     * Toggles app state between 0 and 1.
+     *
+     * If a `forceCode` other than 0 or 1 has been passed before,
+     * `switchState` will not work until another call with
+     *  a `forceCode` of 0 or 1 is executed.
+     *
+     * @param forceCode Optional.
+     * Any integer other than 99.
+     *
+     * If present, this function will set the force code
+     * as the app state. Note that using value other than 0 or 1
+     * will break the function until another call using 0 or 1
+     * as the force code.
+     */
     private fun switchState(forceCode: Int = 99) {
         if (forceCode != 99) {
             currentState = forceCode
@@ -412,5 +537,13 @@ class MainActivity : Activity(), GoogleApiClient.ConnectionCallbacks {
         message.content = "Wear state: $currentState"
         sendMessage(message, MessagePath.INFO)
         Log.d("Wear","stateNum changed to: $currentState")
+    }
+
+    companion object {
+        /**
+         * Measurement duration for On-Demand data type in ms.
+         */
+        private const val ON_DEMAND_MEASUREMENT_DURATION = 30000 // 30k ms = 30 secs
+        private const val ON_DEMAND_MEASUREMENT_TICK = 250 // for ticking countdown timer
     }
 }

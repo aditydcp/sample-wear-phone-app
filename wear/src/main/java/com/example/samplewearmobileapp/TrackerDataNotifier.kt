@@ -28,6 +28,22 @@ class TrackerDataNotifier {
         })
     }
 
+    fun notifyPpgIrTrackerObservers(ppgIrData: PpgIrData) {
+        observers.forEach(Consumer { observer: TrackerDataObserver ->
+            observer.onPpgIrTrackerDataChanged(
+                ppgIrData
+            )
+        })
+    }
+
+    fun notifyPpgRedTrackerObservers(ppgRedData: PpgRedData) {
+        observers.forEach(Consumer { observer: TrackerDataObserver ->
+            observer.onPpgRedTrackerDataChanged(
+                ppgRedData
+            )
+        })
+    }
+
     fun notifyError(errorResourceId: Int) {
         observers.forEach(Consumer { observer: TrackerDataObserver ->
             observer.onError(

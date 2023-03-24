@@ -36,7 +36,10 @@
     <string name="status_running">Running</string>
     <string name="status_stopped">Stopped</string>
     <string name="status_ok">OK</string>
+    <string name="status_measuring">Measuring</string>
+    <string name="status_finished">Finished</string>
     <string name="status_error">Error</string>
+    <string name="status_failed">Failed</string>
     <string name="default_status">No status</string>
     <string name="default_value">0</string>
 
