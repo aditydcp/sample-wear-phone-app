@@ -12,7 +12,22 @@ import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
 import androidx.core.app.ActivityCompat
+import com.example.samplewearmobileapp.constants.codes.ActivityCode
+import com.example.samplewearmobileapp.constants.Entity
+import com.example.samplewearmobileapp.constants.MessagePath
 import com.example.samplewearmobileapp.databinding.ActivityMainBinding
+import com.example.samplewearmobileapp.models.HeartData
+import com.example.samplewearmobileapp.models.Message
+import com.example.samplewearmobileapp.models.PpgData
+import com.example.samplewearmobileapp.models.PpgType
+import com.example.samplewearmobileapp.trackers.heartrate.HeartRateData
+import com.example.samplewearmobileapp.trackers.ppggreen.PpgGreenData
+import com.example.samplewearmobileapp.trackers.ppggreen.PpgGreenListener
+import com.example.samplewearmobileapp.trackers.ppggreen.PpgGreenStatus
+import com.example.samplewearmobileapp.trackers.ppgir.PpgIrData
+import com.example.samplewearmobileapp.trackers.ppgir.PpgIrListener
+import com.example.samplewearmobileapp.trackers.ppgred.PpgRedData
+import com.example.samplewearmobileapp.trackers.ppgred.PpgRedListener
 import com.google.android.gms.common.api.GoogleApiClient
 import com.google.android.gms.wearable.Node
 import com.google.android.gms.wearable.PutDataRequest
@@ -59,7 +74,7 @@ class MainActivity : Activity(), GoogleApiClient.ConnectionCallbacks {
     private lateinit var textPpgRedTimestamp: TextView
 
 
-    lateinit var uiUpdateThread: Thread
+    private lateinit var uiUpdateThread: Thread
     private lateinit var connectionManager: ConnectionManager
 //    private lateinit var heartRateListener: HeartRateListener
     private lateinit var ppgGreenListener: PpgGreenListener
@@ -72,6 +87,7 @@ class MainActivity : Activity(), GoogleApiClient.ConnectionCallbacks {
     private var ppgIrDataLast = PpgIrData()
     private var ppgRedDataLast = PpgRedData()
 
+    // TODO: use countdown timer
     private val onDemandCountDownTimer: CountDownTimer = object : CountDownTimer(
         ON_DEMAND_MEASUREMENT_DURATION.toLong(),
         ON_DEMAND_MEASUREMENT_TICK.toLong()
@@ -499,13 +515,42 @@ class MainActivity : Activity(), GoogleApiClient.ConnectionCallbacks {
         val ppgData = PpgData(
             currentPpgGreenDataNumber,
             ppgGreenData.ppgValue,
-            ppgGreenData.timestamp
+            ppgGreenData.timestamp,
+            PpgType.PPG_GREEN
         )
         val bytes = Gson().toJson(ppgData).toByteArray()
         Wearable.DataApi.putDataItem(client,
             PutDataRequest.create(MessagePath.DATA_PPG_GREEN).setData(bytes).setUrgent()
         )
         Log.i("Wear","PPG Green Data sent via DataApi!")
+    }
+
+    private fun sendPpgIrData(ppgIrData: PpgIrData) {
+        val ppgData = PpgData(
+            currentPpgIrDataNumber,
+            ppgIrData.ppgValue,
+            ppgIrData.timestamp,
+            PpgType.PPG_IR
+        )
+        val bytes = Gson().toJson(ppgData).toByteArray()
+        Wearable.DataApi.putDataItem(client,
+            PutDataRequest.create(MessagePath.DATA_PPG_IR).setData(bytes).setUrgent()
+        )
+        Log.i("Wear","PPG IR Data sent via DataApi!")
+    }
+
+    private fun sendPpgRedData(ppgRedData: PpgRedData) {
+        val ppgData = PpgData(
+            currentPpgRedDataNumber,
+            ppgRedData.ppgValue,
+            ppgRedData.timestamp,
+            PpgType.PPG_RED
+        )
+        val bytes = Gson().toJson(ppgData).toByteArray()
+        Wearable.DataApi.putDataItem(client,
+            PutDataRequest.create(MessagePath.DATA_PPG_RED).setData(bytes).setUrgent()
+        )
+        Log.i("Wear","PPG Red Data sent via DataApi!")
     }
 
     /**

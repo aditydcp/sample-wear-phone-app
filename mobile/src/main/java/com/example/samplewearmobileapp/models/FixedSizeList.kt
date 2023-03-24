@@ -1,4 +1,4 @@
-package com.example.samplewearmobileapp.model
+package com.example.samplewearmobileapp.models
 
 import java.util.*
 

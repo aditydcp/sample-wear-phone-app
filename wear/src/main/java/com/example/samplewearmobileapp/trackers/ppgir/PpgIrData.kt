@@ -1,6 +1,6 @@
-package com.example.samplewearmobileapp
+package com.example.samplewearmobileapp.trackers.ppgir
 
-class PpgRedData {
+class PpgIrData {
     var ppgValue = 0
     var timestamp: Long = 0
 

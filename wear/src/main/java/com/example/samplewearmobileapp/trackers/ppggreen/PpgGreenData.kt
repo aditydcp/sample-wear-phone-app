@@ -1,4 +1,4 @@
-package com.example.samplewearmobileapp
+package com.example.samplewearmobileapp.trackers.ppggreen
 
 class PpgGreenData {
     var ppgValue = 0

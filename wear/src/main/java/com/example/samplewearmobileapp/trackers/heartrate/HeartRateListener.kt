@@ -1,6 +1,9 @@
-package com.example.samplewearmobileapp
+package com.example.samplewearmobileapp.trackers.heartrate
 
 import android.util.Log
+import com.example.samplewearmobileapp.trackers.Listener
+import com.example.samplewearmobileapp.R
+import com.example.samplewearmobileapp.TrackerDataNotifier
 import com.samsung.android.service.health.tracking.HealthTracker
 import com.samsung.android.service.health.tracking.data.DataPoint
 import com.samsung.android.service.health.tracking.data.ValueKey

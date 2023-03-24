@@ -1,19 +1,28 @@
-package com.example.samplewearmobileapp
+package com.example.samplewearmobileapp.trackers.ppggreen
 
 import android.util.Log
+import com.example.samplewearmobileapp.R
+import com.example.samplewearmobileapp.TrackerDataNotifier
+import com.example.samplewearmobileapp.trackers.Listener
 import com.samsung.android.service.health.tracking.HealthTracker
 import com.samsung.android.service.health.tracking.data.DataPoint
 import com.samsung.android.service.health.tracking.data.ValueKey
 
-class PpgIrListener internal constructor() : Listener() {
-    private val tag = "PpgIrListener"
+class PpgGreenListener internal constructor() : Listener() {
+    private val tag = "PpgGreenListener"
 
     init {
         val trackerEventListener: HealthTracker.TrackerEventListener = object :
             HealthTracker.TrackerEventListener {
             override fun onDataReceived(list: List<DataPoint>) {
-                for (data in list) {
-                    readValuesFromDataPoint(data)
+                if (list.isNotEmpty()) {
+                    Log.i(tag, "Ppg Data List Size : " + list.size)
+                    for (dataPoint in list) {
+                        readValuesFromDataPoint(dataPoint)
+                    }
+                } else {
+                    Log.i(tag, "onDataReceived List is empty")
+                    readZeroValue()
                 }
             }
 
@@ -39,14 +48,25 @@ class PpgIrListener internal constructor() : Listener() {
         Log.i(tag, "Timestamp : " + dataPoint.timestamp)
         Log.i(
             tag,
-            "Ppg InfraRed Value : " + dataPoint.getValue(ValueKey.PpgIrSet.PPG_IR)
+            "Ppg Green Value : " + dataPoint.getValue(ValueKey.PpgGreenSet.PPG_GREEN)
         )
 
-        val ppgIrData = PpgIrData()
-        ppgIrData.ppgValue = dataPoint.getValue(ValueKey.PpgIrSet.PPG_IR)
-        ppgIrData.timestamp = dataPoint.timestamp
+        val ppgGreenData = PpgGreenData()
+        ppgGreenData.status = PpgGreenStatus.PPG_GREEN_STATUS_GOOD.code
+        ppgGreenData.ppgValue = dataPoint.getValue(ValueKey.PpgGreenSet.PPG_GREEN)
+        ppgGreenData.timestamp = dataPoint.timestamp
 
-        TrackerDataNotifier.instance?.notifyPpgIrTrackerObservers(ppgIrData)
+        TrackerDataNotifier.instance?.notifyPpgGreenTrackerObservers(ppgGreenData)
         Log.d(tag, dataPoint.toString())
+    }
+
+    fun readZeroValue() {
+        val zeroPpgGreenData = PpgGreenData(
+            PpgGreenStatus.PPG_GREEN_STATUS_NONE.code,
+            0,
+            0
+        )
+        TrackerDataNotifier.instance?.notifyPpgGreenTrackerObservers(zeroPpgGreenData)
+        Log.d(tag, "Zero PPG Value notified")
     }
 }

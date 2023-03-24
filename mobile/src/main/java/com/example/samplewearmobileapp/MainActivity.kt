@@ -27,15 +27,17 @@ import androidx.core.content.res.ResourcesCompat
 import com.androidplot.xy.XYPlot
 import com.example.samplewearmobileapp.BluetoothService.REQUEST_CODE_ENABLE_BLUETOOTH
 import com.example.samplewearmobileapp.Constants.ECG_SAMPLE_RATE
-import com.example.samplewearmobileapp.Constants.N_TOTAL_VISIBLE_POINTS
-//import com.example.samplewearmobileapp.Constants.PREF_ACQ_DEVICE_IDS
 import com.example.samplewearmobileapp.Constants.PREF_ANALYSIS_VISIBILITY
 import com.example.samplewearmobileapp.Constants.PREF_DEVICE_ID
 import com.example.samplewearmobileapp.Constants.PREF_PATIENT_NAME
 import com.example.samplewearmobileapp.Constants.PREF_TREE_URI
 import com.example.samplewearmobileapp.EcgImager.createImage
+import com.example.samplewearmobileapp.constants.codes.ActivityCode
+import com.example.samplewearmobileapp.constants.Entity.PHONE_APP
+import com.example.samplewearmobileapp.constants.MessagePath
 import com.example.samplewearmobileapp.databinding.ActivityMainBinding
-import com.example.samplewearmobileapp.model.PlotArrays
+import com.example.samplewearmobileapp.models.Message
+import com.example.samplewearmobileapp.models.PlotArrays
 import com.example.samplewearmobileapp.utils.AppUtils
 import com.example.samplewearmobileapp.utils.UriUtils
 import com.google.android.gms.common.api.GoogleApiClient
@@ -76,7 +78,7 @@ class MainActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks,
     var hrPlotter: HrPlotter? = null
 
     private var connectedNode: List<Node>? = null
-    private var message: Message = Message()
+    private var message: Message = Message(PHONE_APP)
     private var wearMessage: Message? = null
     private var appState = 0
     private var bluetoothState = STATE_OFF
@@ -276,7 +278,7 @@ class MainActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks,
             )
         }
 
-        message.sender = Entity.PHONE_APP
+//        message.sender = Entity.PHONE_APP
 
         // set UI vars
         ecgContainer = binding.ecgContainer
@@ -322,7 +324,7 @@ class MainActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks,
 
 //        // Start Bluetooth
         deviceId = sharedPreferences!!.getString(PREF_DEVICE_ID, "").toString()
-        Log.d(TAG, "    mDeviceId=$deviceId")
+        Log.d(TAG, "DeviceId=$deviceId")
 //        val gson = Gson()
 //        val type = object : TypeToken<LinkedList<DeviceInfo?>?>() {}.type
 //        val json: String? = sharedPreferences!!.getString(PREF_ACQ_DEVICE_IDS, null)
@@ -331,7 +333,6 @@ class MainActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks,
 //            acquaintedDevices = ArrayList<DeviceInfo>()
 //        }
 
-//        TODO: selectDeviceId and connect to it when prompted to
 //        if (deviceId == null || deviceId == "") {
 //            selectDeviceId()
 //        }

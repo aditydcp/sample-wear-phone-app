@@ -1,4 +1,4 @@
-package com.example.samplewearmobileapp
+package com.example.samplewearmobileapp.trackers.heartrate
 
 //object HeartRateStatus {
 //    const val HR_STATUS_NONE = 0

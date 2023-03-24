@@ -1,12 +1,15 @@
-package com.example.samplewearmobileapp
+package com.example.samplewearmobileapp.trackers.ppgir
 
 import android.util.Log
+import com.example.samplewearmobileapp.R
+import com.example.samplewearmobileapp.TrackerDataNotifier
+import com.example.samplewearmobileapp.trackers.Listener
 import com.samsung.android.service.health.tracking.HealthTracker
 import com.samsung.android.service.health.tracking.data.DataPoint
 import com.samsung.android.service.health.tracking.data.ValueKey
 
-class PpgRedListener internal constructor() : Listener() {
-    private val tag = "PpgRedListener"
+class PpgIrListener internal constructor() : Listener() {
+    private val tag = "PpgIrListener"
 
     init {
         val trackerEventListener: HealthTracker.TrackerEventListener = object :
@@ -39,14 +42,14 @@ class PpgRedListener internal constructor() : Listener() {
         Log.i(tag, "Timestamp : " + dataPoint.timestamp)
         Log.i(
             tag,
-            "Ppg InfraRed Value : " + dataPoint.getValue(ValueKey.PpgRedSet.PPG_RED)
+            "Ppg InfraRed Value : " + dataPoint.getValue(ValueKey.PpgIrSet.PPG_IR)
         )
 
-        val ppgRedData = PpgRedData()
-        ppgRedData.ppgValue = dataPoint.getValue(ValueKey.PpgRedSet.PPG_RED)
-        ppgRedData.timestamp = dataPoint.timestamp
+        val ppgIrData = PpgIrData()
+        ppgIrData.ppgValue = dataPoint.getValue(ValueKey.PpgIrSet.PPG_IR)
+        ppgIrData.timestamp = dataPoint.timestamp
 
-        TrackerDataNotifier.instance?.notifyPpgRedTrackerObservers(ppgRedData)
+        TrackerDataNotifier.instance?.notifyPpgIrTrackerObservers(ppgIrData)
         Log.d(tag, dataPoint.toString())
     }
 }
