@@ -1,4 +1,4 @@
-package com.example.samplewearmobileapp
+package com.example.samplewearmobileapp.models
 
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
