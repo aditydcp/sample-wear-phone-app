@@ -41,11 +41,11 @@ class ConnectionManager(observer: ConnectionObserver) {
         healthTrackingService.disconnectService()
     }
 
-    fun initHeartRate(heartRateListener: HeartRateListener) {
-        val healthTracker = healthTrackingService.getHealthTracker(HealthTrackerType.HEART_RATE)
-        heartRateListener.setHealthTracker(healthTracker)
-        setHandlerForListener(heartRateListener)
-    }
+//    fun initHeartRate(heartRateListener: HeartRateListener) {
+//        val healthTracker = healthTrackingService.getHealthTracker(HealthTrackerType.HEART_RATE)
+//        heartRateListener.setHealthTracker(healthTracker)
+//        setHandlerForListener(heartRateListener)
+//    }
 
     fun initPpgGreen(ppgGreenListener: PpgGreenListener) {
         val healthTracker = healthTrackingService.getHealthTracker(HealthTrackerType.PPG_GREEN)

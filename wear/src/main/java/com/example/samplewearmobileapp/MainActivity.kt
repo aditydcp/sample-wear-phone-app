@@ -32,83 +32,83 @@ class MainActivity : Activity(), GoogleApiClient.ConnectionCallbacks {
 
     private lateinit var textStatus : TextView
     private lateinit var textTip : TextView
-    private lateinit var hrContainer : LinearLayout
-    private lateinit var textHeartRate : TextView
-    private lateinit var textHeartRateStatus : TextView
-    private lateinit var textIbi : TextView
-    private lateinit var textIbiStatus : TextView
+//    private lateinit var hrContainer : LinearLayout
+//    private lateinit var textHeartRate : TextView
+//    private lateinit var textHeartRateStatus : TextView
+//    private lateinit var textIbi : TextView
+//    private lateinit var textIbiStatus : TextView
     private lateinit var ppgGreenContainer : LinearLayout
     private lateinit var textPpgGreen : TextView
-    private lateinit var textPpgGreenBatch : TextView
+    private lateinit var textPpgGreenNumber : TextView
     private lateinit var textPpgGreenTimestamp : TextView
 
     lateinit var uiUpdateThread: Thread
     private lateinit var connectionManager: ConnectionManager
-    private lateinit var heartRateListener: HeartRateListener
+//    private lateinit var heartRateListener: HeartRateListener
     private lateinit var ppgGreenListener: PpgGreenListener
     private var connected = false
     private var permissionGranted = false
-    private var heartRateDataLast = HeartRateData()
+//    private var heartRateDataLast = HeartRateData()
     private var ppgGreenDataLast = PpgGreenData()
 
     val trackerDataObserver: TrackerDataObserver = object : TrackerDataObserver {
-        override fun onHeartRateTrackerDataChanged(hrData: HeartRateData) {
-            this@MainActivity.runOnUiThread(Runnable {
-                Log.i(tag,"HR Status: " + hrData.status)
-                when(hrData.status) {
-                    HeartRateStatus.HR_STATUS_FIND_HR.code -> {
-                        textHeartRateStatus.text = HeartRateStatus.HR_STATUS_FIND_HR.statusText
-                        textHeartRate.text = hrData.hr.toString()
-                        Log.i(tag, "HR: ${hrData.hr}")
-                        textIbi.text = hrData.ibi.toString()
-                        Log.i(tag, "IBI: ${hrData.ibi}")
-                        Log.i(tag, "IBI quality: ${hrData.qIbi}")
-                        if(hrData.qIbi == 0) {
-                            textIbiStatus.text = getString(R.string.ibi_status_good)
-                        }
-                        else {
-                            textIbiStatus.text = getString(R.string.ibi_status_bad)
-                        }
-                    }
-                    HeartRateStatus.HR_STATUS_ATTACHED.code -> {
-                        textHeartRateStatus.text =
-                            HeartRateStatus.HR_STATUS_ATTACHED.statusText
-                    }
-                    HeartRateStatus.HR_STATUS_DETACHED.code -> {
-                        Log.i(tag, "Detached")
-                        textHeartRateStatus.text =
-                            HeartRateStatus.HR_STATUS_DETACHED.statusText
-                    }
-                    HeartRateStatus.HR_STATUS_DETECT_MOVE.code -> {
-                        Log.i(tag, "Movement detected")
-                        textHeartRateStatus.text =
-                            HeartRateStatus.HR_STATUS_DETECT_MOVE.statusText
-                    }
-                    HeartRateStatus.HR_STATUS_NO_DATA_FLUSH.code -> {
-                        Log.i(tag, "No data flush")
-                        textHeartRateStatus.text =
-                            HeartRateStatus.HR_STATUS_NO_DATA_FLUSH.statusText
-                    }
-                    HeartRateStatus.HR_STATUS_LOW_RELIABILITY.code -> {
-                        Log.i(tag, "Low reliability")
-                        textHeartRateStatus.text =
-                            HeartRateStatus.HR_STATUS_LOW_RELIABILITY.statusText
-                    }
-                    HeartRateStatus.HR_STATUS_VERY_LOW_RELIABILITY.code -> {
-                        Log.i(tag, "Very low reliability")
-                        textHeartRateStatus.text =
-                            HeartRateStatus.HR_STATUS_VERY_LOW_RELIABILITY.statusText
-                    }
-                    else -> {
-                        Log.i(tag, "None")
-                        textHeartRateStatus.text = HeartRateStatus.HR_STATUS_NONE.statusText
-                        textHeartRate.text = getString(R.string.default_value)
-                    }
-                }
-                sendHrData(hrData)
-                heartRateDataLast = hrData
-            })
-        }
+//        override fun onHeartRateTrackerDataChanged(hrData: HeartRateData) {
+//            this@MainActivity.runOnUiThread(Runnable {
+//                Log.i(tag,"HR Status: " + hrData.status)
+//                when(hrData.status) {
+//                    HeartRateStatus.HR_STATUS_FIND_HR.code -> {
+//                        textHeartRateStatus.text = HeartRateStatus.HR_STATUS_FIND_HR.statusText
+//                        textHeartRate.text = hrData.hr.toString()
+//                        Log.i(tag, "HR: ${hrData.hr}")
+//                        textIbi.text = hrData.ibi.toString()
+//                        Log.i(tag, "IBI: ${hrData.ibi}")
+//                        Log.i(tag, "IBI quality: ${hrData.qIbi}")
+//                        if(hrData.qIbi == 0) {
+//                            textIbiStatus.text = getString(R.string.ibi_status_good)
+//                        }
+//                        else {
+//                            textIbiStatus.text = getString(R.string.ibi_status_bad)
+//                        }
+//                    }
+//                    HeartRateStatus.HR_STATUS_ATTACHED.code -> {
+//                        textHeartRateStatus.text =
+//                            HeartRateStatus.HR_STATUS_ATTACHED.statusText
+//                    }
+//                    HeartRateStatus.HR_STATUS_DETACHED.code -> {
+//                        Log.i(tag, "Detached")
+//                        textHeartRateStatus.text =
+//                            HeartRateStatus.HR_STATUS_DETACHED.statusText
+//                    }
+//                    HeartRateStatus.HR_STATUS_DETECT_MOVE.code -> {
+//                        Log.i(tag, "Movement detected")
+//                        textHeartRateStatus.text =
+//                            HeartRateStatus.HR_STATUS_DETECT_MOVE.statusText
+//                    }
+//                    HeartRateStatus.HR_STATUS_NO_DATA_FLUSH.code -> {
+//                        Log.i(tag, "No data flush")
+//                        textHeartRateStatus.text =
+//                            HeartRateStatus.HR_STATUS_NO_DATA_FLUSH.statusText
+//                    }
+//                    HeartRateStatus.HR_STATUS_LOW_RELIABILITY.code -> {
+//                        Log.i(tag, "Low reliability")
+//                        textHeartRateStatus.text =
+//                            HeartRateStatus.HR_STATUS_LOW_RELIABILITY.statusText
+//                    }
+//                    HeartRateStatus.HR_STATUS_VERY_LOW_RELIABILITY.code -> {
+//                        Log.i(tag, "Very low reliability")
+//                        textHeartRateStatus.text =
+//                            HeartRateStatus.HR_STATUS_VERY_LOW_RELIABILITY.statusText
+//                    }
+//                    else -> {
+//                        Log.i(tag, "None")
+//                        textHeartRateStatus.text = HeartRateStatus.HR_STATUS_NONE.statusText
+//                        textHeartRate.text = getString(R.string.default_value)
+//                    }
+//                }
+//                sendHrData(hrData)
+//                heartRateDataLast = hrData
+//            })
+//        }
 
         override fun onPpgGreenTrackerDataChanged(ppgGreenData: PpgGreenData) {
             Log.i(tag,"PPG Green Status: " + ppgGreenData.status)
@@ -121,7 +121,7 @@ class MainActivity : Activity(), GoogleApiClient.ConnectionCallbacks {
                         Log.i(tag, "PPG Green : ${ppgGreenData.ppgValue}")
                         textPpgGreenTimestamp.text = ppgGreenData.timestamp.toString()
                         Log.i(tag, "PPG Green Timestamp : ${ppgGreenData.timestamp}")
-                        textPpgGreenBatch.text = currentDataBatchNumber.toString()
+                        textPpgGreenNumber.text = currentDataBatchNumber.toString()
                     }
                 }
                 PpgGreenStatus.PPG_GREEN_STATUS_NONE.code -> {
@@ -156,9 +156,9 @@ class MainActivity : Activity(), GoogleApiClient.ConnectionCallbacks {
 
             connected = true
             TrackerDataNotifier.instance?.addObserver(trackerDataObserver)
-            heartRateListener = HeartRateListener()
+//            heartRateListener = HeartRateListener()
             ppgGreenListener = PpgGreenListener()
-            connectionManager.initHeartRate(heartRateListener)
+//            connectionManager.initHeartRate(heartRateListener)
             connectionManager.initPpgGreen(ppgGreenListener)
 
             // commented out because tracker started at other point of the app
@@ -225,42 +225,42 @@ class MainActivity : Activity(), GoogleApiClient.ConnectionCallbacks {
         // set UI vars
         textStatus = binding.statusMsg
         textTip = binding.message
-        hrContainer = binding.heartRateContainer
-        textHeartRate = binding.heartRate
-        textHeartRateStatus = binding.heartRateStatus
-        textIbi = binding.ibi
-        textIbiStatus = binding.ibiStatus
+//        hrContainer = binding.heartRateContainer
+//        textHeartRate = binding.heartRate
+//        textHeartRateStatus = binding.heartRateStatus
+//        textIbi = binding.ibi
+//        textIbiStatus = binding.ibiStatus
         ppgGreenContainer = binding.ppgGreenContainer
-        textPpgGreenBatch = binding.ppgGreenBatch
+        textPpgGreenNumber = binding.ppgGreenBatch
         textPpgGreen = binding.ppgGreen
         textPpgGreenTimestamp = binding.ppgGreenTimestamp
 
         // set initial UI
         textStatus.text = getString(R.string.default_status)
         textTip.text = getString(R.string.message_placeholder)
-        textHeartRate.text = getString(R.string.default_value)
-        textHeartRateStatus.text = getString(R.string.default_status)
-        textIbi.text = getString(R.string.default_value)
-        textIbiStatus.text = getString(R.string.default_status)
-        textPpgGreenBatch.text = getString(R.string.default_value)
+//        textHeartRate.text = getString(R.string.default_value)
+//        textHeartRateStatus.text = getString(R.string.default_status)
+//        textIbi.text = getString(R.string.default_value)
+//        textIbiStatus.text = getString(R.string.default_status)
+        textPpgGreenNumber.text = getString(R.string.default_value)
         textPpgGreen.text = getString(R.string.default_value)
         textPpgGreenTimestamp.text = getString(R.string.default_value)
 
         textTip.visibility = View.VISIBLE
-        hrContainer.visibility = View.GONE
+//        hrContainer.visibility = View.GONE
         ppgGreenContainer.visibility = View.GONE
 
         // set clickables
-        hrContainer.setOnClickListener { // hide the HR container
-            runOnUiThread {
-                hrContainer.visibility = View.GONE
-            }
-        }
-        ppgGreenContainer.setOnClickListener { // show the HR container
-            runOnUiThread {
-                hrContainer.visibility = View.VISIBLE
-            }
-        }
+//        hrContainer.setOnClickListener { // hide the HR container
+//            runOnUiThread {
+//                hrContainer.visibility = View.GONE
+//            }
+//        }
+//        ppgGreenContainer.setOnClickListener { // show the HR container
+//            runOnUiThread {
+//                hrContainer.visibility = View.VISIBLE
+//            }
+//        }
 
         // build Google API Client with access to Wearable API
         client = GoogleApiClient.Builder(this)
@@ -274,7 +274,7 @@ class MainActivity : Activity(), GoogleApiClient.ConnectionCallbacks {
     override fun onDestroy() {
         Log.d(tag, "onDestroy")
         super.onDestroy()
-        heartRateListener.stopTracker()
+//        heartRateListener.stopTracker()
         ppgGreenListener.stopTracker()
         TrackerDataNotifier.instance?.removeObserver(trackerDataObserver)
         connectionManager.disconnect()
@@ -319,14 +319,14 @@ class MainActivity : Activity(), GoogleApiClient.ConnectionCallbacks {
                     when (it.code) {
                         ActivityCode.START_ACTIVITY -> {
                             runOnUiThread {
-                                hrContainer.visibility = View.VISIBLE
+//                                hrContainer.visibility = View.VISIBLE
                                 ppgGreenContainer.visibility = View.VISIBLE
                                 textTip.visibility = View.GONE
                                 textStatus.text = getString(R.string.status_running)
                             }
 
                             switchState(1)
-                            heartRateListener.startTracker()
+//                            heartRateListener.startTracker()
                             ppgGreenListener.startTracker()
                         }
                         ActivityCode.STOP_ACTIVITY -> {
@@ -335,7 +335,7 @@ class MainActivity : Activity(), GoogleApiClient.ConnectionCallbacks {
                             }
 
                             switchState(0)
-                            heartRateListener.stopTracker()
+//                            heartRateListener.stopTracker()
                             ppgGreenListener.stopTracker()
                         }
                         ActivityCode.DO_NOTHING -> {

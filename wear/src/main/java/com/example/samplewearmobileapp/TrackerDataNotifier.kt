@@ -12,13 +12,13 @@ class TrackerDataNotifier {
         observers.remove(observer)
     }
 
-    fun notifyHeartRateTrackerObservers(hrData: HeartRateData) {
-        observers.forEach(Consumer { observer: TrackerDataObserver ->
-            observer.onHeartRateTrackerDataChanged(
-                hrData
-            )
-        })
-    }
+//    fun notifyHeartRateTrackerObservers(hrData: HeartRateData) {
+//        observers.forEach(Consumer { observer: TrackerDataObserver ->
+//            observer.onHeartRateTrackerDataChanged(
+//                hrData
+//            )
+//        })
+//    }
 
     fun notifyPpgGreenTrackerObservers(ppgGreenData: PpgGreenData) {
         observers.forEach(Consumer { observer: TrackerDataObserver ->
