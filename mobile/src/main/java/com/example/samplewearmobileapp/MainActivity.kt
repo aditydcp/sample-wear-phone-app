@@ -295,7 +295,7 @@ class MainActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks,
         // set UI vars
         textPpgGreenStatus = binding.statusPpgGreen
         textPpgIrStatus = binding.statusPpgIr
-        textPpgRedStatus = binding.statusPpgGreen
+        textPpgRedStatus = binding.statusPpgRed
         textEcgStatus = binding.statusEcg
         ppgContainer = binding.ppgContainer
         buttonPpgGreen = binding.buttonPpgGreen
@@ -332,9 +332,12 @@ class MainActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks,
 //        }
 
         runOnUiThread {
-            textPpgGreenStatus.text = getString(R.string.ppg_green_status, "0")
-            textPpgIrStatus.text = getString(R.string.ppg_ir_status, "0")
-            textPpgRedStatus.text = getString(R.string.ppg_red_status, "0")
+            textPpgGreenStatus.text = getString(R.string.ppg_green_status,
+                getString(R.string.status_default))
+            textPpgIrStatus.text = getString(R.string.ppg_ir_status,
+                getString(R.string.status_default))
+            textPpgRedStatus.text = getString(R.string.ppg_red_status,
+                getString(R.string.status_default))
             textEcgStatus.text = getString(R.string.ecg_status,
                 getString(R.string.status_default))
         }
@@ -548,6 +551,15 @@ class MainActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks,
 //                textWearStatus.text = getString(R.string.status_connected)
 //            }
 
+            runOnUiThread {
+                textPpgGreenStatus.text = getString(R.string.ppg_green_status,
+                    getString(R.string.status_connected))
+                textPpgIrStatus.text = getString(R.string.ppg_ir_status,
+                    getString(R.string.status_connected))
+                textPpgRedStatus.text = getString(R.string.ppg_red_status,
+                    getString(R.string.status_connected))
+            }
+
             // request Wear App current state
             // request on connection to ensure message is sent
             val message = Message(NAME, ActivityCode.START_ACTIVITY)
@@ -633,6 +645,14 @@ class MainActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks,
 //        runOnUiThread {
 //            textWearStatus.text = getString(R.string.status_disconnected)
 //        }
+        runOnUiThread {
+            textPpgGreenStatus.text = getString(R.string.ppg_green_status,
+                getString(R.string.status_disconnected))
+            textPpgIrStatus.text = getString(R.string.ppg_ir_status,
+                getString(R.string.status_disconnected))
+            textPpgRedStatus.text = getString(R.string.ppg_red_status,
+                getString(R.string.status_disconnected))
+        }
     }
 
     @Deprecated("Deprecated in Java")
