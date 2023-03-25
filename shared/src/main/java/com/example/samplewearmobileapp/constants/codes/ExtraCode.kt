@@ -24,4 +24,7 @@ object ExtraCode {
     const val START_PPG_RED = 0x22
     const val RESTART_PPG_RED = 0x23
     const val DATA_PPG_RED = 0x24
+
+    // General Command
+    const val TOGGLE_ACTIVITY = 0x31
 }

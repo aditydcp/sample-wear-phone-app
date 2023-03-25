@@ -6,11 +6,10 @@
     android:layout_height="match_parent"
     tools:context=".MainActivity">
 
-    <LinearLayout
+    <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/status_container"
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:orientation="vertical"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
@@ -19,13 +18,63 @@
         app:layout_constraintVertical_weight="0.2">
 
         <TextView
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:gravity="center_horizontal|center_vertical"
-            android:text="@string/app_name"
-            android:textAlignment="gravity" />
+            android:id="@+id/status_container_title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/status_container_title"
+            android:textAlignment="center"
+            android:textStyle="bold"
+            android:textSize="16sp"
+            app:layout_constraintBottom_toTopOf="@id/status_ppg_ir"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
 
-    </LinearLayout>
+        <TextView
+            android:id="@+id/status_ppg_green"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:hint="@string/ppg_green_status"
+            android:textAlignment="center"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toStartOf="@id/status_ppg_ir"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/status_container_title" />
+
+        <TextView
+            android:id="@+id/status_ppg_ir"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:hint="@string/ppg_ir_status"
+            android:textAlignment="center"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toStartOf="@id/status_ppg_red"
+            app:layout_constraintStart_toEndOf="@id/status_ppg_green"
+            app:layout_constraintTop_toBottomOf="@id/status_container_title" />
+
+        <TextView
+            android:id="@+id/status_ppg_red"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:hint="@string/ppg_red_status"
+            android:textAlignment="center"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toStartOf="@id/status_ecg"
+            app:layout_constraintStart_toEndOf="@id/status_ppg_ir"
+            app:layout_constraintTop_toBottomOf="@id/status_container_title" />
+
+        <TextView
+            android:id="@+id/status_ecg"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:hint="@string/ecg_status"
+            android:textAlignment="center"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toEndOf="@id/status_ppg_red"
+            app:layout_constraintTop_toBottomOf="@id/status_container_title" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
 
     <ScrollView
         android:id="@+id/plot_container"
@@ -53,6 +102,48 @@
                 app:layout_constraintTop_toTopOf="parent"
                 app:layout_constraintVertical_chainStyle="spread"
                 app:layout_constraintVertical_weight="0.5">
+
+                <Button
+                    android:id="@+id/button_ppg_green"
+                    android:layout_width="75dp"
+                    android:layout_height="75dp"
+                    android:background="@drawable/circle"
+                    android:hint="@string/button_ppg_green"
+                    android:textSize="12sp"
+                    android:textColor="@color/white"
+                    android:textStyle="bold"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintEnd_toStartOf="@id/button_ppg_ir"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent" />
+
+                <Button
+                    android:id="@+id/button_ppg_ir"
+                    android:layout_width="75dp"
+                    android:layout_height="75dp"
+                    android:background="@drawable/circle"
+                    android:hint="@string/button_ppg_ir"
+                    android:textSize="12sp"
+                    android:textColor="@color/white"
+                    android:textStyle="bold"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintEnd_toStartOf="@id/button_ppg_red"
+                    app:layout_constraintStart_toEndOf="@id/button_ppg_green"
+                    app:layout_constraintTop_toTopOf="parent" />
+
+                <Button
+                    android:id="@+id/button_ppg_red"
+                    android:layout_width="75dp"
+                    android:layout_height="75dp"
+                    android:background="@drawable/circle"
+                    android:hint="@string/button_ppg_red"
+                    android:textSize="12sp"
+                    android:textColor="@color/white"
+                    android:textStyle="bold"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toEndOf="@id/button_ppg_ir"
+                    app:layout_constraintTop_toTopOf="parent" />
 
             </androidx.constraintlayout.widget.ConstraintLayout>
 

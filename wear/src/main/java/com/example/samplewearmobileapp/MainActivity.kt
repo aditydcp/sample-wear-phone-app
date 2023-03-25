@@ -189,7 +189,7 @@ class MainActivity : Activity(), GoogleApiClient.ConnectionCallbacks {
                 }
             }
             // commented out sending data for trial
-//            sendPpgGreenData(ppgGreenData)
+            sendPpgGreenData(ppgGreenData)
             ppgGreenDataLast = ppgGreenData
         }
 
@@ -205,7 +205,7 @@ class MainActivity : Activity(), GoogleApiClient.ConnectionCallbacks {
                 textPpgIrNumber.text = currentPpgIrDataNumber.toString()
             }
             // commented out sending data for trial
-//            sendPpgIrData(ppgIrData)
+            sendPpgIrData(ppgIrData)
             ppgIrDataLast = ppgIrData
         }
 
@@ -221,7 +221,7 @@ class MainActivity : Activity(), GoogleApiClient.ConnectionCallbacks {
                 textPpgRedNumber.text = currentPpgRedDataNumber.toString()
             }
             // commented out sending data for trial
-//            sendPpgRedData(ppgRedData)
+            sendPpgRedData(ppgRedData)
             ppgRedDataLast = ppgRedData
         }
 
