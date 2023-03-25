@@ -1,4 +1,4 @@
-package com.example.samplewearmobileapp
+package com.example.samplewearmobileapp.models
 
 data class CompiledData (
     var heartData: HeartData,

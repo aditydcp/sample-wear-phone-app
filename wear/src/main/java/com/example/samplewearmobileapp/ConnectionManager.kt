@@ -4,6 +4,10 @@ import android.content.Context
 import android.os.Handler
 import android.os.Looper
 import android.util.Log
+import com.example.samplewearmobileapp.trackers.Listener
+import com.example.samplewearmobileapp.trackers.ppggreen.PpgGreenListener
+import com.example.samplewearmobileapp.trackers.ppgir.PpgIrListener
+import com.example.samplewearmobileapp.trackers.ppgred.PpgRedListener
 import com.samsung.android.service.health.tracking.ConnectionListener
 import com.samsung.android.service.health.tracking.HealthTrackerException
 import com.samsung.android.service.health.tracking.HealthTrackingService
@@ -19,7 +23,19 @@ class ConnectionManager(observer: ConnectionObserver) {
             connectionObserver.onConnectionResult(R.string.ConnectedToHs)
             if (!isHeartRateAvailable(healthTrackingService)) {
                 Log.i(tag, "Device does not support Heart Rate tracking")
-                connectionObserver.onConnectionResult(R.string.NoHrSupport)
+//                connectionObserver.onConnectionResult(R.string.NoHrSupport)
+            }
+            if (!isPpgGreenAvailable(healthTrackingService)) {
+                Log.i(tag, "Device does not support PPG Green tracking")
+                connectionObserver.onConnectionResult(R.string.NoPpgGreenSupport)
+            }
+            if (!isPpgIrAvailable(healthTrackingService)) {
+                Log.i(tag, "Device does not support PPG InfraRed tracking")
+                connectionObserver.onConnectionResult(R.string.NoPpgIrSupport)
+            }
+            if (!isPpgRedAvailable(healthTrackingService)) {
+                Log.i(tag, "Device does not support PPG Red tracking")
+                connectionObserver.onConnectionResult(R.string.NoPpgRedSupport)
             }
         }
 
@@ -41,16 +57,28 @@ class ConnectionManager(observer: ConnectionObserver) {
         healthTrackingService.disconnectService()
     }
 
-    fun initHeartRate(heartRateListener: HeartRateListener) {
-        val healthTracker = healthTrackingService.getHealthTracker(HealthTrackerType.HEART_RATE)
-        heartRateListener.setHealthTracker(healthTracker)
-        setHandlerForListener(heartRateListener)
-    }
+//    fun initHeartRate(heartRateListener: HeartRateListener) {
+//        val healthTracker = healthTrackingService.getHealthTracker(HealthTrackerType.HEART_RATE)
+//        heartRateListener.setHealthTracker(healthTracker)
+//        setHandlerForListener(heartRateListener)
+//    }
 
     fun initPpgGreen(ppgGreenListener: PpgGreenListener) {
         val healthTracker = healthTrackingService.getHealthTracker(HealthTrackerType.PPG_GREEN)
         ppgGreenListener.setHealthTracker(healthTracker)
         setHandlerForListener(ppgGreenListener)
+    }
+
+    fun initPpgIr(ppgIrListener: PpgIrListener) {
+        val healthTracker = healthTrackingService.getHealthTracker(HealthTrackerType.PPG_IR)
+        ppgIrListener.setHealthTracker(healthTracker)
+        setHandlerForListener(ppgIrListener)
+    }
+
+    fun initPpgRed(ppgRedListener: PpgRedListener) {
+        val healthTracker = healthTrackingService.getHealthTracker(HealthTrackerType.PPG_RED)
+        ppgRedListener.setHealthTracker(healthTracker)
+        setHandlerForListener(ppgRedListener)
     }
 
     private fun setHandlerForListener(listener: Listener) {
@@ -60,5 +88,20 @@ class ConnectionManager(observer: ConnectionObserver) {
     private fun isHeartRateAvailable(healthTrackingService: HealthTrackingService): Boolean {
         val availableTrackers = healthTrackingService.trackingCapability.supportHealthTrackerTypes
         return availableTrackers.contains(HealthTrackerType.HEART_RATE)
+    }
+
+    private fun isPpgGreenAvailable(healthTrackingService: HealthTrackingService): Boolean {
+        val availableTrackers = healthTrackingService.trackingCapability.supportHealthTrackerTypes
+        return availableTrackers.contains(HealthTrackerType.PPG_GREEN)
+    }
+
+    private fun isPpgIrAvailable(healthTrackingService: HealthTrackingService): Boolean {
+        val availableTrackers = healthTrackingService.trackingCapability.supportHealthTrackerTypes
+        return availableTrackers.contains(HealthTrackerType.PPG_IR)
+    }
+
+    private fun isPpgRedAvailable(healthTrackingService: HealthTrackingService): Boolean {
+        val availableTrackers = healthTrackingService.trackingCapability.supportHealthTrackerTypes
+        return availableTrackers.contains(HealthTrackerType.PPG_RED)
     }
 }

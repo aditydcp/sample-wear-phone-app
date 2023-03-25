@@ -19,12 +19,27 @@
     <string name="ibi_status_good">Good</string>
     <string name="ibi_status_bad">Bad</string>
 
-    <string name="ppg_green_batch_text">PPG Green Batch : </string>
+    <string name="ppg_green_number_text">PPG Green #</string>
     <string name="ppg_green_text">PPG Green : </string>
     <string name="ppg_green_timestamp">PPG Green Timestamp : </string>
 
+    <string name="ppg_ir_status_text">PPG IR Status : </string>
+    <string name="ppg_ir_number_text">PPG IR #</string>
+    <string name="ppg_ir_text">PPG IR : </string>
+    <string name="ppg_ir_timestamp">PPG IR Timestamp : </string>
+
+    <string name="ppg_red_status_text">PPG Red Status : </string>
+    <string name="ppg_red_number_text">PPG Red #</string>
+    <string name="ppg_red_text">PPG Red : </string>
+    <string name="ppg_red_timestamp">PPG Red Timestamp : </string>
+
     <string name="status_running">Running</string>
     <string name="status_stopped">Stopped</string>
+    <string name="status_ok">OK</string>
+    <string name="status_measuring">Measuring</string>
+    <string name="status_finished">Finished</string>
+    <string name="status_error">Error</string>
+    <string name="status_failed">Failed</string>
     <string name="default_status">No status</string>
     <string name="default_value">0</string>
 
@@ -32,6 +47,9 @@
 
     <string name="ConnectedToHs">Connected to Health Tracking Service</string>
     <string name="NoHrSupport">Heart Rate is not supported on this device</string>
+    <string name="NoPpgGreenSupport">PPG Green is not supported on this device</string>
+    <string name="NoPpgIrSupport">PPG InfraRed is not supported on this device</string>
+    <string name="NoPpgRedSupport">PPG Red is not supported on this device</string>
     <string name="NoPermission">Permission has not been granted</string>
     <string name="SdkPolicyError">SDK Policy denied</string>
     <string name="HealthPlatformVersionIsOutdated">Health Platform is outdated or not installed</string>

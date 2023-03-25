@@ -7,8 +7,8 @@ import com.example.samplewearmobileapp.Constants.ECG_SAMPLE_RATE
 import com.example.samplewearmobileapp.Constants.HR_200_INTERVAL
 import com.example.samplewearmobileapp.Constants.MICRO_TO_MILLI_VOLT
 import com.example.samplewearmobileapp.Constants.MOV_AVG_HR_WINDOW
-import com.example.samplewearmobileapp.model.FixedSizeList
-import com.example.samplewearmobileapp.model.RunningAverage
+import com.example.samplewearmobileapp.models.FixedSizeList
+import com.example.samplewearmobileapp.models.RunningAverage
 import com.polar.sdk.api.model.PolarEcgData
 import java.util.*
 import kotlin.math.sqrt
@@ -66,7 +66,7 @@ class QrsDetector(activity: MainActivity) {
     /**
      * Runs the QRS detection algorithm on the given ECG value.
      *
-     * @param ecg The value to process.
+     * @param ecgDataSample The value to process.
      */
     private fun detectQrs(ecgDataSample: PolarEcgData.PolarEcgDataSample) {
         val ecg = MICRO_TO_MILLI_VOLT * ecgDataSample.voltage

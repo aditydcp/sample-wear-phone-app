@@ -1,4 +1,4 @@
-package com.example.samplewearmobileapp
+package com.example.samplewearmobileapp.trackers.heartrate
 
 class HeartRateData {
     var status: Int = HeartRateStatus.HR_STATUS_NONE.code

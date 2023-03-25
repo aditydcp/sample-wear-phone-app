@@ -1,6 +1,9 @@
-package com.example.samplewearmobileapp
+package com.example.samplewearmobileapp.trackers.heartrate
 
 import android.util.Log
+import com.example.samplewearmobileapp.trackers.Listener
+import com.example.samplewearmobileapp.R
+import com.example.samplewearmobileapp.TrackerDataNotifier
 import com.samsung.android.service.health.tracking.HealthTracker
 import com.samsung.android.service.health.tracking.data.DataPoint
 import com.samsung.android.service.health.tracking.data.ValueKey
@@ -44,7 +47,7 @@ class HeartRateListener internal constructor() : Listener() {
         hrData.qIbi = hrIbi shr HeartRateData.IBI_QUALITY_SHIFT and HeartRateData.IBI_QUALITY_MASK
         hrData.ibi = hrIbi and HeartRateData.IBI_MASK
 
-        TrackerDataNotifier.instance?.notifyHeartRateTrackerObservers(hrData)
+//        TrackerDataNotifier.instance?.notifyHeartRateTrackerObservers(hrData)
         Log.d(tag, dataPoint.toString())
     }
 }

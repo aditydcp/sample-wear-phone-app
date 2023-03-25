@@ -14,6 +14,7 @@ import android.provider.DocumentsContract
 import android.text.InputType
 import android.util.Log
 import android.view.*
+import android.widget.Button
 import android.widget.EditText
 import android.widget.TextView
 import android.widget.Toast
@@ -27,15 +28,20 @@ import androidx.core.content.res.ResourcesCompat
 import com.androidplot.xy.XYPlot
 import com.example.samplewearmobileapp.BluetoothService.REQUEST_CODE_ENABLE_BLUETOOTH
 import com.example.samplewearmobileapp.Constants.ECG_SAMPLE_RATE
-import com.example.samplewearmobileapp.Constants.N_TOTAL_VISIBLE_POINTS
-//import com.example.samplewearmobileapp.Constants.PREF_ACQ_DEVICE_IDS
 import com.example.samplewearmobileapp.Constants.PREF_ANALYSIS_VISIBILITY
 import com.example.samplewearmobileapp.Constants.PREF_DEVICE_ID
 import com.example.samplewearmobileapp.Constants.PREF_PATIENT_NAME
 import com.example.samplewearmobileapp.Constants.PREF_TREE_URI
 import com.example.samplewearmobileapp.EcgImager.createImage
+import com.example.samplewearmobileapp.constants.codes.ActivityCode
+import com.example.samplewearmobileapp.constants.Entity.PHONE_APP
+import com.example.samplewearmobileapp.constants.MessagePath
+import com.example.samplewearmobileapp.constants.codes.ExtraCode.TOGGLE_ACTIVITY
 import com.example.samplewearmobileapp.databinding.ActivityMainBinding
-import com.example.samplewearmobileapp.model.PlotArrays
+import com.example.samplewearmobileapp.models.HeartData
+import com.example.samplewearmobileapp.models.Message
+import com.example.samplewearmobileapp.models.PlotArrays
+import com.example.samplewearmobileapp.models.PpgData
 import com.example.samplewearmobileapp.utils.AppUtils
 import com.example.samplewearmobileapp.utils.UriUtils
 import com.google.android.gms.common.api.GoogleApiClient
@@ -76,7 +82,7 @@ class MainActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks,
     var hrPlotter: HrPlotter? = null
 
     private var connectedNode: List<Node>? = null
-    private var message: Message = Message()
+//    private var message: Message = Message(PHONE_APP)
     private var wearMessage: Message? = null
     private var appState = 0
     private var bluetoothState = STATE_OFF
@@ -108,6 +114,14 @@ class MainActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks,
     private var deviceStopHr = "NA"
     private var calculatedStopHr = "NA"
 
+    private lateinit var textPpgGreenStatus: TextView
+    private lateinit var textPpgIrStatus: TextView
+    private lateinit var textPpgRedStatus: TextView
+    private lateinit var textEcgStatus: TextView
+    private lateinit var ppgContainer: ViewGroup
+    private lateinit var buttonPpgGreen: Button
+    private lateinit var buttonPpgIr: Button
+    private lateinit var buttonPpgRed: Button
     private lateinit var ecgContainer: ViewGroup
     private lateinit var textEcgHr: TextView
     private lateinit var textEcgInfo: TextView
@@ -276,9 +290,17 @@ class MainActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks,
             )
         }
 
-        message.sender = Entity.PHONE_APP
+//        message.sender = Entity.PHONE_APP
 
         // set UI vars
+        textPpgGreenStatus = binding.statusPpgGreen
+        textPpgIrStatus = binding.statusPpgIr
+        textPpgRedStatus = binding.statusPpgRed
+        textEcgStatus = binding.statusEcg
+        ppgContainer = binding.ppgContainer
+        buttonPpgGreen = binding.buttonPpgGreen
+        buttonPpgIr = binding.buttonPpgIr
+        buttonPpgRed = binding.buttonPpgRed
         ecgContainer = binding.ecgContainer
         textEcgHr = binding.ecgHr
         textEcgInfo = binding.ecgInfo
@@ -309,6 +331,17 @@ class MainActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks,
 //            buttonView.visibility = View.GONE
 //        }
 
+        runOnUiThread {
+            textPpgGreenStatus.text = getString(R.string.ppg_green_status,
+                getString(R.string.status_default))
+            textPpgIrStatus.text = getString(R.string.ppg_ir_status,
+                getString(R.string.status_default))
+            textPpgRedStatus.text = getString(R.string.ppg_red_status,
+                getString(R.string.status_default))
+            textEcgStatus.text = getString(R.string.ecg_status,
+                getString(R.string.status_default))
+        }
+
         if (!isUsingAnalysis) {
             analysisContainer.visibility = View.GONE
         }
@@ -322,7 +355,7 @@ class MainActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks,
 
 //        // Start Bluetooth
         deviceId = sharedPreferences!!.getString(PREF_DEVICE_ID, "").toString()
-        Log.d(TAG, "    mDeviceId=$deviceId")
+        Log.d(TAG, "DeviceId=$deviceId")
 //        val gson = Gson()
 //        val type = object : TypeToken<LinkedList<DeviceInfo?>?>() {}.type
 //        val json: String? = sharedPreferences!!.getString(PREF_ACQ_DEVICE_IDS, null)
@@ -331,7 +364,6 @@ class MainActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks,
 //            acquaintedDevices = ArrayList<DeviceInfo>()
 //        }
 
-//        TODO: selectDeviceId and connect to it when prompted to
 //        if (deviceId == null || deviceId == "") {
 //            selectDeviceId()
 //        }
@@ -346,7 +378,22 @@ class MainActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks,
             .build()
         client.connect()
 
-//        // set click listener
+        // set click listener
+        buttonPpgGreen.setOnClickListener {
+            val message = Message(NAME, ActivityCode.START_ACTIVITY, TOGGLE_ACTIVITY)
+//            sendMessage(message, MessagePath.DATA_PPG_GREEN)
+            sendMessage(message, MessagePath.COMMAND)
+        }
+        buttonPpgIr.setOnClickListener {
+            val message = Message(NAME, ActivityCode.START_ACTIVITY, TOGGLE_ACTIVITY)
+//            sendMessage(message, MessagePath.DATA_PPG_IR)
+            sendMessage(message, MessagePath.COMMAND)
+        }
+        buttonPpgRed.setOnClickListener {
+            val message = Message(NAME, ActivityCode.START_ACTIVITY, TOGGLE_ACTIVITY)
+//            sendMessage(message, MessagePath.DATA_PPG_RED)
+            sendMessage(message, MessagePath.COMMAND)
+        }
 //        buttonMain.setOnClickListener {
 //            message.content = getString(R.string.message_on_button_click)
 //            setMessageCode()
@@ -494,6 +541,7 @@ class MainActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks,
         return false
     }
 
+    // setup DataApi listeners
     override fun onConnected(p0: Bundle?) {
         Wearable.NodeApi.getConnectedNodes(client).setResultCallback {
             connectedNode = it.nodes
@@ -503,10 +551,20 @@ class MainActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks,
 //                textWearStatus.text = getString(R.string.status_connected)
 //            }
 
+            runOnUiThread {
+                textPpgGreenStatus.text = getString(R.string.ppg_green_status,
+                    getString(R.string.status_connected))
+                textPpgIrStatus.text = getString(R.string.ppg_ir_status,
+                    getString(R.string.status_connected))
+                textPpgRedStatus.text = getString(R.string.ppg_red_status,
+                    getString(R.string.status_connected))
+            }
+
             // request Wear App current state
             // request on connection to ensure message is sent
+            val message = Message(NAME, ActivityCode.START_ACTIVITY)
             message.content = "Requesting Wear App current state"
-            message.code = ActivityCode.START_ACTIVITY
+//            message.code = ActivityCode.START_ACTIVITY
             sendMessage(message, MessagePath.REQUEST)
         }
         Wearable.MessageApi.addListener(client) { messageEvent ->
@@ -522,19 +580,57 @@ class MainActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks,
                         "URI encoded path: ${dataEvent.dataItem.uri.encodedPath}\n" +
                         "URI Host: ${dataEvent.dataItem.uri.host}")
             }
-//            when (data[0].dataItem.uri.path) {
-//                MessagePath.DATA_HR -> {
-//                    val receivedData = Gson().fromJson(String(data[0].dataItem.data), HeartData::class.java)
+            when (data[0].dataItem.uri.path) {
+                MessagePath.DATA_HR -> {
+                    val heartData = Gson().fromJson(String(data[0].dataItem.data),
+                        HeartData::class.java)
+                    Log.d(TAG, "Heart Rate data received\n" +
+                            "HR: ${heartData.hr}\n" +
+                            "IBI: ${heartData.ibi}\n" +
+                            "Timestamp: ${heartData.timestamp}")
 //                    runOnUiThread {
-//                        textWearHr.text = receivedData.hr.toString()
-//                        textWearIbi.text = receivedData.ibi.toString()
-//                        textWearTimestamp.text = receivedData.timestamp
+//                        textWearHr.text = data.hr.toString()
+//                        textWearIbi.text = data.ibi.toString()
+//                        textWearTimestamp.text = data.timestamp
 //                    }
-//                }
-//                MessagePath.DATA_PPG_GREEN -> {
-//
-//                }
-//            }
+                }
+                MessagePath.DATA_PPG_GREEN -> {
+                    val ppgGreenData = Gson().fromJson(String(data[0].dataItem.data),
+                        PpgData::class.java)
+                    Log.d(TAG, "PPG Green data received\n" +
+                            "Data Number: ${ppgGreenData.number}\n" +
+                            "PPG Green Value: ${ppgGreenData.ppgValue}\n" +
+                            "Timestamp: ${ppgGreenData.timestamp}")
+                    runOnUiThread {
+                        textPpgGreenStatus.text = getString(R.string.ppg_green_status,
+                            ppgGreenData.number.toString())
+                    }
+                }
+                MessagePath.DATA_PPG_IR -> {
+                    val ppgIrData = Gson().fromJson(String(data[0].dataItem.data),
+                        PpgData::class.java)
+                    Log.d(TAG, "PPG InfraRed data received\n" +
+                            "Data Number: ${ppgIrData.number}\n" +
+                            "PPG IR Value: ${ppgIrData.ppgValue}\n" +
+                            "Timestamp: ${ppgIrData.timestamp}")
+                    runOnUiThread {
+                        textPpgIrStatus.text = getString(R.string.ppg_ir_status,
+                            ppgIrData.number.toString())
+                    }
+                }
+                MessagePath.DATA_PPG_RED -> {
+                    val ppgRedData = Gson().fromJson(String(data[0].dataItem.data),
+                        PpgData::class.java)
+                    Log.d(TAG, "PPG Red data received\n" +
+                            "Data Number: ${ppgRedData.number}\n" +
+                            "PPG Red Value: ${ppgRedData.ppgValue}\n" +
+                            "Timestamp: ${ppgRedData.timestamp}")
+                    runOnUiThread {
+                        textPpgRedStatus.text = getString(R.string.ppg_red_status,
+                            ppgRedData.number.toString())
+                    }
+                }
+            }
 //            val receivedData = Gson().fromJson(String(data[0].dataItem.data), HeartData::class.java)
 //            runOnUiThread {
 //                textWearHr.text = receivedData.hr.toString()
@@ -549,6 +645,14 @@ class MainActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks,
 //        runOnUiThread {
 //            textWearStatus.text = getString(R.string.status_disconnected)
 //        }
+        runOnUiThread {
+            textPpgGreenStatus.text = getString(R.string.ppg_green_status,
+                getString(R.string.status_disconnected))
+            textPpgIrStatus.text = getString(R.string.ppg_ir_status,
+                getString(R.string.status_disconnected))
+            textPpgRedStatus.text = getString(R.string.ppg_red_status,
+                getString(R.string.status_disconnected))
+        }
     }
 
     @Deprecated("Deprecated in Java")
@@ -601,11 +705,16 @@ class MainActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks,
         resetDeviceId(deviceId)
     }
 
-    private fun restart() {
+    /**
+     * Setup Polar ECG Part of the application.
+     * Use for first time initialization and reinitializing
+     * the Polar API, connection, and plot setup.
+     */
+    private fun setupPolar() {
         Log.d(
             TAG, this.javaClass.simpleName + " restart:"
-                    + " mApi=" + polarApi
-                    + " mDeviceId=" + deviceId
+                    + " PolarApi=" + polarApi
+                    + " DeviceId=" + deviceId
         )
         if (polarApi != null || deviceId == null || deviceId.isEmpty()) {
             return
@@ -663,27 +772,35 @@ class MainActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks,
         }, 60000)
 
         polarApi!!.setApiCallback(object: PolarBleApiCallback() {
-            override fun blePowerStateChanged(b: Boolean) {
-                Log.d(TAG, "BluetoothStateChanged $b")
+            override fun blePowerStateChanged(powered: Boolean) {
+                Log.d(TAG, "BluetoothStateChanged $powered")
             }
 
-            override fun deviceConnected(s: PolarDeviceInfo) {
-                Log.d(TAG, "*Device connected " + s.deviceId)
-                deviceAddress = s.address
-                deviceName = s.name
+            override fun deviceConnected(polarDeviceInfo: PolarDeviceInfo) {
+                Log.d(TAG, "*Device connected " + polarDeviceInfo.deviceId)
+                deviceAddress = polarDeviceInfo.address
+                deviceName = polarDeviceInfo.name
                 isConnected = true
+                runOnUiThread {
+                    textEcgStatus.text = getString(R.string.ecg_status,
+                        getString(R.string.status_connected))
+                }
 //                // Set the MRU preference here after we know the name
 //                setDevicePreferences(DeviceInfo(deviceName, deviceId))
                 Toast.makeText(
                     this@MainActivity,
-                    getString(R.string.connected_string, s.name),
+                    getString(R.string.connected_string, polarDeviceInfo.name),
                     Toast.LENGTH_SHORT
                 ).show()
             }
 
-            override fun deviceDisconnected(s: PolarDeviceInfo) {
-                Log.d(TAG, "*Device disconnected $s")
+            override fun deviceDisconnected(polarDeviceInfo: PolarDeviceInfo) {
+                Log.d(TAG, "*Device disconnected $polarDeviceInfo")
                 isConnected = false
+                runOnUiThread {
+                    textEcgStatus.text = getString(R.string.ecg_status,
+                        getString(R.string.status_disconnected))
+                }
             }
 
             override fun streamingFeaturesReady(
@@ -704,22 +821,22 @@ class MainActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks,
                 }
             }
 
-            override fun hrFeatureReady(s: String) {
-                Log.d(TAG, "*HR Feature ready $s")
+            override fun hrFeatureReady(identifier: String) {
+                Log.d(TAG, "*HR Feature ready $identifier")
             }
 
             override fun disInformationReceived(
-                s: String,
-                u: UUID,
-                s1: String
+                identifier: String,
+                uuid: UUID,
+                value: String
             ) {
-                if (u == UUID.fromString(
+                if (uuid == UUID.fromString(
                         "00002a28-0000-1000-8000" +
                                 "-00805f9b34fb"
                     )
                 ) {
-                    deviceFirmware = s1.trim { it <= ' ' }
-                    Log.d(TAG, "*Firmware: $s $deviceFirmware")
+                    deviceFirmware = value.trim { it <= ' ' }
+                    Log.d(TAG, "*Firmware: $identifier $deviceFirmware")
                     textEcgInfo.text = getString(
                         R.string.info_string,
                         deviceName, deviceBatteryLevel, deviceFirmware, deviceId
@@ -727,9 +844,9 @@ class MainActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks,
                 }
             }
 
-            override fun batteryLevelReceived(s: String, i: Int) {
-                deviceBatteryLevel = i.toString()
-                Log.d(TAG, "*Battery level $s $i")
+            override fun batteryLevelReceived(identifier: String, level: Int) {
+                deviceBatteryLevel = level.toString()
+                Log.d(TAG, "*Battery level $identifier $level")
                 textEcgInfo.text = getString(
                     R.string.info_string,
                     deviceName, deviceBatteryLevel, deviceFirmware, deviceId
@@ -737,20 +854,20 @@ class MainActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks,
             }
 
             override fun hrNotificationReceived(
-                s: String,
-                polarHrData: PolarHrData
+                identifier: String,
+                data: PolarHrData
             ) {
                 if (isPlaying) {
 //                    Log.d(TAG,
 //                            "*HR " + polarHrData.hr + " mPlaying=" +
 //                            mPlaying);
-                    textEcgHr.text = polarHrData.hr.toString()
+                    textEcgHr.text = data.hr.toString()
 //                    // Add to HR plot
                     val time = Date().time
                     hrPlotter?.addValues1(
                         time.toDouble(),
-                        polarHrData.hr.toDouble(),
-                        polarHrData.rrsMs
+                        data.hr.toDouble(),
+                        data.rrsMs
                     )
                     hrPlotter?.fullUpdate()
                 }
@@ -778,8 +895,6 @@ class MainActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks,
     override fun onResume() {
         Log.d(TAG, this.javaClass.simpleName + " onResume:")
         super.onResume()
-
-        // Check if PREF_TREE_URI is valid and remove it if not
 
         // Check if PREF_TREE_URI is valid and remove it if not
         if (UriUtils.getNPersistedPermissions(this) <= 0) {
@@ -823,7 +938,7 @@ class MainActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks,
                 Toast.LENGTH_SHORT
             ).show()
         } else {
-            restart()
+            setupPolar()
         }
     }
 
@@ -1156,7 +1271,7 @@ class MainActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks,
             polarApi = null
         }
         qrsDetector = null
-        restart()
+        setupPolar()
     }
 
     /**
@@ -1648,17 +1763,17 @@ class MainActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks,
         }
     }
 
-    private fun setMessageCode(forceCode: Int = 99) {
-        if (forceCode != 99) {
-            message.code = forceCode
-        }
-        else if (appState == 0) {
-            message.code = ActivityCode.START_ACTIVITY
-        }
-        else if (appState == 1) {
-            message.code = ActivityCode.STOP_ACTIVITY
-        }
-    }
+//    private fun setMessageCode(forceCode: Int = 99) {
+//        if (forceCode != 99) {
+//            message.code = forceCode
+//        }
+//        else if (appState == 0) {
+//            message.code = ActivityCode.START_ACTIVITY
+//        }
+//        else if (appState == 1) {
+//            message.code = ActivityCode.STOP_ACTIVITY
+//        }
+//    }
 
     private fun toggleState(forceCode: Int = 99) {
         if (forceCode != 99) {
@@ -1739,9 +1854,10 @@ class MainActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks,
 
     companion object {
         private const val TAG = "Mobile.MainActivity"
+        private const val NAME = PHONE_APP
         private val shortDateFormat = SimpleDateFormat("HH:mm:ss.SSS", Locale.US)
         // Currently the sampling rate for ECG is fixed at 130
-        private const val MAX_DEVICES = 3
+//        private const val MAX_DEVICES = 3
         const val REQUEST_CODE_PERMISSIONS = 10
         private val REQUIRED_PERMISSIONS =
             mutableListOf(

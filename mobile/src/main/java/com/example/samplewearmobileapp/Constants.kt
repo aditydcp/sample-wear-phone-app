@@ -1,5 +1,7 @@
 package com.example.samplewearmobileapp
 
+import kotlin.math.roundToInt
+
 object Constants {
     var PREF_DEVICE_ID = "deviceId"
 //    var PREF_ACQ_DEVICE_IDS = "mruDeviceIds"
@@ -85,7 +87,7 @@ object Constants {
      * 0.12 seconds is considered abnormal.
      */
     var MAX_QRS_LENGTH =
-        Math.round(.12 * ECG_SAMPLE_RATE).toInt() // 13
+        (.12 * ECG_SAMPLE_RATE).roundToInt() // 13
 
     /***
      * The heart rate interval. The algorithm is based on there being only one

@@ -1,4 +1,4 @@
-package com.example.samplewearmobileapp
+package com.example.samplewearmobileapp.trackers
 
 import android.os.Handler
 import android.util.Log

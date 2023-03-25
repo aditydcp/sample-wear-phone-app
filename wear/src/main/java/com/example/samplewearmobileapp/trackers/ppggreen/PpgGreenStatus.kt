@@ -1,4 +1,4 @@
-package com.example.samplewearmobileapp
+package com.example.samplewearmobileapp.trackers.ppggreen
 
 //object PpgGreenStatus {
 //    const val PPG_GREEN_STATUS_NONE = 0
