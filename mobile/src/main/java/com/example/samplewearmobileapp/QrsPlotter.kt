@@ -8,7 +8,7 @@ import com.androidplot.xy.*
 import com.example.samplewearmobileapp.Constants.N_DOMAIN_LARGE_BOXES
 import com.example.samplewearmobileapp.Constants.N_ECG_PLOT_POINTS
 import com.example.samplewearmobileapp.Constants.N_LARGE
-import com.example.samplewearmobileapp.Constants.N_TOTAL_VISIBLE_POINTS
+import com.example.samplewearmobileapp.Constants.N_TOTAL_VISIBLE_ECG_POINTS
 import com.example.samplewearmobileapp.utils.AppUtils
 
 class QrsPlotter {
@@ -221,7 +221,7 @@ class QrsPlotter {
         // Convert from  μV to mV
         if (ecg != null) {
             // only remove old values in the "plot series"
-            if (seriesPlotEcg.size() >= N_TOTAL_VISIBLE_POINTS) {
+            if (seriesPlotEcg.size() >= N_TOTAL_VISIBLE_ECG_POINTS) {
                 seriesPlotEcg.removeFirst()
             }
             // add the new values to both series
@@ -230,7 +230,7 @@ class QrsPlotter {
         }
         if (square != null) {
             // only remove old values in the "plot series"
-            if (seriesPlotSquares.size() >= N_TOTAL_VISIBLE_POINTS) {
+            if (seriesPlotSquares.size() >= N_TOTAL_VISIBLE_ECG_POINTS) {
                 seriesPlotSquares.removeFirst()
             }
             seriesPlotSquares.addLast(dataIndex, square)
@@ -238,7 +238,7 @@ class QrsPlotter {
         }
         if (score != null) {
             // only remove old values in the "plot series"
-            if (seriesPlotScores.size() >= N_TOTAL_VISIBLE_POINTS) {
+            if (seriesPlotScores.size() >= N_TOTAL_VISIBLE_ECG_POINTS) {
                 seriesPlotScores.removeFirst()
             }
             seriesPlotScores.addLast(dataIndex, score)
@@ -290,7 +290,7 @@ class QrsPlotter {
      */
     fun removeOutOfRangePlotPeakValues() {
         // Remove old values if needed
-        val xMin = dataIndex - N_TOTAL_VISIBLE_POINTS
+        val xMin = dataIndex - N_TOTAL_VISIBLE_ECG_POINTS
         while (seriesPlotPeaks.size() > 0 && seriesPlotPeaks.getxVals().first.toInt() < xMin) {
             seriesPlotPeaks.removeFirst()
         }

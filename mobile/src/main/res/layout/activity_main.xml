@@ -90,7 +90,8 @@
 
         <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="match_parent"
-            android:layout_height="wrap_content">
+            android:layout_height="match_parent"
+            android:isScrollContainer="true" >
 
             <androidx.constraintlayout.widget.ConstraintLayout
                 android:id="@+id/ppg_container"
@@ -103,47 +104,125 @@
                 app:layout_constraintVertical_chainStyle="spread"
                 app:layout_constraintVertical_weight="0.5">
 
-                <Button
-                    android:id="@+id/button_ppg_green"
-                    android:layout_width="75dp"
-                    android:layout_height="75dp"
-                    android:background="@drawable/circle"
-                    android:hint="@string/button_ppg_green"
-                    android:textSize="12sp"
-                    android:textColor="@color/white"
-                    android:textStyle="bold"
-                    app:layout_constraintBottom_toBottomOf="parent"
-                    app:layout_constraintEnd_toStartOf="@id/button_ppg_ir"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toTopOf="parent" />
+                <com.androidplot.xy.XYPlot
+                    android:id="@+id/ppg_green_plot"
+                    style="@style/FullScreenGraph"
+                    android:layout_width="match_parent"
+                    android:layout_height="0dp"
+                    android:layout_marginTop="10dp"
 
-                <Button
-                    android:id="@+id/button_ppg_ir"
-                    android:layout_width="75dp"
-                    android:layout_height="75dp"
-                    android:background="@drawable/circle"
-                    android:hint="@string/button_ppg_ir"
-                    android:textSize="12sp"
-                    android:textColor="@color/white"
-                    android:textStyle="bold"
-                    app:layout_constraintBottom_toBottomOf="parent"
-                    app:layout_constraintEnd_toStartOf="@id/button_ppg_red"
-                    app:layout_constraintStart_toEndOf="@id/button_ppg_green"
-                    app:layout_constraintTop_toTopOf="parent" />
+                    app:graphBackgroundColor="@color/white"
+                    app:graphMarginBottom="10dp"
+                    app:graphMarginLeft="10dp"
+                    app:graphMarginRight="10dp"
+                    app:graphMarginTop="10dp"
+                    app:gridBackgroundColor="@color/white"
 
-                <Button
-                    android:id="@+id/button_ppg_red"
-                    android:layout_width="75dp"
-                    android:layout_height="75dp"
-                    android:background="@drawable/circle"
-                    android:hint="@string/button_ppg_red"
-                    android:textSize="12sp"
-                    android:textColor="@color/white"
-                    android:textStyle="bold"
+                    app:layout_constraintLeft_toLeftOf="parent"
+                    app:layout_constraintRight_toRightOf="parent"
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:layout_constraintBottom_toTopOf="@id/ppg_ir_plot"
+                    app:layout_constraintVertical_chainStyle="spread"
+                    app:layout_constraintVertical_weight="0.3"
+                    app:lineLabelInsetLeft="15dp"
+                    app:renderMode="use_background_thread"
+                    app:title="@string/ppg_green_plot_title"
+                    app:titleTextColor="#000000"
+                    app:titleTextSize="15dp" />
+
+                <com.androidplot.xy.XYPlot
+                    android:id="@+id/ppg_ir_plot"
+                    style="@style/FullScreenGraph"
+                    android:layout_width="match_parent"
+                    android:layout_height="0dp"
+                    android:layout_marginTop="10dp"
+
+                    app:graphBackgroundColor="@color/white"
+                    app:graphMarginBottom="10dp"
+                    app:graphMarginLeft="10dp"
+                    app:graphMarginRight="10dp"
+                    app:graphMarginTop="10dp"
+                    app:gridBackgroundColor="@color/white"
+
+                    app:layout_constraintLeft_toLeftOf="parent"
+                    app:layout_constraintRight_toRightOf="parent"
+                    app:layout_constraintTop_toBottomOf="@id/ppg_green_plot"
+                    app:layout_constraintBottom_toTopOf="@id/ppg_red_plot"
+                    app:layout_constraintVertical_chainStyle="spread"
+                    app:layout_constraintVertical_weight="0.3"
+                    app:lineLabelInsetLeft="15dp"
+                    app:renderMode="use_background_thread"
+                    app:title="@string/ppg_ir_plot_title"
+                    app:titleTextColor="#000000"
+                    app:titleTextSize="15dp" />
+
+                <com.androidplot.xy.XYPlot
+                    android:id="@+id/ppg_red_plot"
+                    style="@style/FullScreenGraph"
+                    android:layout_width="match_parent"
+                    android:layout_height="0dp"
+                    android:layout_marginTop="10dp"
+
+                    app:graphBackgroundColor="@color/white"
+                    app:graphMarginBottom="10dp"
+                    app:graphMarginLeft="10dp"
+                    app:graphMarginRight="10dp"
+                    app:graphMarginTop="10dp"
+                    app:gridBackgroundColor="@color/white"
+
+                    app:layout_constraintLeft_toLeftOf="parent"
+                    app:layout_constraintRight_toRightOf="parent"
+                    app:layout_constraintTop_toBottomOf="@id/ppg_ir_plot"
                     app:layout_constraintBottom_toBottomOf="parent"
-                    app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintStart_toEndOf="@id/button_ppg_ir"
-                    app:layout_constraintTop_toTopOf="parent" />
+                    app:layout_constraintVertical_chainStyle="spread"
+                    app:layout_constraintVertical_weight="0.3"
+                    app:lineLabelInsetLeft="15dp"
+                    app:renderMode="use_background_thread"
+                    app:title="@string/ppg_red_plot_title"
+                    app:titleTextColor="#000000"
+                    app:titleTextSize="15dp" />
+
+<!--                <Button-->
+<!--                    android:id="@+id/button_ppg_green"-->
+<!--                    android:layout_width="75dp"-->
+<!--                    android:layout_height="75dp"-->
+<!--                    android:background="@drawable/circle"-->
+<!--                    android:hint="@string/button_ppg_green"-->
+<!--                    android:textSize="12sp"-->
+<!--                    android:textColor="@color/white"-->
+<!--                    android:textStyle="bold"-->
+<!--                    app:layout_constraintBottom_toBottomOf="parent"-->
+<!--                    app:layout_constraintEnd_toStartOf="@id/button_ppg_ir"-->
+<!--                    app:layout_constraintStart_toStartOf="parent"-->
+<!--                    app:layout_constraintTop_toTopOf="parent" />-->
+
+<!--                <Button-->
+<!--                    android:id="@+id/button_ppg_ir"-->
+<!--                    android:layout_width="75dp"-->
+<!--                    android:layout_height="75dp"-->
+<!--                    android:background="@drawable/circle"-->
+<!--                    android:hint="@string/button_ppg_ir"-->
+<!--                    android:textSize="12sp"-->
+<!--                    android:textColor="@color/white"-->
+<!--                    android:textStyle="bold"-->
+<!--                    app:layout_constraintBottom_toBottomOf="parent"-->
+<!--                    app:layout_constraintEnd_toStartOf="@id/button_ppg_red"-->
+<!--                    app:layout_constraintStart_toEndOf="@id/button_ppg_green"-->
+<!--                    app:layout_constraintTop_toTopOf="parent" />-->
+
+<!--                <Button-->
+<!--                    android:id="@+id/button_ppg_red"-->
+<!--                    android:layout_width="75dp"-->
+<!--                    android:layout_height="75dp"-->
+<!--                    android:background="@drawable/circle"-->
+<!--                    android:hint="@string/button_ppg_red"-->
+<!--                    android:textSize="12sp"-->
+<!--                    android:textColor="@color/white"-->
+<!--                    android:textStyle="bold"-->
+<!--                    app:layout_constraintBottom_toBottomOf="parent"-->
+<!--                    app:layout_constraintEnd_toEndOf="parent"-->
+<!--                    app:layout_constraintStart_toEndOf="@id/button_ppg_ir"-->
+<!--                    app:layout_constraintTop_toTopOf="parent" />-->
 
             </androidx.constraintlayout.widget.ConstraintLayout>
 

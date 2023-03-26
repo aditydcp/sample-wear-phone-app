@@ -14,7 +14,6 @@ import android.provider.DocumentsContract
 import android.text.InputType
 import android.util.Log
 import android.view.*
-import android.widget.Button
 import android.widget.EditText
 import android.widget.TextView
 import android.widget.Toast
@@ -38,10 +37,8 @@ import com.example.samplewearmobileapp.constants.Entity.PHONE_APP
 import com.example.samplewearmobileapp.constants.MessagePath
 import com.example.samplewearmobileapp.constants.codes.ExtraCode.TOGGLE_ACTIVITY
 import com.example.samplewearmobileapp.databinding.ActivityMainBinding
-import com.example.samplewearmobileapp.models.HeartData
+import com.example.samplewearmobileapp.models.*
 import com.example.samplewearmobileapp.models.Message
-import com.example.samplewearmobileapp.models.PlotArrays
-import com.example.samplewearmobileapp.models.PpgData
 import com.example.samplewearmobileapp.utils.AppUtils
 import com.example.samplewearmobileapp.utils.UriUtils
 import com.google.android.gms.common.api.GoogleApiClient
@@ -73,6 +70,11 @@ class MainActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks,
     private lateinit var binding: ActivityMainBinding
     private lateinit var client: GoogleApiClient
     private lateinit var menu: Menu
+
+    private var ppgGreenPlotter: PpgPlotter? = null
+    private var ppgIrPlotter: PpgPlotter? = null
+    private var ppgRedPlotter: PpgPlotter? = null
+
 //    private lateinit var acquaintedDevices: MutableList<DeviceInfo>
     private var polarApi: PolarBleApi? = null
     private var ecgDisposable: Disposable? = null
@@ -92,11 +94,12 @@ class MainActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks,
      * Whether to save as CSV, Plot, or both.
      */
     private enum class SaveType {
-        DATA, PLOT, BOTH
+        ECG_DATA, PPG_GREEN_DATA, PPG_IR_DATA, PPG_RED_DATA, ALL
+//        , PLOT, BOTH
 //        , DEVICE_HR, QRS_HR, ALL
     }
 
-    private var isConnected = false
+    private var isPolarDeviceConnected = false
     private var isPlaying = false
 
     private var sharedPreferences: SharedPreferences? = null
@@ -119,9 +122,12 @@ class MainActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks,
     private lateinit var textPpgRedStatus: TextView
     private lateinit var textEcgStatus: TextView
     private lateinit var ppgContainer: ViewGroup
-    private lateinit var buttonPpgGreen: Button
-    private lateinit var buttonPpgIr: Button
-    private lateinit var buttonPpgRed: Button
+    private lateinit var ppgGreenPlot: XYPlot
+    private lateinit var ppgIrPlot: XYPlot
+    private lateinit var ppgRedPlot: XYPlot
+//    private lateinit var buttonPpgGreen: Button
+//    private lateinit var buttonPpgIr: Button
+//    private lateinit var buttonPpgRed: Button
     private lateinit var ecgContainer: ViewGroup
     private lateinit var textEcgHr: TextView
     private lateinit var textEcgInfo: TextView
@@ -298,9 +304,12 @@ class MainActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks,
         textPpgRedStatus = binding.statusPpgRed
         textEcgStatus = binding.statusEcg
         ppgContainer = binding.ppgContainer
-        buttonPpgGreen = binding.buttonPpgGreen
-        buttonPpgIr = binding.buttonPpgIr
-        buttonPpgRed = binding.buttonPpgRed
+        ppgGreenPlot = binding.ppgGreenPlot
+        ppgIrPlot = binding.ppgIrPlot
+        ppgRedPlot = binding.ppgRedPlot
+//        buttonPpgGreen = binding.buttonPpgGreen
+//        buttonPpgIr = binding.buttonPpgIr
+//        buttonPpgRed = binding.buttonPpgRed
         ecgContainer = binding.ecgContainer
         textEcgHr = binding.ecgHr
         textEcgInfo = binding.ecgInfo
@@ -379,20 +388,25 @@ class MainActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks,
         client.connect()
 
         // set click listener
-        buttonPpgGreen.setOnClickListener {
+        textPpgGreenStatus.setOnClickListener {
             val message = Message(NAME, ActivityCode.START_ACTIVITY, TOGGLE_ACTIVITY)
 //            sendMessage(message, MessagePath.DATA_PPG_GREEN)
             sendMessage(message, MessagePath.COMMAND)
         }
-        buttonPpgIr.setOnClickListener {
+        textPpgIrStatus.setOnClickListener {
             val message = Message(NAME, ActivityCode.START_ACTIVITY, TOGGLE_ACTIVITY)
 //            sendMessage(message, MessagePath.DATA_PPG_IR)
             sendMessage(message, MessagePath.COMMAND)
         }
-        buttonPpgRed.setOnClickListener {
+        textPpgRedStatus.setOnClickListener {
             val message = Message(NAME, ActivityCode.START_ACTIVITY, TOGGLE_ACTIVITY)
 //            sendMessage(message, MessagePath.DATA_PPG_RED)
             sendMessage(message, MessagePath.COMMAND)
+        }
+        textEcgStatus.setOnClickListener {
+            if (!isPolarDeviceConnected) {
+                connectPolarDevice()
+            }
         }
 //        buttonMain.setOnClickListener {
 //            message.content = getString(R.string.message_on_button_click)
@@ -507,16 +521,37 @@ class MainActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks,
                 menu.findItem(R.id.save).isVisible = false
             }
             return true
-        } else if (id == R.id.save_plot) {
-            saveDataWithNote(SaveType.PLOT)
+        } else if (id == R.id.save_all) {
+            saveDataWithNote(SaveType.ALL)
             return true
-        } else if (id == R.id.save_data) {
-            saveDataWithNote(SaveType.DATA)
+        }
+        else if (id == R.id.save_ecg_data) {
+            saveDataWithNote(SaveType.ECG_DATA)
             return true
-        } else if (id == R.id.save_both) {
-            saveDataWithNote(SaveType.BOTH)
+        }
+        else if (id == R.id.save_ppg_green_data) {
+            saveDataWithNote(SaveType.PPG_GREEN_DATA)
             return true
-        } else if (id == R.id.info) {
+        }
+        else if (id == R.id.save_ppg_ir_data) {
+            saveDataWithNote(SaveType.PPG_IR_DATA)
+            return true
+        }
+        else if (id == R.id.save_ppg_red_data) {
+            saveDataWithNote(SaveType.PPG_RED_DATA)
+            return true
+        }
+//        else if (id == R.id.save_plot) {
+//            saveDataWithNote(SaveType.PLOT)
+//            return true
+//        } else if (id == R.id.save_data) {
+//            saveDataWithNote(SaveType.DATA)
+//            return true
+//        } else if (id == R.id.save_both) {
+//            saveDataWithNote(SaveType.BOTH)
+//            return true
+//        }
+        else if (id == R.id.info) {
             displayInfo()
             return true
         } else if (id == R.id.restart_api) {
@@ -748,6 +783,7 @@ class MainActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks,
             )
         }
 
+        // setup Polar API
         polarApi = defaultImplementation(
             this,
             PolarBleApi.FEATURE_POLAR_SENSOR_STREAMING or
@@ -763,7 +799,7 @@ class MainActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks,
 //            Log.d(TAG,
 //                    "No connection handler: time=" + sdfShort.format(new
 //                    Date()));
-            if (!isConnected) {
+            if (!isPolarDeviceConnected) {
                 AppUtils.warnMsg(
                     this@MainActivity, "No connection to " + deviceId
                             + " after 1 minute"
@@ -771,6 +807,7 @@ class MainActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks,
             }
         }, 60000)
 
+        // setup Polar API Callback
         polarApi!!.setApiCallback(object: PolarBleApiCallback() {
             override fun blePowerStateChanged(powered: Boolean) {
                 Log.d(TAG, "BluetoothStateChanged $powered")
@@ -780,7 +817,7 @@ class MainActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks,
                 Log.d(TAG, "*Device connected " + polarDeviceInfo.deviceId)
                 deviceAddress = polarDeviceInfo.address
                 deviceName = polarDeviceInfo.name
-                isConnected = true
+                isPolarDeviceConnected = true
                 runOnUiThread {
                     textEcgStatus.text = getString(R.string.ecg_status,
                         getString(R.string.status_connected))
@@ -796,7 +833,7 @@ class MainActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks,
 
             override fun deviceDisconnected(polarDeviceInfo: PolarDeviceInfo) {
                 Log.d(TAG, "*Device disconnected $polarDeviceInfo")
-                isConnected = false
+                isPolarDeviceConnected = false
                 runOnUiThread {
                     textEcgStatus.text = getString(R.string.ecg_status,
                         getString(R.string.status_disconnected))
@@ -810,7 +847,7 @@ class MainActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks,
                 for (feature in features) {
                     Log.d(TAG, "Streaming feature is ready for 1: $feature")
                     when (feature) {
-                        DeviceStreamingFeature.ECG -> toggleEcgStream()
+//                        DeviceStreamingFeature.ECG -> toggleEcgStream()
 //                        DeviceStreamingFeature.PPI,
 //                        DeviceStreamingFeature.ACC,
 //                        DeviceStreamingFeature.MAGNETOMETER,
@@ -873,6 +910,28 @@ class MainActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks,
                 }
             }
         })
+//        // try connect to device
+//        try {
+//            polarApi!!.connectToDevice(deviceId)
+//            isPlaying = true
+//            setLastHr()
+//            stopTime = Date()
+//        } catch (ex: PolarInvalidArgument) {
+//            val msg = """
+//                DeviceId=$deviceId
+//                ConnectToDevice: Bad argument:
+//                """.trimIndent()
+//            AppUtils.excMsg(this, msg, ex)
+//            Log.d(TAG, "restart: $msg")
+//            isPlaying = false
+//            setLastHr()
+//            stopTime = Date()
+//        }
+        invalidateOptionsMenu()
+    }
+
+    private fun connectPolarDevice() {
+        // try connect to device
         try {
             polarApi!!.connectToDevice(deviceId)
             isPlaying = true
@@ -880,7 +939,7 @@ class MainActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks,
             stopTime = Date()
         } catch (ex: PolarInvalidArgument) {
             val msg = """
-                mDeviceId=$deviceId
+                DeviceId=$deviceId
                 ConnectToDevice: Bad argument:
                 """.trimIndent()
             AppUtils.excMsg(this, msg, ex)
@@ -924,7 +983,7 @@ class MainActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks,
         }
 
         // Set the visibility of the Analysis plot
-        isUsingAnalysis = sharedPreferences!!.getBoolean(PREF_ANALYSIS_VISIBILITY, true)
+        isUsingAnalysis = sharedPreferences!!.getBoolean(PREF_ANALYSIS_VISIBILITY, false)
         setAnalysisVisibility()
 
         // Start the connection to the device
@@ -1307,12 +1366,22 @@ class MainActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks,
             R.string.ok
         ) { _, _ ->
             when (saveType) {
-                SaveType.DATA -> saveData(input.text.toString())
-                SaveType.PLOT -> savePlot(input.text.toString())
-                SaveType.BOTH -> {
-                    saveData(input.text.toString())
-                    savePlot(input.text.toString())
+                SaveType.ALL -> {
+                    saveEcgData(input.text.toString())
+                    savePpgData(input.text.toString(), ppgGreenPlotter!!)
+                    savePpgData(input.text.toString(), ppgIrPlotter!!)
+                    savePpgData(input.text.toString(), ppgRedPlotter!!)
                 }
+                SaveType.ECG_DATA -> saveEcgData(input.text.toString())
+                SaveType.PPG_GREEN_DATA -> savePpgData(input.text.toString(), ppgGreenPlotter!!)
+                SaveType.PPG_IR_DATA -> savePpgData(input.text.toString(), ppgIrPlotter!!)
+                SaveType.PPG_RED_DATA -> savePpgData(input.text.toString(), ppgRedPlotter!!)
+//                SaveType.DATA -> saveData(input.text.toString())
+//                SaveType.PLOT -> savePlot(input.text.toString())
+//                SaveType.BOTH -> {
+//                    saveData(input.text.toString())
+//                    savePlot(input.text.toString())
+//                }
 //                SaveType.ALL -> {
 //                    saveData(input.text.toString())
 //                    savePlot(input.text.toString())
@@ -1330,7 +1399,7 @@ class MainActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks,
 
     /**
      * Finishes the savePlot after getting the note.
-     * This only saves plot of the last 30 seconds of recording.
+     * This only saves plot of the last 30 seconds of ECG recording.
      *
      * @param note The note.
      */
@@ -1365,7 +1434,7 @@ class MainActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks,
 //                    this.resources,
 //                    R.drawable.polar_ecg
 //                )
-                val arrays: PlotArrays = getPlotArrays()
+                val arrays: EcgPlotArrays = getEcgPlotArrays()
                 val ecgValues: DoubleArray = arrays.ecg
                 val peakValues: BooleanArray = arrays.peaks
 //                ecgPlotter!!.getVisibleSeries().getyVals()
@@ -1409,10 +1478,10 @@ class MainActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks,
 
     /**
      * Finishes the saveData after getting the note.
-     *
+     * Only saves the ECG recording data.
      * @param note The note.
      */
-    private fun saveData(note: String) {
+    private fun saveEcgData(note: String) {
         val prefs = getPreferences(MODE_PRIVATE)
         val treeUriStr = prefs.getString(PREF_TREE_URI, null)
         if (treeUriStr == null) {
@@ -1440,7 +1509,7 @@ class MainActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks,
             FileWriter(pfd!!.fileDescriptor).use { writer ->
                 PrintWriter(writer).use { out ->
                     // Write header
-                    val arrays: PlotArrays = getPlotArrays()
+                    val arrays: EcgPlotArrays = getEcgPlotArrays()
                     val ecgValues: DoubleArray = arrays.ecg
                     val peakValues: BooleanArray = arrays.peaks
                     val timestamps: LongArray = arrays.timestamp
@@ -1451,7 +1520,7 @@ class MainActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks,
                         sampleCount / ECG_SAMPLE_RATE
                     )
                     out.write(
-                        ("application=" + "KE.Net ECG Version: "
+                        ("application=" + "SamplingApp Version: "
                                 + AppUtils.getVersion(this)) + "\n"
                     )
                     out.write(
@@ -1501,6 +1570,10 @@ class MainActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks,
             Log.e(TAG, Log.getStackTraceString(ex))
             AppUtils.excMsg(this, msg, ex)
         }
+    }
+
+    private fun savePpgData(note: String, ppgPlotter: PpgPlotter) {
+        TODO("Not yet implemented")
     }
 
 //    /**
@@ -1610,8 +1683,8 @@ class MainActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks,
      * @return PlotArrays with the ECG values, binary values that shows
      * whether it is a peak or not, and the timestamp.
      */
-    private fun getPlotArrays(): PlotArrays {
-        val arrays: PlotArrays
+    private fun getEcgPlotArrays(): EcgPlotArrays {
+        val arrays: EcgPlotArrays
         // Remove any out-of-range values peak values
         qrsPlotter!!.removeOutOfRangePlotPeakValues()
         val ecgValues: LinkedList<Number> = qrsPlotter!!.seriesDataEcg.getyVals()
@@ -1644,9 +1717,33 @@ class MainActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks,
 //            j, indx, peakxvals.get(j).intValue()));
             peaks[index] = true
         }
-        arrays = PlotArrays(ecg
+        arrays = EcgPlotArrays(ecg
             , peaks
             , timestamp)
+        return arrays
+    }
+
+    /**
+     * Gets PPG and timestamp of a given PpgPlotter as plot arrays.
+     * This relies on the 'data' series and timestamp series
+     * in the given PpgPlotter having DataIndex
+     * that correspond with each other.
+     *
+     * @param ppgPlotter A PpgPlotter object
+     * @return PlotArrays with the Ppg values and the timestamp.
+     */
+    private fun getPpgPlotArrays(ppgPlotter: PpgPlotter): PpgPlotArrays {
+        val arrays: PpgPlotArrays
+        val ppgValues: LinkedList<Number> = ppgPlotter.getDataSeries().getyVals()
+        val timestampValues: LinkedList<Number> = ppgPlotter.getTimestampSeries().getyVals()
+        val length = ppgValues.size
+        val ppg = IntArray(length)
+        val timestamp = LongArray(length)
+        for ((i, value) in ppgValues.withIndex()) {
+            ppg[i] = value.toInt()
+            timestamp[i] = timestampValues[i].toLong()
+        }
+        arrays = PpgPlotArrays(ppg, timestamp)
         return arrays
     }
 
@@ -1661,9 +1758,9 @@ class MainActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks,
         Log.d(
             TAG, this.javaClass.simpleName + " streamECG:"
                     + " mEcgDisposable=" + ecgDisposable
-                    + " mConnected=" + isConnected
+                    + " mConnected=" + isPolarDeviceConnected
         )
-        if (!isConnected) {
+        if (!isPolarDeviceConnected) {
             AppUtils.errMsg(this, "streamECG: Device is not connected yet")
             return
         }
@@ -1807,7 +1904,7 @@ class MainActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks,
         msg.append("Firmware: ").append(deviceFirmware).append("\n")
         msg.append("Battery Level: ").append(deviceBatteryLevel).append("\n")
         msg.append("API Connected: ").append(polarApi != null).append("\n")
-        msg.append("Device Connected: ").append(isConnected).append("\n")
+        msg.append("Device Connected: ").append(isPolarDeviceConnected).append("\n")
         msg.append("Playing: ").append(isPlaying).append("\n")
         msg.append("Receiving ECG: ").append(ecgDisposable != null)
             .append("\n")

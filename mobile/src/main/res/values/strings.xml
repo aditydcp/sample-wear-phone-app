@@ -44,6 +44,9 @@
 
     <string name="status_container_title">Status</string>
     <string name="ecg_plot_title">25 mm/s, 10 mm/mV</string>
+    <string name="ppg_green_plot_title">PPG Green</string>
+    <string name="ppg_ir_plot_title">PPG IR</string>
+    <string name="ppg_red_plot_title">PPG Red</string>
 
     <string name="device_id_label">Device ID</string>
 
@@ -62,6 +65,10 @@
     <string name="save_plot_item">Save Plot</string>
     <string name="save_both_item">Save Data &amp; Plot</string>
     <string name="save_all_item">Save All</string>
+    <string name="save_ecg_data_item">Save ECG Data</string>
+    <string name="save_ppg_green_data_item">Save PPG Green Data</string>
+    <string name="save_ppg_ir_data_item">Save PPG IR Data</string>
+    <string name="save_ppg_red_data_item">Save PPG Red Data</string>
     <string name="save_device_data_item">Save Device HR Data</string>
     <string name="save_qrs_data_item">Save Calculated HR Data</string>
     <string name="choose_data_directory_item">Set Data Directory</string>

@@ -10,21 +10,33 @@
         android:id="@+id/save"
         android:title="@string/save_item">
         <menu>
+            <item
+                android:id="@+id/save_all"
+                android:title="@string/save_all_item"
+                app:showAsAction="never" />
 <!--            <item-->
-<!--                android:id="@+id/save_all"-->
-<!--                android:title="@string/save_all_item"-->
+<!--                android:id="@+id/save_both"-->
+<!--                android:title="@string/save_both_item"-->
+<!--                app:showAsAction="never" />-->
+<!--            <item-->
+<!--                android:id="@+id/save_plot"-->
+<!--                android:title="@string/save_plot_item"-->
 <!--                app:showAsAction="never" />-->
             <item
-                android:id="@+id/save_both"
-                android:title="@string/save_both_item"
+                android:id="@+id/save_ecg_data"
+                android:title="@string/save_ecg_data_item"
                 app:showAsAction="never" />
             <item
-                android:id="@+id/save_plot"
-                android:title="@string/save_plot_item"
+                android:id="@+id/save_ppg_green_data"
+                android:title="@string/save_ppg_green_data_item"
                 app:showAsAction="never" />
             <item
-                android:id="@+id/save_data"
-                android:title="@string/save_data_item"
+                android:id="@+id/save_ppg_ir_data"
+                android:title="@string/save_ppg_ir_data_item"
+                app:showAsAction="never" />
+            <item
+                android:id="@+id/save_ppg_red_data"
+                android:title="@string/save_ppg_red_data_item"
                 app:showAsAction="never" />
 <!--            <item-->
 <!--                android:id="@+id/save_device_data"-->
