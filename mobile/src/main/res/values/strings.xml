@@ -21,6 +21,7 @@
 <!--    <string name="message_on_button_click">App button clicked</string>-->
 
     <string name="status_default">No Status</string>
+    <string name="status_connecting">Connecting</string>
     <string name="status_connected">Connected</string>
     <string name="status_disconnected">Disconnected</string>
     <string name="status_running">Running</string>

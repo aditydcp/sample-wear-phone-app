@@ -764,11 +764,6 @@ class MainActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks,
         textEcgInfo.text = ""
         textEcgTime.text = ""
         invalidateOptionsMenu()
-        Toast.makeText(
-            this,
-            getString(R.string.connecting) + " " + deviceId,
-            Toast.LENGTH_SHORT
-        ).show()
 
 //        // Don't use SDK if BT is not enabled or permissions are not granted.
 //        if (!mBleSupported) return
@@ -792,20 +787,8 @@ class MainActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks,
                     PolarBleApi.FEATURE_POLAR_FILE_TRANSFER or
                     PolarBleApi.FEATURE_HR
         )
-        // DEBUG
-        // Post a Runnable to have plots to be setup again in 1 sec
-        val handler = Handler(Looper.getMainLooper())
-        handler.postDelayed({
-//            Log.d(TAG,
-//                    "No connection handler: time=" + sdfShort.format(new
-//                    Date()));
-            if (!isPolarDeviceConnected) {
-                AppUtils.warnMsg(
-                    this@MainActivity, "No connection to " + deviceId
-                            + " after 1 minute"
-                )
-            }
-        }, 60000)
+
+        // TODO Post a Runnable to have plots to be setup again in 1 sec
 
         // setup Polar API Callback
         polarApi!!.setApiCallback(object: PolarBleApiCallback() {
@@ -931,10 +914,31 @@ class MainActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks,
     }
 
     private fun connectPolarDevice() {
+        val handler = Handler(Looper.getMainLooper())
+        handler.postDelayed({
+            if (!isPolarDeviceConnected) {
+                AppUtils.warnMsg(
+                    this@MainActivity, "No connection to " + deviceId
+                            + " after 1 minute"
+                )
+            }
+        }, 60000)
+
         // try connect to device
         try {
             polarApi!!.connectToDevice(deviceId)
-            isPlaying = true
+            Log.d(TAG, "Connecting to Polar device...\n" +
+                    "DeviceId: $deviceId")
+            runOnUiThread {
+                textEcgStatus.text = getString(R.string.ecg_status,
+                    getString(R.string.status_connecting))
+                Toast.makeText(
+                    this,
+                    getString(R.string.connecting) + " " + deviceId,
+                    Toast.LENGTH_SHORT
+                ).show()
+            }
+//            isPlaying = true
             setLastHr()
             stopTime = Date()
         } catch (ex: PolarInvalidArgument) {
@@ -943,8 +947,8 @@ class MainActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks,
                 ConnectToDevice: Bad argument:
                 """.trimIndent()
             AppUtils.excMsg(this, msg, ex)
-            Log.d(TAG, "restart: $msg")
-            isPlaying = false
+            Log.d(TAG, "connectPolarDevice: $msg")
+//            isPlaying = false
             setLastHr()
             stopTime = Date()
         }
