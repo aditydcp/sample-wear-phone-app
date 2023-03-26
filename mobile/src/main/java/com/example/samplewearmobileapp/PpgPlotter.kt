@@ -10,6 +10,7 @@ import com.example.samplewearmobileapp.models.RunningMax
 import com.example.samplewearmobileapp.utils.AppUtils
 import java.text.DecimalFormat
 import kotlin.math.ceil
+import kotlin.math.floor
 
 class PpgPlotter: PlotterListener {
     private lateinit var parentActivity: MainActivity
@@ -146,17 +147,17 @@ class PpgPlotter: PlotterListener {
             updateDomainRangeBoundaries()
 
             // Range labels will increment by 1
-            plot.setRangeStep(StepMode.INCREMENT_BY_VAL, 1.0)
-            plot.graph.setLineLabelEdges(
-                XYGraphWidget.Edge.LEFT
-            )
-            // Make left labels be an integer (no decimal places)
-            plot.graph.getLineLabelStyle(XYGraphWidget.Edge.LEFT).format = DecimalFormat("#")
+            plot.setRangeStep(StepMode.SUBDIVIDE, 8.0)
+//            plot.graph.setLineLabelEdges(
+//                XYGraphWidget.Edge.LEFT
+//            )
+//            // Make left labels be an integer (no decimal places)
+//            plot.graph.getLineLabelStyle(XYGraphWidget.Edge.LEFT).format = DecimalFormat("#")
 
             // Set the domain block to be .25 of visible limit
             // to match the ECG Plot
             plot.setDomainStep(StepMode.INCREMENT_BY_VAL, visiblePointLimit * .25)
-            plot.linesPerDomainLabel = 5
+//            plot.linesPerDomainLabel = 5
 
 //            // Allow panning
 //            PanZoom.attach(mPlot, PanZoom.Pan.HORIZONTAL, PanZoom.Zoom.NONE);
@@ -203,11 +204,13 @@ class PpgPlotter: PlotterListener {
 
     private fun updateDomainRangeBoundaries() {
         // get the Max value. 60 is the minimum amount.
-        var max: Double = runningMax.max().coerceAtLeast(60.0)
-        if (java.lang.Double.isNaN(max) || max < 60) max = 60.0
+        val max: Double = runningMax.max().coerceAtLeast(60.0)
+        val min: Double = runningMax.min().coerceAtMost(0.0)
+
         // Set range (vertical) boundaries
-        val upperBoundary: Number = ceil(max + 10).coerceAtMost(200.0)
-        plot.setRangeBoundaries(0, upperBoundary, BoundaryMode.FIXED)
+        val upperBoundary: Number = ceil(max + (10/100.0 * max))
+        val lowerBoundary: Number = floor(min - (10/100.0 * min)).coerceAtLeast(0.0)
+        plot.setRangeBoundaries(lowerBoundary, upperBoundary, BoundaryMode.FIXED)
 
         // Set domain (horizontal) boundaries
         val plotMin: Long = dataIndex - visiblePointLimit

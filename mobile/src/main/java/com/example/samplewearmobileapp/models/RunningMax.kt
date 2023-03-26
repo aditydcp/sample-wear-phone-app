@@ -19,6 +19,14 @@ class RunningMax(private val windowSize: Int) {
         return max
     }
 
+    fun min(): Double {
+        var min = Double.MAX_VALUE
+        for (value in values) {
+            if (value < min) min = value
+        }
+        return min
+    }
+
     fun size(): Int {
         return values.size
     }
