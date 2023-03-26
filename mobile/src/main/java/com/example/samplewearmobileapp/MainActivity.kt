@@ -1644,7 +1644,7 @@ class MainActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks,
                     for (i in 0 until sampleCount) {
                         out.write(
                             String.format(
-                                Locale.US, "%.3f,%d\n",
+                                Locale.US, "%d,%d\n",
                                 ppgValues[i],
                                 timestamps[i]
                             )
