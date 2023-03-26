@@ -12,7 +12,7 @@ import kotlin.math.ceil
 import kotlin.math.roundToInt
 import kotlin.math.roundToLong
 
-class HrPlotter {
+class HrPlotter: PlotterListener {
     private lateinit var parentActivity: MainActivity
     private var plot: XYPlot
 
@@ -366,7 +366,7 @@ class HrPlotter {
     /**
      * Updates the plot. Runs on the UI thread.
      */
-    private fun update() {
+    override fun update() {
 //        Log.d(TAG, "HRPlotter: update: dataList sizes=" + mHrRrList1.size()
 //                + "," + mHrRrList2.size());
         parentActivity.runOnUiThread { plot.redraw() }

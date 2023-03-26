@@ -27,6 +27,8 @@ import androidx.core.content.res.ResourcesCompat
 import com.androidplot.xy.XYPlot
 import com.example.samplewearmobileapp.BluetoothService.REQUEST_CODE_ENABLE_BLUETOOTH
 import com.example.samplewearmobileapp.Constants.ECG_SAMPLE_RATE
+import com.example.samplewearmobileapp.Constants.PPG_GREEN_SAMPLE_RATE
+import com.example.samplewearmobileapp.Constants.PPG_IR_RED_SAMPLE_RATE
 import com.example.samplewearmobileapp.Constants.PREF_ANALYSIS_VISIBILITY
 import com.example.samplewearmobileapp.Constants.PREF_DEVICE_ID
 import com.example.samplewearmobileapp.Constants.PREF_PATIENT_NAME
@@ -72,9 +74,9 @@ class MainActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks,
     private lateinit var client: GoogleApiClient
     private lateinit var menu: Menu
 
-    private var ppgGreenPlotter: PpgPlotter? = null
-    private var ppgIrPlotter: PpgPlotter? = null
-    private var ppgRedPlotter: PpgPlotter? = null
+    var ppgGreenPlotter: PpgPlotter? = null
+    var ppgIrPlotter: PpgPlotter? = null
+    var ppgRedPlotter: PpgPlotter? = null
 
 //    private lateinit var acquaintedDevices: MutableList<DeviceInfo>
     private var polarApi: PolarBleApi? = null
@@ -507,6 +509,9 @@ class MainActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks,
                     0.0
                 )
                 // Clear the plot
+                ppgGreenPlotter?.clear()
+                ppgIrPlotter?.clear()
+                ppgRedPlotter?.clear()
                 ecgPlotter?.clear()
                 qrsPlotter?.clear()
                 hrPlotter?.clear()
@@ -775,7 +780,10 @@ class MainActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks,
                 for (feature in features) {
                     Log.d(TAG, "Streaming feature is ready for 1: $feature")
                     when (feature) {
-//                        DeviceStreamingFeature.ECG -> toggleEcgStream()
+                        DeviceStreamingFeature.ECG -> {
+
+//                            toggleEcgStream()
+                        }
 //                        DeviceStreamingFeature.PPI,
 //                        DeviceStreamingFeature.ACC,
 //                        DeviceStreamingFeature.MAGNETOMETER,
@@ -916,6 +924,30 @@ class MainActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks,
         invalidateOptionsMenu()
 
         // Setup the plots if not done
+        if (ppgGreenPlotter == null) {
+            ppgGreenPlot.post {
+                ppgGreenPlotter = PpgPlotter(
+                    this, ppgGreenPlot, PpgType.PPG_GREEN,
+                    "PPG Green", Color.GREEN, false
+                )
+            }
+        }
+        if (ppgIrPlotter == null) {
+            ppgIrPlot.post {
+                ppgIrPlotter = PpgPlotter(
+                    this, ppgIrPlot, PpgType.PPG_IR,
+                    "PPG Ir", Color.MAGENTA, false
+                )
+            }
+        }
+        if (ppgRedPlotter == null) {
+            ppgRedPlot.post {
+                ppgRedPlotter = PpgPlotter(
+                    this, ppgRedPlot, PpgType.PPG_RED,
+                    "PPG Red", Color.RED, false
+                )
+            }
+        }
         if (ecgPlotter == null) {
             ecgPlot.post {
                 ecgPlotter = EcgPlotter(
@@ -1085,12 +1117,18 @@ class MainActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks,
      * playing and turn it on with stopped. Zooming is not enabled.
      */
     private fun setPanBehavior() {
+        ppgGreenPlotter?.setPanning(!isPlaying)
+        ppgIrPlotter?.setPanning(!isPlaying)
+        ppgRedPlotter?.setPanning(!isPlaying)
         ecgPlotter?.setPanning(!isPlaying)
         qrsPlotter?.setPanning(!isPlaying)
         hrPlotter?.setPanning(!isPlaying)
     }
 
     private fun redoPlotSetup() {
+        ppgGreenPlotter?.setupPlot()
+        ppgIrPlotter?.setupPlot()
+        ppgRedPlotter?.setupPlot()
         ecgPlotter?.setupPlot()
         qrsPlotter?.setupPlot()
         hrPlotter?.setupPlot()
@@ -1472,6 +1510,7 @@ class MainActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks,
                         ("application=" + "SamplingApp Version: "
                                 + AppUtils.getVersion(this)) + "\n"
                     )
+                    out.write("datatype=ECG")
                     out.write(
                         """
                         stoptime=${stopTime.toString()}
@@ -1521,8 +1560,103 @@ class MainActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks,
         }
     }
 
+    /**
+     * Finishes the saveData after getting the note.
+     * Only saves the PPG recording data that corresponds
+     * to the given PPG Plotter.
+     * @param note The note.
+     * @param ppgPlotter A PPG Plotter.
+     */
     private fun savePpgData(note: String, ppgPlotter: PpgPlotter) {
-        TODO("Not yet implemented")
+        val prefs = getPreferences(MODE_PRIVATE)
+        val treeUriStr = prefs.getString(PREF_TREE_URI, null)
+        if (treeUriStr == null) {
+            AppUtils.errMsg(this, "There is no data directory set")
+            return
+        }
+        var msg: String
+        val format = "yyyy-MM-dd_HH-mm"
+        val df = SimpleDateFormat(format, Locale.US)
+        val ppgTypeString = when (ppgPlotter.getPpgType()) {
+            PpgType.PPG_GREEN -> "PPG Green"
+            PpgType.PPG_IR -> "PPG IR"
+            PpgType.PPG_RED -> "PPG Red"
+        }
+        val fileName = ppgTypeString + "-" + df.format(stopTime!!) + ".csv"
+        try {
+            val treeUri = Uri.parse(treeUriStr)
+            val treeDocumentId = DocumentsContract.getTreeDocumentId(treeUri)
+            val docTreeUri = DocumentsContract.buildDocumentUriUsingTree(
+                treeUri,
+                treeDocumentId
+            )
+            val resolver = this.contentResolver
+            val pfd: ParcelFileDescriptor?
+            val docUri = DocumentsContract.createDocument(
+                resolver, docTreeUri,
+                "text/csv", fileName
+            )
+            pfd = contentResolver.openFileDescriptor(docUri!!, "w")
+            FileWriter(pfd!!.fileDescriptor).use { writer ->
+                PrintWriter(writer).use { out ->
+                    // Write header
+                    val arrays: PpgPlotArrays = getPpgPlotArrays(ppgPlotter)
+                    val ppgValues: IntArray = arrays.ppg
+                    val timestamps: LongArray = arrays.timestamp
+                    val sampleCount = ppgValues.size
+                    val sampleRate = when (ppgPlotter.getPpgType()) {
+                        PpgType.PPG_GREEN -> PPG_GREEN_SAMPLE_RATE
+                        PpgType.PPG_IR, PpgType.PPG_RED -> PPG_IR_RED_SAMPLE_RATE
+                    }
+                    val duration = java.lang.String.format(
+                        Locale.US, "%.1f sec",
+                        sampleCount / sampleRate
+                    )
+                    out.write(
+                        ("application=" + "SamplingApp Version: "
+                                + AppUtils.getVersion(this)) + "\n"
+                    )
+                    out.write("datatype=$ppgTypeString")
+                    out.write(
+                        """
+                        stoptime=${stopTime.toString()}
+                        
+                        """.trimIndent()
+                    )
+                    out.write("duration=$duration\n")
+                    out.write("samplescount=$sampleCount\n")
+                    out.write(
+                        """
+                        ${"samplingrate=$sampleRate"}
+                        
+                        """.trimIndent()
+                    )
+                    out.write("stopcalculatedhr=$calculatedStopHr\n")
+                    out.write("note=$note\n")
+
+                    // Write samples
+                    for (i in 0 until sampleCount) {
+                        out.write(
+                            String.format(
+                                Locale.US, "%.3f,%d\n",
+                                ppgValues[i],
+                                timestamps[i]
+                            )
+                        )
+                    }
+                    out.flush()
+                    msg = "Wrote " + docUri.lastPathSegment
+                    Log.d(TAG, msg)
+                    AppUtils.infoMsg(this, msg)
+                }
+            }
+            pfd.close()
+        } catch (ex: java.lang.Exception) {
+            msg = "Error writing CSV file"
+            Log.e(TAG, msg)
+            Log.e(TAG, Log.getStackTraceString(ex))
+            AppUtils.excMsg(this, msg, ex)
+        }
     }
 
 //    /**
@@ -1797,6 +1931,7 @@ class MainActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks,
                         "Data Number: ${ppgGreenData.number}\n" +
                         "PPG Green Value: ${ppgGreenData.ppgValue}\n" +
                         "Timestamp: ${ppgGreenData.timestamp}")
+                ppgGreenPlotter?.addValues(ppgGreenData.ppgValue, ppgGreenData.timestamp)
                 runOnUiThread {
                     textPpgGreenStatus.text = getString(R.string.ppg_green_status,
                         ppgGreenData.number.toString())
@@ -1809,6 +1944,7 @@ class MainActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks,
                         "Data Number: ${ppgIrData.number}\n" +
                         "PPG IR Value: ${ppgIrData.ppgValue}\n" +
                         "Timestamp: ${ppgIrData.timestamp}")
+                ppgIrPlotter?.addValues(ppgIrData.ppgValue, ppgIrData.timestamp)
                 runOnUiThread {
                     textPpgIrStatus.text = getString(R.string.ppg_ir_status,
                         ppgIrData.number.toString())
@@ -1821,6 +1957,7 @@ class MainActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks,
                         "Data Number: ${ppgRedData.number}\n" +
                         "PPG Red Value: ${ppgRedData.ppgValue}\n" +
                         "Timestamp: ${ppgRedData.timestamp}")
+                ppgRedPlotter?.addValues(ppgRedData.ppgValue, ppgRedData.timestamp)
                 runOnUiThread {
                     textPpgRedStatus.text = getString(R.string.ppg_red_status,
                         ppgRedData.number.toString())

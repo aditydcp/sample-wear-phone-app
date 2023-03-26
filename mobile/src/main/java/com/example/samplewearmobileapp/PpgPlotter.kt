@@ -9,10 +9,9 @@ import com.example.samplewearmobileapp.models.PpgType.*
 import com.example.samplewearmobileapp.models.RunningMax
 import com.example.samplewearmobileapp.utils.AppUtils
 import java.text.DecimalFormat
-import java.util.*
 import kotlin.math.ceil
 
-class PpgPlotter {
+class PpgPlotter: PlotterListener {
     private lateinit var parentActivity: MainActivity
     private var plot: XYPlot
     private lateinit var formatter: XYSeriesFormatter<XYRegionFormatter>
@@ -219,7 +218,7 @@ class PpgPlotter {
     /**
      * Updates the plot. Runs on the UI thread.
      */
-    private fun update() {
+    override fun update() {
         parentActivity.runOnUiThread { plot.redraw() }
     }
 
@@ -280,6 +279,10 @@ class PpgPlotter {
 
     fun getDataIndex(): Long {
         return dataIndex
+    }
+
+    fun getPpgType(): PpgType {
+        return ppgType
     }
 
     /**

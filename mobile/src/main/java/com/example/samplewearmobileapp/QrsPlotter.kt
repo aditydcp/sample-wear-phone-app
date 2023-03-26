@@ -11,7 +11,7 @@ import com.example.samplewearmobileapp.Constants.N_LARGE
 import com.example.samplewearmobileapp.Constants.N_TOTAL_VISIBLE_ECG_POINTS
 import com.example.samplewearmobileapp.utils.AppUtils
 
-class QrsPlotter {
+class QrsPlotter: PlotterListener {
     private lateinit var parentActivity: MainActivity
     private var plot: XYPlot
 
@@ -313,7 +313,7 @@ class QrsPlotter {
     /**
      * Updates the plot. Runs on the UI thread.
      */
-    private fun update() {
+    override fun update() {
         if (plot.visibility == View.GONE) return
         //            Log.d(TAG, this.getClass().getSimpleName()
 //                    + " update: thread: " + Thread.currentThread()
