@@ -42,6 +42,7 @@ import com.example.samplewearmobileapp.models.Message
 import com.example.samplewearmobileapp.utils.AppUtils
 import com.example.samplewearmobileapp.utils.UriUtils
 import com.google.android.gms.common.api.GoogleApiClient
+import com.google.android.gms.wearable.DataEvent
 import com.google.android.gms.wearable.Node
 import com.google.android.gms.wearable.Wearable
 import com.google.gson.Gson
@@ -607,71 +608,15 @@ class MainActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks,
             onMessageArrived(messageEvent.path)
         }
         Wearable.DataApi.addListener(client) { data ->
-            Log.d(TAG, "Data count arrived : ${data.count}")
+//            Log.d(TAG, "Data count arrived : ${data.count}")
             for (dataEvent in data) {
                 Log.d(TAG, "Data Event\n" +
                         "URI Last Path Segment: ${dataEvent.dataItem.uri.lastPathSegment}\n" +
                         "URI Path: ${dataEvent.dataItem.uri.path}\n" +
                         "URI encoded path: ${dataEvent.dataItem.uri.encodedPath}\n" +
                         "URI Host: ${dataEvent.dataItem.uri.host}")
+                onDataArrived(dataEvent)
             }
-            when (data[0].dataItem.uri.path) {
-                MessagePath.DATA_HR -> {
-                    val heartData = Gson().fromJson(String(data[0].dataItem.data),
-                        HeartData::class.java)
-                    Log.d(TAG, "Heart Rate data received\n" +
-                            "HR: ${heartData.hr}\n" +
-                            "IBI: ${heartData.ibi}\n" +
-                            "Timestamp: ${heartData.timestamp}")
-//                    runOnUiThread {
-//                        textWearHr.text = data.hr.toString()
-//                        textWearIbi.text = data.ibi.toString()
-//                        textWearTimestamp.text = data.timestamp
-//                    }
-                }
-                MessagePath.DATA_PPG_GREEN -> {
-                    val ppgGreenData = Gson().fromJson(String(data[0].dataItem.data),
-                        PpgData::class.java)
-                    Log.d(TAG, "PPG Green data received\n" +
-                            "Data Number: ${ppgGreenData.number}\n" +
-                            "PPG Green Value: ${ppgGreenData.ppgValue}\n" +
-                            "Timestamp: ${ppgGreenData.timestamp}")
-                    runOnUiThread {
-                        textPpgGreenStatus.text = getString(R.string.ppg_green_status,
-                            ppgGreenData.number.toString())
-                    }
-                }
-                MessagePath.DATA_PPG_IR -> {
-                    val ppgIrData = Gson().fromJson(String(data[0].dataItem.data),
-                        PpgData::class.java)
-                    Log.d(TAG, "PPG InfraRed data received\n" +
-                            "Data Number: ${ppgIrData.number}\n" +
-                            "PPG IR Value: ${ppgIrData.ppgValue}\n" +
-                            "Timestamp: ${ppgIrData.timestamp}")
-                    runOnUiThread {
-                        textPpgIrStatus.text = getString(R.string.ppg_ir_status,
-                            ppgIrData.number.toString())
-                    }
-                }
-                MessagePath.DATA_PPG_RED -> {
-                    val ppgRedData = Gson().fromJson(String(data[0].dataItem.data),
-                        PpgData::class.java)
-                    Log.d(TAG, "PPG Red data received\n" +
-                            "Data Number: ${ppgRedData.number}\n" +
-                            "PPG Red Value: ${ppgRedData.ppgValue}\n" +
-                            "Timestamp: ${ppgRedData.timestamp}")
-                    runOnUiThread {
-                        textPpgRedStatus.text = getString(R.string.ppg_red_status,
-                            ppgRedData.number.toString())
-                    }
-                }
-            }
-//            val receivedData = Gson().fromJson(String(data[0].dataItem.data), HeartData::class.java)
-//            runOnUiThread {
-//                textWearHr.text = receivedData.hr.toString()
-//                textWearIbi.text = receivedData.ibi.toString()
-//                textWearTimestamp.text = receivedData.timestamp
-//            }
         }
     }
 
@@ -1828,6 +1773,66 @@ class MainActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks,
             ecgDisposable = null
             if (qrsDetector != null) qrsDetector = null
         }
+    }
+
+    private fun onDataArrived(dataEvent: DataEvent) {
+        when (dataEvent.dataItem.uri.path) {
+            MessagePath.DATA_HR -> {
+                val heartData = Gson().fromJson(String(dataEvent.dataItem.data),
+                    HeartData::class.java)
+                Log.d(TAG, "Heart Rate data received\n" +
+                        "HR: ${heartData.hr}\n" +
+                        "IBI: ${heartData.ibi}\n" +
+                        "Timestamp: ${heartData.timestamp}")
+//                    runOnUiThread {
+//                        textWearHr.text = data.hr.toString()
+//                        textWearIbi.text = data.ibi.toString()
+//                        textWearTimestamp.text = data.timestamp
+//                    }
+            }
+            MessagePath.DATA_PPG_GREEN -> {
+                val ppgGreenData = Gson().fromJson(String(dataEvent.dataItem.data),
+                    PpgData::class.java)
+                Log.d(TAG, "PPG Green data received\n" +
+                        "Data Number: ${ppgGreenData.number}\n" +
+                        "PPG Green Value: ${ppgGreenData.ppgValue}\n" +
+                        "Timestamp: ${ppgGreenData.timestamp}")
+                runOnUiThread {
+                    textPpgGreenStatus.text = getString(R.string.ppg_green_status,
+                        ppgGreenData.number.toString())
+                }
+            }
+            MessagePath.DATA_PPG_IR -> {
+                val ppgIrData = Gson().fromJson(String(dataEvent.dataItem.data),
+                    PpgData::class.java)
+                Log.d(TAG, "PPG InfraRed data received\n" +
+                        "Data Number: ${ppgIrData.number}\n" +
+                        "PPG IR Value: ${ppgIrData.ppgValue}\n" +
+                        "Timestamp: ${ppgIrData.timestamp}")
+                runOnUiThread {
+                    textPpgIrStatus.text = getString(R.string.ppg_ir_status,
+                        ppgIrData.number.toString())
+                }
+            }
+            MessagePath.DATA_PPG_RED -> {
+                val ppgRedData = Gson().fromJson(String(dataEvent.dataItem.data),
+                    PpgData::class.java)
+                Log.d(TAG, "PPG Red data received\n" +
+                        "Data Number: ${ppgRedData.number}\n" +
+                        "PPG Red Value: ${ppgRedData.ppgValue}\n" +
+                        "Timestamp: ${ppgRedData.timestamp}")
+                runOnUiThread {
+                    textPpgRedStatus.text = getString(R.string.ppg_red_status,
+                        ppgRedData.number.toString())
+                }
+            }
+        }
+//            val receivedData = Gson().fromJson(String(data[0].dataItem.data), HeartData::class.java)
+//            runOnUiThread {
+//                textWearHr.text = receivedData.hr.toString()
+//                textWearIbi.text = receivedData.ibi.toString()
+//                textWearTimestamp.text = receivedData.timestamp
+//            }
     }
 
     private fun onMessageArrived(messagePath: String) {
