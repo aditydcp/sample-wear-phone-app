@@ -394,17 +394,23 @@ class MainActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks,
         textPpgGreenStatus.setOnClickListener {
             val message = Message(NAME, ActivityCode.START_ACTIVITY, TOGGLE_ACTIVITY)
 //            sendMessage(message, MessagePath.DATA_PPG_GREEN)
+            setMessageCode(message)
             sendMessage(message, MessagePath.COMMAND)
+            toggleState()
         }
         textPpgIrStatus.setOnClickListener {
             val message = Message(NAME, ActivityCode.START_ACTIVITY, TOGGLE_ACTIVITY)
 //            sendMessage(message, MessagePath.DATA_PPG_IR)
+            setMessageCode(message)
             sendMessage(message, MessagePath.COMMAND)
+            toggleState()
         }
         textPpgRedStatus.setOnClickListener {
             val message = Message(NAME, ActivityCode.START_ACTIVITY, TOGGLE_ACTIVITY)
 //            sendMessage(message, MessagePath.DATA_PPG_RED)
+            setMessageCode(message)
             sendMessage(message, MessagePath.COMMAND)
+            toggleState()
         }
         textEcgStatus.setOnClickListener {
             if (!isPolarDeviceConnected) {
@@ -2006,17 +2012,17 @@ class MainActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks,
         }
     }
 
-//    private fun setMessageCode(forceCode: Int = 99) {
-//        if (forceCode != 99) {
-//            message.code = forceCode
-//        }
-//        else if (appState == 0) {
-//            message.code = ActivityCode.START_ACTIVITY
-//        }
-//        else if (appState == 1) {
-//            message.code = ActivityCode.STOP_ACTIVITY
-//        }
-//    }
+    private fun setMessageCode(message: Message, forceCode: Int = 99) {
+        if (forceCode != 99) {
+            message.code = forceCode
+        }
+        else if (appState == 0) {
+            message.code = ActivityCode.START_ACTIVITY
+        }
+        else if (appState == 1) {
+            message.code = ActivityCode.STOP_ACTIVITY
+        }
+    }
 
     private fun toggleState(forceCode: Int = 99) {
         if (forceCode != 99) {
