@@ -75,7 +75,7 @@
     <string name="choose_data_directory_item">Set Data Directory</string>
     <string name="info_item">Info</string>
     <string name="redo_setup_plots_item">Redo Plot Setup</string>
-    <string name="restart_api_item">Restart Polar API</string>
+    <string name="restart_polar_api_item">Restart Polar API</string>
     <string name="device_id_item">Set Device ID</string>
     <string name="settings_item">Settings</string>
     <string name="help_item">Help</string>

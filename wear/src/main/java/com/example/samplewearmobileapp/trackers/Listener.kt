@@ -53,4 +53,8 @@ open class Listener {
             handler.removeCallbacksAndMessages(null)
         }
     }
+
+    fun isTracking(): Boolean {
+        return isHandlerRunning
+    }
 }

@@ -15,11 +15,13 @@ import androidx.core.app.ActivityCompat
 import com.example.samplewearmobileapp.constants.codes.ActivityCode
 import com.example.samplewearmobileapp.constants.Entity
 import com.example.samplewearmobileapp.constants.MessagePath
+import com.example.samplewearmobileapp.constants.codes.ExtraCode.TOGGLE_ACTIVITY
 import com.example.samplewearmobileapp.databinding.ActivityMainBinding
 import com.example.samplewearmobileapp.models.HeartData
 import com.example.samplewearmobileapp.models.Message
 import com.example.samplewearmobileapp.models.PpgData
 import com.example.samplewearmobileapp.models.PpgType
+import com.example.samplewearmobileapp.trackers.Listener
 import com.example.samplewearmobileapp.trackers.heartrate.HeartRateData
 import com.example.samplewearmobileapp.trackers.ppggreen.PpgGreenData
 import com.example.samplewearmobileapp.trackers.ppggreen.PpgGreenListener
@@ -389,6 +391,18 @@ class MainActivity : Activity(), GoogleApiClient.ConnectionCallbacks {
         Log.d("Wear","build Google API passed")
     }
 
+    private fun invalidateAppStatus() {
+        if (!ppgGreenListener.isTracking() &&
+            !ppgIrListener.isTracking() &&
+            !ppgRedListener.isTracking()) {
+            runOnUiThread {
+                textStatus.text = getString(R.string.status_stopped)
+                textPpgIrStatus.text = getString(R.string.status_stopped)
+                textPpgRedStatus.text = getString(R.string.status_stopped)
+            }
+        }
+    }
+
     override fun onDestroy() {
         Log.d(tag, "onDestroy")
         super.onDestroy()
@@ -437,7 +451,7 @@ class MainActivity : Activity(), GoogleApiClient.ConnectionCallbacks {
             when (messagePath) {
                 MessagePath.COMMAND -> {
                     when (it.code) {
-                        ActivityCode.START_ACTIVITY -> {
+                        ActivityCode.START_ACTIVITY -> { // start all tracker
                             runOnUiThread {
 //                                hrContainer.visibility = View.VISIBLE
                                 ppgGreenContainer.visibility = View.VISIBLE
@@ -453,9 +467,11 @@ class MainActivity : Activity(), GoogleApiClient.ConnectionCallbacks {
                             ppgIrListener.startTracker()
                             ppgRedListener.startTracker()
                         }
-                        ActivityCode.STOP_ACTIVITY -> {
+                        ActivityCode.STOP_ACTIVITY -> { // stop all tracker
                             runOnUiThread {
                                 textStatus.text = getString(R.string.status_stopped)
+                                textPpgIrStatus.text = getString(R.string.status_stopped)
+                                textPpgRedStatus.text = getString(R.string.status_stopped)
                             }
 
                             switchState(0)
@@ -483,6 +499,81 @@ class MainActivity : Activity(), GoogleApiClient.ConnectionCallbacks {
                 }
                 MessagePath.INFO -> {
                     TODO("Not yet implemented")
+                }
+                MessagePath.DATA_PPG_GREEN -> {
+                    if (it.code == ActivityCode.START_ACTIVITY) { // start tracker
+                        if (it.extraCode == TOGGLE_ACTIVITY) { // if toggle is instructed
+                            toggleTracker(ppgGreenListener)
+                            invalidateAppStatus()
+                            return
+                        }
+
+                        runOnUiThread {
+                            ppgGreenContainer.visibility = View.VISIBLE
+                            textTip.visibility = View.GONE
+                            textStatus.text = getString(R.string.status_running)
+                        }
+
+                        ppgGreenListener.startTracker()
+                    }
+                    else if (it.code == ActivityCode.STOP_ACTIVITY) { // stop tracker
+                        ppgGreenListener.stopTracker()
+                        invalidateAppStatus()
+                    }
+                }
+                MessagePath.DATA_PPG_IR -> {
+                    if (it.code == ActivityCode.START_ACTIVITY) { // start tracker
+                        if (it.extraCode == TOGGLE_ACTIVITY) { // if toggle instructed
+                            toggleTracker(ppgIrListener)
+                            if (!ppgIrListener.isTracking()) runOnUiThread {
+                                textPpgIrStatus.text = getString(R.string.status_stopped)
+                            }
+                            invalidateAppStatus()
+                            return
+                        }
+
+                        runOnUiThread {
+                            ppgIrContainer.visibility = View.VISIBLE
+                            textTip.visibility = View.GONE
+                            textStatus.text = getString(R.string.status_running)
+                        }
+
+                        ppgIrListener.startTracker()
+                    }
+                    else if (it.code == ActivityCode.STOP_ACTIVITY) { // stop tracker
+                        ppgIrListener.stopTracker()
+                        if (!ppgIrListener.isTracking()) runOnUiThread {
+                            textPpgIrStatus.text = getString(R.string.status_stopped)
+                        }
+                        invalidateAppStatus()
+                    }
+                }
+                MessagePath.DATA_PPG_RED -> {
+                    if (it.code == ActivityCode.START_ACTIVITY) { // start tracker
+                        if (it.extraCode == TOGGLE_ACTIVITY) { // if toggle instructed
+                            toggleTracker(ppgRedListener)
+                            if (!ppgRedListener.isTracking()) runOnUiThread {
+                                textPpgRedStatus.text = getString(R.string.status_stopped)
+                            }
+                            invalidateAppStatus()
+                            return
+                        }
+
+                        runOnUiThread {
+                            ppgRedContainer.visibility = View.VISIBLE
+                            textTip.visibility = View.GONE
+                            textStatus.text = getString(R.string.status_running)
+                        }
+
+                        ppgRedListener.startTracker()
+                    }
+                    else if (it.code == ActivityCode.STOP_ACTIVITY) { // stop tracker
+                        ppgRedListener.stopTracker()
+                        if (!ppgRedListener.isTracking()) runOnUiThread {
+                            textPpgRedStatus.text = getString(R.string.status_stopped)
+                        }
+                        invalidateAppStatus()
+                    }
                 }
             }
         }
@@ -551,6 +642,23 @@ class MainActivity : Activity(), GoogleApiClient.ConnectionCallbacks {
             PutDataRequest.create(MessagePath.DATA_PPG_RED).setData(bytes).setUrgent()
         )
         Log.i("Wear","PPG Red Data sent via DataApi!")
+    }
+
+    private fun toggleTracker(listener: Listener) {
+        when (listener) {
+            ppgGreenListener -> {
+                if (ppgGreenListener.isTracking()) ppgGreenListener.stopTracker()
+                else ppgGreenListener.startTracker()
+            }
+            ppgIrListener -> {
+                if (ppgIrListener.isTracking()) ppgIrListener.stopTracker()
+                else ppgIrListener.startTracker()
+            }
+            ppgRedListener -> {
+                if (ppgRedListener.isTracking()) ppgRedListener.stopTracker()
+                else ppgRedListener.startTracker()
+            }
+        }
     }
 
     /**

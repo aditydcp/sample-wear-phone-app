@@ -102,8 +102,12 @@ class MainActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks,
 //        , DEVICE_HR, QRS_HR, ALL
     }
 
+    private var isRecording = false
     private var isPolarDeviceConnected = false
-    private var isPlaying = false
+    private var isEcgRunning = false
+    private var isPpgGreenRunning = false
+    private var isPpgIrRunning = false
+    private var isPpgRedRunning = false
 
     private var sharedPreferences: SharedPreferences? = null
 
@@ -393,30 +397,31 @@ class MainActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks,
         // set click listener
         textPpgGreenStatus.setOnClickListener {
             val message = Message(NAME, ActivityCode.START_ACTIVITY, TOGGLE_ACTIVITY)
-//            sendMessage(message, MessagePath.DATA_PPG_GREEN)
-            setMessageCode(message)
-            sendMessage(message, MessagePath.COMMAND)
-            toggleState()
+            sendMessage(message, MessagePath.DATA_PPG_GREEN)
+//            setMessageCode(message)
+//            sendMessage(message, MessagePath.COMMAND)
+            toggleState(PpgType.PPG_GREEN)
         }
         textPpgIrStatus.setOnClickListener {
             val message = Message(NAME, ActivityCode.START_ACTIVITY, TOGGLE_ACTIVITY)
-//            sendMessage(message, MessagePath.DATA_PPG_IR)
-            setMessageCode(message)
-            sendMessage(message, MessagePath.COMMAND)
-            toggleState()
+            sendMessage(message, MessagePath.DATA_PPG_IR)
+//            setMessageCode(message)
+//            sendMessage(message, MessagePath.COMMAND)
+            toggleState(PpgType.PPG_IR)
         }
         textPpgRedStatus.setOnClickListener {
             val message = Message(NAME, ActivityCode.START_ACTIVITY, TOGGLE_ACTIVITY)
-//            sendMessage(message, MessagePath.DATA_PPG_RED)
-            setMessageCode(message)
-            sendMessage(message, MessagePath.COMMAND)
-            toggleState()
+            sendMessage(message, MessagePath.DATA_PPG_RED)
+//            setMessageCode(message)
+//            sendMessage(message, MessagePath.COMMAND)
+            toggleState(PpgType.PPG_RED)
         }
         textEcgStatus.setOnClickListener {
             if (!isPolarDeviceConnected) {
                 connectPolarDevice()
             }
         }
+        // TODO: Need a function to control each and all PPG
 //        buttonMain.setOnClickListener {
 //            message.content = getString(R.string.message_on_button_click)
 //            setMessageCode()
@@ -464,7 +469,7 @@ class MainActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks,
         if (polarApi == null) {
             menu.findItem(R.id.pause).title = "Start"
             menu.findItem(R.id.save).isVisible = false
-        } else if (isPlaying) {
+        } else if (isRecording) {
             menu.findItem(R.id.pause).icon = ResourcesCompat.getDrawable(
                 resources,
                 R.drawable.ic_stop_white_36dp, null
@@ -488,16 +493,19 @@ class MainActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks,
             if (polarApi == null) {
                 return true
             }
-            if (isPlaying) {
-                // Turn it off
+            if (isRecording) {
+                // Turn recording off
                 setLastHr()
                 stopTime = Date()
-                isPlaying = false
+                isRecording = false
                 setPanBehavior()
                 if (ecgDisposable != null) {
-                    // Turns it off
+                    // Turns ecg stream off
                     toggleEcgStream()
+                    isEcgRunning = false
                 }
+                // turn off PPG stream
+                togglePpgTracker()
                 menu.findItem(R.id.pause).icon = ResourcesCompat.getDrawable(
                     resources,
                     R.drawable.ic_play_arrow_white_36dp, null
@@ -505,10 +513,10 @@ class MainActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks,
                 menu.findItem(R.id.pause).title = "Start"
                 menu.findItem(R.id.save).isVisible = true
             } else {
-                // Turn it on
+                // Turn recording on
                 setLastHr()
                 stopTime = Date()
-                isPlaying = true
+                isRecording = true
                 setPanBehavior()
                 textEcgTime.text = getString(
                     R.string.elapsed_time,
@@ -522,9 +530,12 @@ class MainActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks,
                 qrsPlotter?.clear()
                 hrPlotter?.clear()
                 if (ecgDisposable == null) {
-                    // Turns it on
+                    // Turns ecg stream on
                     toggleEcgStream()
+                    isEcgRunning = true
                 }
+                // turn on PPG stream
+                togglePpgTracker()
                 menu.findItem(R.id.pause).icon = ResourcesCompat.getDrawable(
                     resources,
                     R.drawable.ic_stop_white_36dp, null
@@ -564,9 +575,9 @@ class MainActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks,
 //            return true
 //        }
         else if (id == R.id.info) {
-            displayInfo()
+            displayPolarInfo()
             return true
-        } else if (id == R.id.restart_api) {
+        } else if (id == R.id.restart_polar_api) {
             restartPolarApi()
             return true
         } else if (id == R.id.redo_plot_setup) {
@@ -714,7 +725,8 @@ class MainActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks,
             // Turns it off
             toggleEcgStream()
         }
-        isPlaying = false
+        isRecording = false
+        isEcgRunning = false
         ecgPlotter?.clear()
         textEcgHr.text = ""
         textEcgInfo.text = ""
@@ -744,7 +756,7 @@ class MainActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks,
                     PolarBleApi.FEATURE_HR
         )
 
-        // TODO Post a Runnable to have plots to be setup again in 1 sec
+        // Post a Runnable to have plots to be setup again in 1 sec
 
         // setup Polar API Callback
         polarApi!!.setApiCallback(object: PolarBleApiCallback() {
@@ -836,7 +848,7 @@ class MainActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks,
                 identifier: String,
                 data: PolarHrData
             ) {
-                if (isPlaying) {
+                if (isEcgRunning) {
 //                    Log.d(TAG,
 //                            "*HR " + polarHrData.hr + " mPlaying=" +
 //                            mPlaying);
@@ -1123,12 +1135,12 @@ class MainActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks,
      * playing and turn it on with stopped. Zooming is not enabled.
      */
     private fun setPanBehavior() {
-        ppgGreenPlotter?.setPanning(!isPlaying)
-        ppgIrPlotter?.setPanning(!isPlaying)
-        ppgRedPlotter?.setPanning(!isPlaying)
-        ecgPlotter?.setPanning(!isPlaying)
-        qrsPlotter?.setPanning(!isPlaying)
-        hrPlotter?.setPanning(!isPlaying)
+        ppgGreenPlotter?.setPanning(!isPpgGreenRunning)
+        ppgIrPlotter?.setPanning(!isPpgIrRunning)
+        ppgRedPlotter?.setPanning(!isPpgRedRunning)
+        ecgPlotter?.setPanning(!isEcgRunning)
+        qrsPlotter?.setPanning(!isEcgRunning)
+        hrPlotter?.setPanning(!isEcgRunning)
     }
 
     private fun redoPlotSetup() {
@@ -1837,6 +1849,70 @@ class MainActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks,
     }
 
     /**
+     * Toggles the tracker for *all* PPG types.
+     * If a PPG type is given, toggles the tracker
+     * for *only* the given type.
+     *
+     * This function reads current `isRecording` status
+     * when toggling *all* PPG tracker.
+     * Turns streaming off when not recording.
+     * Turns streaming on when it is currently recording.
+     *
+     * When a PPG type is given, toggling uses that PPG
+     * specific status to determine whether to on or off.
+     *
+     * @param ppgType Optional. The PPG type to toggle the tracker.
+     * @see PpgType
+     */
+    private fun togglePpgTracker(ppgType: PpgType? = null) {
+        Log.d(
+            TAG, this.javaClass.simpleName + " togglePpgTracker:"
+                    + " connectedNode=" + connectedNode
+        )
+        if (connectedNode.isNullOrEmpty()) {
+            AppUtils.errMsg(this,
+                "togglePpgTracker: Wear Device is not connected yet")
+            return
+        }
+
+        // conditional toggling when ppg type is given
+        // return early if condition met
+        when (ppgType) {
+            PpgType.PPG_GREEN -> {
+                val message = Message(NAME, ActivityCode.START_ACTIVITY, TOGGLE_ACTIVITY)
+                sendMessage(message, MessagePath.DATA_PPG_GREEN)
+                toggleState(PpgType.PPG_GREEN)
+                return
+            }
+            PpgType.PPG_IR -> {
+                val message = Message(NAME, ActivityCode.START_ACTIVITY, TOGGLE_ACTIVITY)
+                sendMessage(message, MessagePath.DATA_PPG_IR)
+                toggleState(PpgType.PPG_IR)
+                return
+            }
+            PpgType.PPG_RED -> {
+                val message = Message(NAME, ActivityCode.START_ACTIVITY, TOGGLE_ACTIVITY)
+                sendMessage(message, MessagePath.DATA_PPG_RED)
+                toggleState(PpgType.PPG_RED)
+                return
+            }
+            else -> {}
+        }
+
+        if (isRecording) {
+            // if recording is on, turn on all ppg tracker
+            val message = Message(NAME, ActivityCode.START_ACTIVITY)
+            sendMessage(message, MessagePath.COMMAND)
+            toggleState(true)
+        } else {
+            // if not recording, turn off all ppg tracker
+            val message = Message(NAME, ActivityCode.STOP_ACTIVITY)
+            sendMessage(message, MessagePath.COMMAND)
+            toggleState(false)
+        }
+    }
+
+    /**
      * Toggles streaming for ECG.
      *
      * Turns streaming on when not running.
@@ -1846,8 +1922,8 @@ class MainActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks,
     private fun toggleEcgStream() {
         Log.d(
             TAG, this.javaClass.simpleName + " streamECG:"
-                    + " mEcgDisposable=" + ecgDisposable
-                    + " mConnected=" + isPolarDeviceConnected
+                    + " EcgDisposable=" + ecgDisposable
+                    + " isConnected=" + isPolarDeviceConnected
         )
         if (!isPolarDeviceConnected) {
             AppUtils.errMsg(this, "streamECG: Device is not connected yet")
@@ -1855,7 +1931,7 @@ class MainActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks,
         }
         logEpochInfo("UTC")
         if (ecgDisposable == null) {
-            // Set the local time to get correct timestamps. H10 apparently
+            // Set the local time to get correct timestamps. Polar H10 apparently
             // resets its time to 01:01:2019 00:00:00 when connected to strap
             val timeZone = TimeZone.getTimeZone("UTC")
             val calNow = Calendar.getInstance(timeZone)
@@ -2024,6 +2100,65 @@ class MainActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks,
         }
     }
 
+    /**
+     * Toggles the running state of *all* PPG Tracker
+     *
+     * Pass a parameter to force the state
+     * to a certain value.
+     *
+     * @param forceState Optional. A value to be used as the state
+     * if present.
+     */
+    private fun toggleState(forceState: Boolean? = null) {
+        if (forceState != null) {
+            isPpgGreenRunning = forceState
+            isPpgIrRunning = forceState
+            isPpgRedRunning = forceState
+            return
+        }
+        isPpgGreenRunning = !isPpgGreenRunning
+        isPpgIrRunning = !isPpgIrRunning
+        isPpgRedRunning = !isPpgRedRunning
+    }
+
+    /**
+     * Toggles the running state of PPG Tracker of
+     * the given PPG type.
+     *
+     * Pass a second parameter to force the state
+     * to a certain value.
+     *
+     * @param ppgType The type of PPG to toggle the state
+     * @param forceState Optional. A value to be used as the state
+     * if present.
+     * @see PpgType
+     */
+    private fun toggleState(ppgType: PpgType, forceState: Boolean? = null) {
+        when (ppgType) {
+            PpgType.PPG_GREEN -> {
+                if (forceState != null) {
+                    isPpgGreenRunning = forceState
+                    return
+                }
+                isPpgGreenRunning = !isPpgGreenRunning
+            }
+            PpgType.PPG_IR -> {
+                if (forceState != null) {
+                    isPpgIrRunning = forceState
+                    return
+                }
+                isPpgIrRunning = !isPpgIrRunning
+            }
+            PpgType.PPG_RED -> {
+                if (forceState != null) {
+                    isPpgRedRunning = forceState
+                    return
+                }
+                isPpgRedRunning = !isPpgRedRunning
+            }
+        }
+    }
+
     private fun toggleState(forceCode: Int = 99) {
         if (forceCode != 99) {
             appState = forceCode
@@ -2048,16 +2183,16 @@ class MainActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks,
         Log.d(TAG,"stateNum changed to: $appState")
     }
 
-    private fun displayInfo() {
+    private fun displayPolarInfo() {
         val msg = StringBuilder()
-        msg.append("Name: ").append(deviceName).append("\n")
-        msg.append("Device Id: ").append(deviceId).append("\n")
-        msg.append("Address: ").append(deviceAddress).append("\n")
-        msg.append("Firmware: ").append(deviceFirmware).append("\n")
-        msg.append("Battery Level: ").append(deviceBatteryLevel).append("\n")
-        msg.append("API Connected: ").append(polarApi != null).append("\n")
-        msg.append("Device Connected: ").append(isPolarDeviceConnected).append("\n")
-        msg.append("Playing: ").append(isPlaying).append("\n")
+        msg.append("Polar Device Name: ").append(deviceName).append("\n")
+        msg.append("Polar Device Id: ").append(deviceId).append("\n")
+        msg.append("Polar Device Address: ").append(deviceAddress).append("\n")
+        msg.append("Polar Device Firmware: ").append(deviceFirmware).append("\n")
+        msg.append("Polar Device Battery Level: ").append(deviceBatteryLevel).append("\n")
+        msg.append("Polar API Connected: ").append(polarApi != null).append("\n")
+        msg.append("Polar Device Connected: ").append(isPolarDeviceConnected).append("\n")
+        msg.append("Recording: ").append(isRecording).append("\n")
         msg.append("Receiving ECG: ").append(ecgDisposable != null)
             .append("\n")
         if (ecgPlotter != null && ecgPlotter!!.getVisibleSeries() != null && ecgPlotter!!.getVisibleSeries()
