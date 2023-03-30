@@ -124,6 +124,8 @@ class MainActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks,
     //* Date when stopped playing. Updated whenever playing started or
     // stopped. */
     private var stopTime: Date? = null
+    //* Date when stopped playing. Updated whenever playing started */
+    private var startTime: Date? = null
 
     private var deviceStopHr = "NA"
     private var calculatedStopHr = "NA"
@@ -371,22 +373,11 @@ class MainActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks,
         sharedPreferences!!.registerOnSharedPreferenceChangeListener(this)
 
         setLastHr()
-        stopTime = Date()
+//        stopTime = Date()
 
-//        // Start Bluetooth
+        // get device ID from preferences if there is any
         deviceId = sharedPreferences!!.getString(PREF_DEVICE_ID, "").toString()
         Log.d(TAG, "DeviceId=$deviceId")
-//        val gson = Gson()
-//        val type = object : TypeToken<LinkedList<DeviceInfo?>?>() {}.type
-//        val json: String? = sharedPreferences!!.getString(PREF_ACQ_DEVICE_IDS, null)
-//        acquaintedDevices = gson.fromJson(json, type)
-//        if (acquaintedDevices == null) {
-//            acquaintedDevices = ArrayList<DeviceInfo>()
-//        }
-
-//        if (deviceId == null || deviceId == "") {
-//            selectDeviceId()
-//        }
 
         // register bluetooth state broadcast receiver
         registerReceiver(bluetoothStateReceiver, BluetoothService.BLUETOOTH_STATE_FILTER)
@@ -401,69 +392,18 @@ class MainActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks,
         // set click listener
         textPpgGreenStatus.setOnClickListener {
             togglePpgTracker(PpgType.PPG_GREEN)
-//            val message = Message(NAME, ActivityCode.START_ACTIVITY, TOGGLE_ACTIVITY)
-//            sendMessage(message, MessagePath.DATA_PPG_GREEN)
-////            setMessageCode(message)
-////            sendMessage(message, MessagePath.COMMAND)
-//            toggleState(PpgType.PPG_GREEN)
         }
         textPpgIrStatus.setOnClickListener {
             togglePpgTracker(PpgType.PPG_IR)
-//            val message = Message(NAME, ActivityCode.START_ACTIVITY, TOGGLE_ACTIVITY)
-//            sendMessage(message, MessagePath.DATA_PPG_IR)
-////            setMessageCode(message)
-////            sendMessage(message, MessagePath.COMMAND)
-//            toggleState(PpgType.PPG_IR)
         }
         textPpgRedStatus.setOnClickListener {
             togglePpgTracker(PpgType.PPG_RED)
-//            val message = Message(NAME, ActivityCode.START_ACTIVITY, TOGGLE_ACTIVITY)
-//            sendMessage(message, MessagePath.DATA_PPG_RED)
-////            setMessageCode(message)
-////            sendMessage(message, MessagePath.COMMAND)
-//            toggleState(PpgType.PPG_RED)
         }
         textEcgStatus.setOnClickListener {
             if (!isPolarDeviceConnected) {
                 connectPolarDevice()
             }
         }
-//        buttonMain.setOnClickListener {
-//            message.content = getString(R.string.message_on_button_click)
-//            setMessageCode()
-//            toggleState()
-//            runOnUiThread {
-//                textTooltip.text = getString(R.string.clicked_text)
-//            }
-//            sendMessage(message, MessagePath.COMMAND)
-//        }
-//
-//        containerWear.setOnClickListener {
-//            runOnUiThread {
-//                containerHrm.visibility = View.GONE
-//                buttonView.visibility = View.VISIBLE
-//            }
-//        }
-//
-//        containerHrm.setOnClickListener {
-//            runOnUiThread {
-//                containerWear.visibility = View.GONE
-//                buttonView.visibility = View.VISIBLE
-//            }
-//        }
-//
-//        buttonView.setOnClickListener {
-//            runOnUiThread {
-//                containerWear.visibility = View.VISIBLE
-//                containerHrm.visibility = View.VISIBLE
-//                buttonView.visibility = View.GONE
-//            }
-//        }
-//
-//        buttonConnectHrm.setOnClickListener {
-//            val intent = Intent(this@MainActivity, ConnectHrmActivity::class.java)
-//            startActivity(intent)
-//        }
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
@@ -521,6 +461,7 @@ class MainActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks,
             } else {
                 // Turn recording on
                 setLastHr()
+                startTime = Date()
                 stopTime = Date()
                 isRecording = true
                 setPanBehavior()
@@ -1459,6 +1400,7 @@ class MainActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks,
             return
         }
         val patientName = prefs.getString(PREF_PATIENT_NAME, "")
+        val duration = (stopTime!!.time - startTime!!.time) * MS_TO_SEC
         var msg: String
         val format = "yyyy-MM-dd_HH-mm"
         val df = SimpleDateFormat(format, Locale.US)
@@ -1505,7 +1447,9 @@ class MainActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks,
                     java.lang.String.format(
                         Locale.US,
                         "%.1f sec",
-                        sampleCount / ECG_SAMPLE_RATE),
+//                        sampleCount / ECG_SAMPLE_RATE
+                        duration
+                    ),
                     ecgValues,
                     peakValues
                 )
@@ -1536,6 +1480,7 @@ class MainActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks,
             AppUtils.errMsg(this, "There is no data directory set")
             return
         }
+        val duration = (stopTime!!.time - startTime!!.time) * MS_TO_SEC
         var msg: String
         val format = "yyyy-MM-dd_HH-mm"
         val df = SimpleDateFormat(format, Locale.US)
@@ -1563,9 +1508,10 @@ class MainActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks,
                     val timestamps: LongArray = arrays.timestamp
                     val peakCount: Int = qrsPlotter!!.seriesDataPeaks.size()
                     val sampleCount = ecgValues.size
-                    val duration = java.lang.String.format(
+                    val durationString = java.lang.String.format(
                         Locale.US, "%.1f sec",
-                        sampleCount / ECG_SAMPLE_RATE
+                        duration
+//                        sampleCount / ECG_SAMPLE_RATE
                     )
                     out.write(
                         ("application=" + "SamplingApp Version: "
@@ -1578,7 +1524,7 @@ class MainActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks,
                         
                         """.trimIndent()
                     )
-                    out.write("duration=$duration\n")
+                    out.write("duration=$durationString\n")
                     out.write("samplescount=$sampleCount\n")
                     out.write(
                         """
@@ -1635,6 +1581,7 @@ class MainActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks,
             AppUtils.errMsg(this, "There is no data directory set")
             return
         }
+        val duration = (stopTime!!.time - startTime!!.time) * MS_TO_SEC
         var msg: String
         val format = "yyyy-MM-dd_HH-mm"
         val df = SimpleDateFormat(format, Locale.US)
@@ -1669,9 +1616,10 @@ class MainActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks,
                         PpgType.PPG_GREEN -> PPG_GREEN_SAMPLE_RATE
                         PpgType.PPG_IR, PpgType.PPG_RED -> PPG_IR_RED_SAMPLE_RATE
                     }
-                    val duration = java.lang.String.format(
+                    val durationString = java.lang.String.format(
                         Locale.US, "%.1f sec",
-                        sampleCount / sampleRate
+                        duration
+//                        sampleCount / sampleRate
                     )
                     out.write(
                         ("application=" + "SamplingApp Version: "
@@ -1684,7 +1632,7 @@ class MainActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks,
                         
                         """.trimIndent()
                     )
-                    out.write("duration=$duration\n")
+                    out.write("duration=$durationString\n")
                     out.write("samplescount=$sampleCount\n")
                     out.write(
                         """
