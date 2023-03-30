@@ -391,7 +391,20 @@ class MainActivity : Activity(), GoogleApiClient.ConnectionCallbacks {
         Log.d("Wear","build Google API passed")
     }
 
-    private fun invalidateAppStatus() {
+    /**
+     * Invalidate the app status by checking all
+     * tracker is currently running or not.
+     * If all tracker is not running, invalidate app
+     * and update view accordingly.
+     *
+     * @return A boolean value. True if invalidation
+     * occurs. False if nothing done.
+     */
+    private fun invalidateAppStatus(): Boolean {
+        Log.d("Wear", "invalidateAppStatus\n" +
+                "PpgGreen Tracking: ${ppgGreenListener.isTracking()}\n" +
+                "PpgIR Tracking: ${ppgIrListener.isTracking()}\n" +
+                "PpgRed Tracking: ${ppgRedListener.isTracking()}\n")
         if (!ppgGreenListener.isTracking() &&
             !ppgIrListener.isTracking() &&
             !ppgRedListener.isTracking()) {
@@ -400,7 +413,9 @@ class MainActivity : Activity(), GoogleApiClient.ConnectionCallbacks {
                 textPpgIrStatus.text = getString(R.string.status_stopped)
                 textPpgRedStatus.text = getString(R.string.status_stopped)
             }
+            return true
         }
+        else return false
     }
 
     override fun onDestroy() {
@@ -502,16 +517,16 @@ class MainActivity : Activity(), GoogleApiClient.ConnectionCallbacks {
                 }
                 MessagePath.DATA_PPG_GREEN -> {
                     if (it.code == ActivityCode.START_ACTIVITY) { // start tracker
-                        if (it.extraCode == TOGGLE_ACTIVITY) { // if toggle is instructed
-                            toggleTracker(ppgGreenListener)
-                            invalidateAppStatus()
-                            return
-                        }
-
                         runOnUiThread {
                             ppgGreenContainer.visibility = View.VISIBLE
                             textTip.visibility = View.GONE
                             textStatus.text = getString(R.string.status_running)
+                        }
+
+                        if (it.extraCode == TOGGLE_ACTIVITY) { // if toggle is instructed
+                            toggleTracker(ppgGreenListener)
+                            invalidateAppStatus()
+                            return
                         }
 
                         ppgGreenListener.startTracker()
@@ -523,6 +538,12 @@ class MainActivity : Activity(), GoogleApiClient.ConnectionCallbacks {
                 }
                 MessagePath.DATA_PPG_IR -> {
                     if (it.code == ActivityCode.START_ACTIVITY) { // start tracker
+                        runOnUiThread {
+                            ppgIrContainer.visibility = View.VISIBLE
+                            textTip.visibility = View.GONE
+                            textStatus.text = getString(R.string.status_running)
+                        }
+
                         if (it.extraCode == TOGGLE_ACTIVITY) { // if toggle instructed
                             toggleTracker(ppgIrListener)
                             if (!ppgIrListener.isTracking()) runOnUiThread {
@@ -530,12 +551,6 @@ class MainActivity : Activity(), GoogleApiClient.ConnectionCallbacks {
                             }
                             invalidateAppStatus()
                             return
-                        }
-
-                        runOnUiThread {
-                            ppgIrContainer.visibility = View.VISIBLE
-                            textTip.visibility = View.GONE
-                            textStatus.text = getString(R.string.status_running)
                         }
 
                         ppgIrListener.startTracker()
@@ -550,6 +565,12 @@ class MainActivity : Activity(), GoogleApiClient.ConnectionCallbacks {
                 }
                 MessagePath.DATA_PPG_RED -> {
                     if (it.code == ActivityCode.START_ACTIVITY) { // start tracker
+                        runOnUiThread {
+                            ppgRedContainer.visibility = View.VISIBLE
+                            textTip.visibility = View.GONE
+                            textStatus.text = getString(R.string.status_running)
+                        }
+
                         if (it.extraCode == TOGGLE_ACTIVITY) { // if toggle instructed
                             toggleTracker(ppgRedListener)
                             if (!ppgRedListener.isTracking()) runOnUiThread {
@@ -557,12 +578,6 @@ class MainActivity : Activity(), GoogleApiClient.ConnectionCallbacks {
                             }
                             invalidateAppStatus()
                             return
-                        }
-
-                        runOnUiThread {
-                            ppgRedContainer.visibility = View.VISIBLE
-                            textTip.visibility = View.GONE
-                            textStatus.text = getString(R.string.status_running)
                         }
 
                         ppgRedListener.startTracker()
@@ -645,18 +660,31 @@ class MainActivity : Activity(), GoogleApiClient.ConnectionCallbacks {
     }
 
     private fun toggleTracker(listener: Listener) {
+//        Log.d("Wear", "toggleTracker() Toggling $listener")
         when (listener) {
             ppgGreenListener -> {
+//                Log.d("Wear", "toggleTracker()\n" +
+//                        "PPG Green Tracking: ${ppgGreenListener.isTracking()}")
                 if (ppgGreenListener.isTracking()) ppgGreenListener.stopTracker()
                 else ppgGreenListener.startTracker()
+//                Log.d("Wear", "toggleTracker() after\n" +
+//                        "PPG Green Tracking: ${ppgGreenListener.isTracking()}")
             }
             ppgIrListener -> {
+//                Log.d("Wear", "toggleTracker()\n" +
+//                        "PPG IR Tracking: ${ppgIrListener.isTracking()}")
                 if (ppgIrListener.isTracking()) ppgIrListener.stopTracker()
                 else ppgIrListener.startTracker()
+//                Log.d("Wear", "toggleTracker() after\n" +
+//                        "PPG IR Tracking: ${ppgIrListener.isTracking()}")
             }
             ppgRedListener -> {
+//                Log.d("Wear", "toggleTracker()\n" +
+//                        "PPG Red Tracking: ${ppgRedListener.isTracking()}")
                 if (ppgRedListener.isTracking()) ppgRedListener.stopTracker()
                 else ppgRedListener.startTracker()
+//                Log.d("Wear", "toggleTracker() after\n" +
+//                        "PPG Red Tracking: ${ppgRedListener.isTracking()}")
             }
         }
     }
