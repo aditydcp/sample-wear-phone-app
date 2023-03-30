@@ -97,7 +97,7 @@ class MainActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks,
      * Whether to save as CSV, Plot, or both.
      */
     private enum class SaveType {
-        ECG_DATA, PPG_GREEN_DATA, PPG_IR_DATA, PPG_RED_DATA, ALL
+        ECG_DATA, PPG_GREEN_DATA, PPG_IR_DATA, PPG_RED_DATA, ALL_PPG, ALL
 //        , PLOT, BOTH
 //        , DEVICE_HR, QRS_HR, ALL
     }
@@ -421,7 +421,6 @@ class MainActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks,
                 connectPolarDevice()
             }
         }
-        // TODO: Need a function to control each and all PPG
 //        buttonMain.setOnClickListener {
 //            message.content = getString(R.string.message_on_button_click)
 //            setMessageCode()
@@ -546,6 +545,10 @@ class MainActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks,
             return true
         } else if (id == R.id.save_all) {
             saveDataWithNote(SaveType.ALL)
+            return true
+        }
+        else if (id == R.id.save_all_ppg_data) {
+            saveDataWithNote(SaveType.ALL_PPG)
             return true
         }
         else if (id == R.id.save_ecg_data) {
@@ -892,6 +895,10 @@ class MainActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks,
                     this@MainActivity, "No connection to " + deviceId
                             + " after 1 minute"
                 )
+                runOnUiThread {
+                    textEcgStatus.text = getString(R.string.ecg_status,
+                        getString(R.string.status_disconnected))
+                }
             }
         }, 60000)
 
@@ -1381,6 +1388,11 @@ class MainActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks,
                 SaveType.PPG_GREEN_DATA -> savePpgData(input.text.toString(), ppgGreenPlotter!!)
                 SaveType.PPG_IR_DATA -> savePpgData(input.text.toString(), ppgIrPlotter!!)
                 SaveType.PPG_RED_DATA -> savePpgData(input.text.toString(), ppgRedPlotter!!)
+                SaveType.ALL_PPG -> {
+                    savePpgData(input.text.toString(), ppgGreenPlotter!!)
+                    savePpgData(input.text.toString(), ppgIrPlotter!!)
+                    savePpgData(input.text.toString(), ppgRedPlotter!!)
+                }
 //                SaveType.DATA -> saveData(input.text.toString())
 //                SaveType.PLOT -> savePlot(input.text.toString())
 //                SaveType.BOTH -> {
@@ -2141,6 +2153,18 @@ class MainActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks,
                     return
                 }
                 isPpgGreenRunning = !isPpgGreenRunning
+
+                if (isPpgGreenRunning) {
+                    runOnUiThread {
+                        textPpgGreenStatus.text = getString(R.string.ppg_green_status,
+                            getString(R.string.status_running))
+                    }
+                } else {
+                    runOnUiThread {
+                        textPpgGreenStatus.text = getString(R.string.ppg_green_status,
+                            getString(R.string.status_stopped))
+                    }
+                }
             }
             PpgType.PPG_IR -> {
                 if (forceState != null) {
@@ -2148,6 +2172,18 @@ class MainActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks,
                     return
                 }
                 isPpgIrRunning = !isPpgIrRunning
+
+                if (isPpgIrRunning) {
+                    runOnUiThread {
+                        textPpgIrStatus.text = getString(R.string.ppg_ir_status,
+                            getString(R.string.status_running))
+                    }
+                } else {
+                    runOnUiThread {
+                        textPpgIrStatus.text = getString(R.string.ppg_ir_status,
+                            getString(R.string.status_stopped))
+                    }
+                }
             }
             PpgType.PPG_RED -> {
                 if (forceState != null) {
@@ -2155,6 +2191,18 @@ class MainActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks,
                     return
                 }
                 isPpgRedRunning = !isPpgRedRunning
+
+                if (isPpgRedRunning) {
+                    runOnUiThread {
+                        textPpgRedStatus.text = getString(R.string.ppg_red_status,
+                            getString(R.string.status_running))
+                    }
+                } else {
+                    runOnUiThread {
+                        textPpgRedStatus.text = getString(R.string.ppg_red_status,
+                            getString(R.string.status_stopped))
+                    }
+                }
             }
         }
     }

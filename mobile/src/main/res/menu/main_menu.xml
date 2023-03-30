@@ -38,6 +38,10 @@
                 android:id="@+id/save_ppg_red_data"
                 android:title="@string/save_ppg_red_data_item"
                 app:showAsAction="never" />
+            <item
+                android:id="@+id/save_all_ppg_data"
+                android:title="@string/save_all_ppg_data_item"
+                app:showAsAction="never" />
 <!--            <item-->
 <!--                android:id="@+id/save_device_data"-->
 <!--                android:title="@string/save_device_data_item"-->
