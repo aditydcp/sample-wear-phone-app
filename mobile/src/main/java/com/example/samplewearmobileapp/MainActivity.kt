@@ -93,6 +93,10 @@ class MainActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks,
     private var bluetoothState = STATE_OFF
     private var isUsingAnalysis = false
 
+    private var ppgGreenValueNumber = 0
+    private var ppgIrValueNumber = 0
+    private var ppgRedValueNumber = 0
+
     /**
      * Whether to save as CSV, Plot, or both.
      */
@@ -2046,42 +2050,48 @@ class MainActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks,
 //                    }
             }
             MessagePath.DATA_PPG_GREEN -> {
+                ppgGreenValueNumber++
                 val ppgGreenData = Gson().fromJson(String(dataEvent.dataItem.data),
                     PpgData::class.java)
                 Log.d(TAG, "PPG Green data received\n" +
-                        "Data Number: ${ppgGreenData.number}\n" +
+                        "Fetched Data Number: ${ppgGreenData.number}\n" +
+                        "Own Data Number: $ppgGreenValueNumber\n" +
                         "PPG Green Value: ${ppgGreenData.ppgValue}\n" +
                         "Timestamp: ${ppgGreenData.timestamp}")
                 ppgGreenPlotter?.addValues(ppgGreenData.ppgValue, ppgGreenData.timestamp)
                 runOnUiThread {
                     textPpgGreenStatus.text = getString(R.string.ppg_green_status,
-                        ppgGreenData.number.toString())
+                        ppgGreenValueNumber.toString())
                 }
             }
             MessagePath.DATA_PPG_IR -> {
+                ppgIrValueNumber++
                 val ppgIrData = Gson().fromJson(String(dataEvent.dataItem.data),
                     PpgData::class.java)
                 Log.d(TAG, "PPG InfraRed data received\n" +
                         "Data Number: ${ppgIrData.number}\n" +
+                        "Own Data Number: $ppgIrValueNumber\n" +
                         "PPG IR Value: ${ppgIrData.ppgValue}\n" +
                         "Timestamp: ${ppgIrData.timestamp}")
                 ppgIrPlotter?.addValues(ppgIrData.ppgValue, ppgIrData.timestamp)
                 runOnUiThread {
                     textPpgIrStatus.text = getString(R.string.ppg_ir_status,
-                        ppgIrData.number.toString())
+                        ppgIrValueNumber.toString())
                 }
             }
             MessagePath.DATA_PPG_RED -> {
+                ppgRedValueNumber++
                 val ppgRedData = Gson().fromJson(String(dataEvent.dataItem.data),
                     PpgData::class.java)
                 Log.d(TAG, "PPG Red data received\n" +
                         "Data Number: ${ppgRedData.number}\n" +
+                        "Own Data Number: $ppgRedValueNumber\n" +
                         "PPG Red Value: ${ppgRedData.ppgValue}\n" +
                         "Timestamp: ${ppgRedData.timestamp}")
                 ppgRedPlotter?.addValues(ppgRedData.ppgValue, ppgRedData.timestamp)
                 runOnUiThread {
                     textPpgRedStatus.text = getString(R.string.ppg_red_status,
-                        ppgRedData.number.toString())
+                        ppgRedValueNumber.toString())
                 }
             }
         }
