@@ -396,25 +396,28 @@ class MainActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks,
 
         // set click listener
         textPpgGreenStatus.setOnClickListener {
-            val message = Message(NAME, ActivityCode.START_ACTIVITY, TOGGLE_ACTIVITY)
-            sendMessage(message, MessagePath.DATA_PPG_GREEN)
-//            setMessageCode(message)
-//            sendMessage(message, MessagePath.COMMAND)
-            toggleState(PpgType.PPG_GREEN)
+            togglePpgTracker(PpgType.PPG_GREEN)
+//            val message = Message(NAME, ActivityCode.START_ACTIVITY, TOGGLE_ACTIVITY)
+//            sendMessage(message, MessagePath.DATA_PPG_GREEN)
+////            setMessageCode(message)
+////            sendMessage(message, MessagePath.COMMAND)
+//            toggleState(PpgType.PPG_GREEN)
         }
         textPpgIrStatus.setOnClickListener {
-            val message = Message(NAME, ActivityCode.START_ACTIVITY, TOGGLE_ACTIVITY)
-            sendMessage(message, MessagePath.DATA_PPG_IR)
-//            setMessageCode(message)
-//            sendMessage(message, MessagePath.COMMAND)
-            toggleState(PpgType.PPG_IR)
+            togglePpgTracker(PpgType.PPG_IR)
+//            val message = Message(NAME, ActivityCode.START_ACTIVITY, TOGGLE_ACTIVITY)
+//            sendMessage(message, MessagePath.DATA_PPG_IR)
+////            setMessageCode(message)
+////            sendMessage(message, MessagePath.COMMAND)
+//            toggleState(PpgType.PPG_IR)
         }
         textPpgRedStatus.setOnClickListener {
-            val message = Message(NAME, ActivityCode.START_ACTIVITY, TOGGLE_ACTIVITY)
-            sendMessage(message, MessagePath.DATA_PPG_RED)
-//            setMessageCode(message)
-//            sendMessage(message, MessagePath.COMMAND)
-            toggleState(PpgType.PPG_RED)
+            togglePpgTracker(PpgType.PPG_RED)
+//            val message = Message(NAME, ActivityCode.START_ACTIVITY, TOGGLE_ACTIVITY)
+//            sendMessage(message, MessagePath.DATA_PPG_RED)
+////            setMessageCode(message)
+////            sendMessage(message, MessagePath.COMMAND)
+//            toggleState(PpgType.PPG_RED)
         }
         textEcgStatus.setOnClickListener {
             if (!isPolarDeviceConnected) {
@@ -602,7 +605,31 @@ class MainActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks,
         return false
     }
 
-    // setup DataApi listeners
+    private fun invalidatePpgState() {
+        if (!isPpgGreenRunning
+            && !isPpgIrRunning
+            && !isPpgRedRunning
+        ) {
+            runOnUiThread {
+                textPpgGreenStatus.text = getString(R.string.ppg_green_status,
+                    getString(R.string.status_stopped))
+                textPpgIrStatus.text = getString(R.string.ppg_ir_status,
+                    getString(R.string.status_stopped))
+                textPpgRedStatus.text = getString(R.string.ppg_red_status,
+                    getString(R.string.status_stopped))
+            }
+        } else {
+            runOnUiThread {
+                textPpgGreenStatus.text = getString(R.string.ppg_green_status,
+                    getString(R.string.status_running))
+                textPpgIrStatus.text = getString(R.string.ppg_ir_status,
+                    getString(R.string.status_running))
+                textPpgRedStatus.text = getString(R.string.ppg_red_status,
+                    getString(R.string.status_running))
+            }
+        }
+    }
+
     override fun onConnected(p0: Bundle?) {
         Wearable.NodeApi.getConnectedNodes(client).setResultCallback {
             connectedNode = it.nodes
@@ -2126,11 +2153,13 @@ class MainActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks,
             isPpgGreenRunning = forceState
             isPpgIrRunning = forceState
             isPpgRedRunning = forceState
+            invalidatePpgState()
             return
         }
         isPpgGreenRunning = !isPpgGreenRunning
         isPpgIrRunning = !isPpgIrRunning
         isPpgRedRunning = !isPpgRedRunning
+        invalidatePpgState()
     }
 
     /**
@@ -2288,6 +2317,7 @@ class MainActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks,
         private const val TAG = "Mobile.MainActivity"
         private const val NAME = PHONE_APP
         private val shortDateFormat = SimpleDateFormat("HH:mm:ss.SSS", Locale.US)
+        private val timestampFormat = SimpleDateFormat("dd MMM yyyy HH:mm:ss:SSS Z")
         // Currently the sampling rate for ECG is fixed at 130
 //        private const val MAX_DEVICES = 3
         const val REQUEST_CODE_PERMISSIONS = 10
