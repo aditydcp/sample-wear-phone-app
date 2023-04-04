@@ -19,12 +19,10 @@ import com.example.samplewearmobileapp.constants.Entity
 import com.example.samplewearmobileapp.constants.MessagePath
 import com.example.samplewearmobileapp.constants.codes.ExtraCode.TOGGLE_ACTIVITY
 import com.example.samplewearmobileapp.databinding.ActivityMainBinding
-import com.example.samplewearmobileapp.models.HeartData
 import com.example.samplewearmobileapp.models.Message
 import com.example.samplewearmobileapp.models.PpgData
 import com.example.samplewearmobileapp.models.PpgType
 import com.example.samplewearmobileapp.trackers.Listener
-import com.example.samplewearmobileapp.trackers.heartrate.HeartRateData
 import com.example.samplewearmobileapp.trackers.ppggreen.PpgGreenData
 import com.example.samplewearmobileapp.trackers.ppggreen.PpgGreenListener
 import com.example.samplewearmobileapp.trackers.ppggreen.PpgGreenStatus
@@ -38,8 +36,6 @@ import com.google.android.gms.wearable.PutDataRequest
 import com.google.android.gms.wearable.Wearable
 import com.google.gson.Gson
 import com.samsung.android.service.health.tracking.HealthTrackerException
-import java.time.LocalDateTime
-import java.time.format.DateTimeFormatter
 import java.util.concurrent.atomic.AtomicBoolean
 
 class MainActivity : Activity(), GoogleApiClient.ConnectionCallbacks {
@@ -93,9 +89,12 @@ class MainActivity : Activity(), GoogleApiClient.ConnectionCallbacks {
     // these vars are used to store incoming data
     // until an amount equal to batch size is reached
     // and then be transported to mobile module
-    private var ppgGreenDataBatch = PpgData(PPG_GREEN_BATCH_SIZE, PpgType.PPG_GREEN)
-    private var ppgIrDataBatch = PpgData(PPG_IR_RED_BATCH_SIZE, PpgType.PPG_IR)
-    private var ppgRedDataBatch = PpgData(PPG_IR_RED_BATCH_SIZE, PpgType.PPG_RED)
+//    private var ppgGreenDataBatch = PpgData(PPG_GREEN_BATCH_SIZE, PpgType.PPG_GREEN)
+//    private var ppgIrDataBatch = PpgData(PPG_IR_RED_BATCH_SIZE, PpgType.PPG_IR)
+//    private var ppgRedDataBatch = PpgData(PPG_IR_RED_BATCH_SIZE, PpgType.PPG_RED)
+    private var ppgGreenRecording = PpgRecording(PpgType.PPG_GREEN)
+    private var ppgIrRecording = PpgRecording(PpgType.PPG_IR)
+    private var ppgRedRecording = PpgRecording(PpgType.PPG_RED)
 
     // unused
     private val onDemandCountDownTimer: CountDownTimer = object : CountDownTimer(
@@ -202,14 +201,15 @@ class MainActivity : Activity(), GoogleApiClient.ConnectionCallbacks {
 //            ppgGreenDataLast = ppgGreenData
 
             // store data to datastore
-            val index = (currentPpgGreenDataNumber - 1) % PPG_GREEN_BATCH_SIZE
-            ppgGreenDataBatch.ppgValues[index] = ppgGreenData.ppgValue
-            ppgGreenDataBatch.timestamps[index] = ppgGreenData.timestamp
-            ppgGreenDataBatch.size++
+//            val index = (currentPpgGreenDataNumber - 1) % PPG_GREEN_BATCH_SIZE
+//            ppgGreenDataBatch.ppgValues[index] = ppgGreenData.ppgValue
+//            ppgGreenDataBatch.timestamps[index] = ppgGreenData.timestamp
+//            ppgGreenDataBatch.size++
+            ppgGreenRecording.add(ppgGreenData.ppgValue, ppgGreenData.timestamp)
             // if current data number reaches multiple of batch size, send the batch
             if (currentPpgGreenDataNumber % PPG_GREEN_BATCH_SIZE == 0) {
-                sendPpgData(ppgGreenDataBatch)
-                ppgGreenDataBatch.clear()
+                sendPpgData(ppgGreenRecording)
+                ppgGreenRecording.clearFromStartUntil(PPG_GREEN_BATCH_SIZE - 1)
             }
         }
 
@@ -228,14 +228,15 @@ class MainActivity : Activity(), GoogleApiClient.ConnectionCallbacks {
 //            ppgIrDataLast = ppgIrData
 
             // store data to datastore
-            val index = (currentPpgIrDataNumber - 1) % PPG_GREEN_BATCH_SIZE
-            ppgIrDataBatch.ppgValues[index] = ppgIrData.ppgValue
-            ppgIrDataBatch.timestamps[index] = ppgIrData.timestamp
-            ppgIrDataBatch.size++
+//            val index = (currentPpgIrDataNumber - 1) % PPG_GREEN_BATCH_SIZE
+//            ppgIrDataBatch.ppgValues[index] = ppgIrData.ppgValue
+//            ppgIrDataBatch.timestamps[index] = ppgIrData.timestamp
+//            ppgIrDataBatch.size++
+            ppgIrRecording.add(ppgIrData.ppgValue, ppgIrData.timestamp)
             // if current data number reaches multiple of batch size, send the batch
-            if (currentPpgIrDataNumber % PPG_GREEN_BATCH_SIZE == 0) {
-                sendPpgData(ppgIrDataBatch)
-                ppgIrDataBatch.clear()
+            if (currentPpgIrDataNumber % PPG_IR_RED_BATCH_SIZE == 0) {
+                sendPpgData(ppgIrRecording)
+                ppgIrRecording.clearFromStartUntil(PPG_IR_RED_BATCH_SIZE - 1)
             }
         }
 
@@ -254,14 +255,15 @@ class MainActivity : Activity(), GoogleApiClient.ConnectionCallbacks {
 //            ppgRedDataLast = ppgRedData
 
             // store data to datastore
-            val index = (currentPpgRedDataNumber - 1) % PPG_GREEN_BATCH_SIZE
-            ppgRedDataBatch.ppgValues[index] = ppgRedData.ppgValue
-            ppgRedDataBatch.timestamps[index] = ppgRedData.timestamp
-            ppgRedDataBatch.size++
+//            val index = (currentPpgRedDataNumber - 1) % PPG_GREEN_BATCH_SIZE
+//            ppgRedDataBatch.ppgValues[index] = ppgRedData.ppgValue
+//            ppgRedDataBatch.timestamps[index] = ppgRedData.timestamp
+//            ppgRedDataBatch.size++
+            ppgRedRecording.add(ppgRedData.ppgValue, ppgRedData.timestamp)
             // if current data number reaches multiple of batch size, send the batch
-            if (currentPpgRedDataNumber % PPG_GREEN_BATCH_SIZE == 0) {
-                sendPpgData(ppgRedDataBatch)
-                ppgRedDataBatch.clear()
+            if (currentPpgRedDataNumber % PPG_IR_RED_BATCH_SIZE == 0) {
+                sendPpgData(ppgRedRecording)
+                ppgRedRecording.clearFromStartUntil(PPG_IR_RED_BATCH_SIZE - 1)
             }
         }
 
@@ -654,18 +656,52 @@ class MainActivity : Activity(), GoogleApiClient.ConnectionCallbacks {
 //        Log.i("Wear","Heart Data sent via DataApi!")
 //    }
 
-    private fun sendPpgData(ppgData: PpgData) {
-        val path = when (ppgData.ppgType) {
-            PpgType.PPG_GREEN -> MessagePath.DATA_PPG_GREEN
-            PpgType.PPG_IR -> MessagePath.DATA_PPG_IR
-            PpgType.PPG_RED -> MessagePath.DATA_PPG_RED
+    private fun sendPpgData(ppgRecording: PpgRecording) {
+        val path: String
+        val windowSize: Int
+
+        when (ppgRecording.ppgType) {
+            PpgType.PPG_GREEN -> {
+                path = MessagePath.DATA_PPG_GREEN
+                windowSize = PPG_GREEN_BATCH_SIZE
+            }
+            PpgType.PPG_IR -> {
+                path = MessagePath.DATA_PPG_IR
+                windowSize = PPG_IR_RED_BATCH_SIZE
+            }
+            PpgType.PPG_RED -> {
+                path = MessagePath.DATA_PPG_RED
+                windowSize = PPG_IR_RED_BATCH_SIZE
+            }
         }
+
+        // prep the PpgData
+        val ppgData = PpgData(windowSize, ppgRecording.ppgType)
+        for (i in 0 until windowSize) {
+            ppgData.ppgValues[i] = ppgRecording.values[i]
+            ppgData.timestamps[i] = ppgRecording.timestamps[i]
+        }
+
+        // send it
         val bytes = Gson().toJson(ppgData).toByteArray()
         Wearable.DataApi.putDataItem(client,
             PutDataRequest.create(path).setData(bytes).setUrgent()
         )
         Log.i("Wear","PPG Data sent via DataApi!\n$ppgData")
     }
+
+//    private fun sendPpgData(ppgData: PpgData) {
+//        val path = when (ppgData.ppgType) {
+//            PpgType.PPG_GREEN -> MessagePath.DATA_PPG_GREEN
+//            PpgType.PPG_IR -> MessagePath.DATA_PPG_IR
+//            PpgType.PPG_RED -> MessagePath.DATA_PPG_RED
+//        }
+//        val bytes = Gson().toJson(ppgData).toByteArray()
+//        Wearable.DataApi.putDataItem(client,
+//            PutDataRequest.create(path).setData(bytes).setUrgent()
+//        )
+//        Log.i("Wear","PPG Data sent via DataApi!\n$ppgData")
+//    }
 
 //    private fun sendPpgGreenData(ppgGreenData: PpgGreenData) {
 //        val ppgData = PpgData(

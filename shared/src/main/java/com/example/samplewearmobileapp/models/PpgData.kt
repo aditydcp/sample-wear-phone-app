@@ -40,21 +40,6 @@ data class PpgData(
         }
     }
 
-//    /**
-//     * Get the actual data count stored in this object.
-//     * @return The actual data count stored.
-//     * Not the window size (max capacity)
-//     */
-//    fun size(): Int {
-//        var size = 0
-//        for (i in 0 until windowSize) {
-//            if (ppgValues[i] != 0 && timestamps[i] != 0L) {
-//                size++
-//            }
-//        }
-//        return size
-//    }
-
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (javaClass != other?.javaClass) return false
