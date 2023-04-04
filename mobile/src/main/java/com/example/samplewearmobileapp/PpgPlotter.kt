@@ -202,6 +202,14 @@ class PpgPlotter: PlotterListener {
 //        plot.setDomainBoundaries(plotMin, plotMax, BoundaryMode.FIXED)
 //    }
 
+    // TODO: (This issue is caused by missing data on transport.
+    //  Fix transport issue first to see if this is a real issue.)
+    //  Domain is way off from 4 seconds.
+    //  PPG Green has 300 data point per 12 seconds,
+    //  so normally it would go the whole screen 3 times
+    //  but it only went around 1/3 of the screen
+
+
     private fun updateDomainRangeBoundaries() {
         // get the Max value. 60 is the minimum amount.
         val max: Double = runningMax.max().coerceAtLeast(60.0)

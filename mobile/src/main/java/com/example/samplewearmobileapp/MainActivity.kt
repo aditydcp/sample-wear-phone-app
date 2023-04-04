@@ -27,6 +27,7 @@ import androidx.core.content.res.ResourcesCompat
 import com.androidplot.xy.XYPlot
 import com.example.samplewearmobileapp.BluetoothService.REQUEST_CODE_ENABLE_BLUETOOTH
 import com.example.samplewearmobileapp.Constants.ECG_SAMPLE_RATE
+import com.example.samplewearmobileapp.Constants.MS_TO_SEC
 import com.example.samplewearmobileapp.Constants.PPG_GREEN_SAMPLE_RATE
 import com.example.samplewearmobileapp.Constants.PPG_IR_RED_SAMPLE_RATE
 import com.example.samplewearmobileapp.Constants.PREF_ANALYSIS_VISIBILITY
@@ -34,9 +35,9 @@ import com.example.samplewearmobileapp.Constants.PREF_DEVICE_ID
 import com.example.samplewearmobileapp.Constants.PREF_PATIENT_NAME
 import com.example.samplewearmobileapp.Constants.PREF_TREE_URI
 import com.example.samplewearmobileapp.EcgImager.createImage
-import com.example.samplewearmobileapp.constants.codes.ActivityCode
 import com.example.samplewearmobileapp.constants.Entity.PHONE_APP
 import com.example.samplewearmobileapp.constants.MessagePath
+import com.example.samplewearmobileapp.constants.codes.ActivityCode
 import com.example.samplewearmobileapp.constants.codes.ExtraCode.TOGGLE_ACTIVITY
 import com.example.samplewearmobileapp.databinding.ActivityMainBinding
 import com.example.samplewearmobileapp.models.*
@@ -130,6 +131,7 @@ class MainActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks,
     private var deviceStopHr = "NA"
     private var calculatedStopHr = "NA"
 
+    private lateinit var textStatusContainerTitle: TextView
     private lateinit var textPpgGreenStatus: TextView
     private lateinit var textPpgIrStatus: TextView
     private lateinit var textPpgRedStatus: TextView
@@ -312,6 +314,7 @@ class MainActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks,
 //        message.sender = Entity.PHONE_APP
 
         // set UI vars
+        textStatusContainerTitle = binding.statusContainerTitle
         textPpgGreenStatus = binding.statusPpgGreen
         textPpgIrStatus = binding.statusPpgIr
         textPpgRedStatus = binding.statusPpgRed
@@ -465,6 +468,10 @@ class MainActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks,
                 stopTime = Date()
                 isRecording = true
                 setPanBehavior()
+                textStatusContainerTitle.text = getString(
+                    R.string.elapsed_time,
+                    0.0
+                )
                 textEcgTime.text = getString(
                     R.string.elapsed_time,
                     0.0
@@ -1951,7 +1958,7 @@ class MainActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks,
                         //                                        logEcgDataInfo(polarEcgData);
                         qrsDetector!!.process(polarEcgData)
                         // Update the elapsed time
-                        val elapsed: Double = ecgPlotter!!.getDataIndex() / 130.0
+                        val elapsed: Double = ecgPlotter!!.getDataIndex() / ECG_SAMPLE_RATE
                         textEcgTime.text = getString(R.string.elapsed_time, elapsed)
                     },
                     { throwable: Throwable ->
@@ -1998,48 +2005,69 @@ class MainActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks,
 //                    }
             }
             MessagePath.DATA_PPG_GREEN -> {
-                ppgGreenValueNumber++
                 val ppgGreenData = Gson().fromJson(String(dataEvent.dataItem.data),
                     PpgData::class.java)
-                Log.d(TAG, "PPG Green data received\n" +
-                        "Fetched Data Number: ${ppgGreenData.number}\n" +
-                        "Own Data Number: $ppgGreenValueNumber\n" +
-                        "PPG Green Value: ${ppgGreenData.ppgValue}\n" +
-                        "Timestamp: ${ppgGreenData.timestamp}")
-                ppgGreenPlotter?.addValues(ppgGreenData.ppgValue, ppgGreenData.timestamp)
+                Log.d(TAG, "PPG Green data batch received\n" +
+                        "Data count: ${ppgGreenData.size}\n" +
+                        "PPG Green Value: ${ppgGreenData.ppgValues}\n" +
+                        "Timestamp: ${ppgGreenData.timestamps}")
+                for (i in 0 until ppgGreenData.size) {
+                    ppgGreenPlotter?.addValues(
+                        ppgGreenData.ppgValues[i],
+                        ppgGreenData.timestamps[i])
+                }
+                ppgGreenValueNumber += ppgGreenData.size
+
+                // Update the view
+                val elapsed: Double = ppgGreenPlotter!!.getDataIndex() / PPG_GREEN_SAMPLE_RATE
                 runOnUiThread {
                     textPpgGreenStatus.text = getString(R.string.ppg_green_status,
                         ppgGreenValueNumber.toString())
+                    textStatusContainerTitle.text = getString(R.string.elapsed_time, elapsed)
                 }
             }
             MessagePath.DATA_PPG_IR -> {
-                ppgIrValueNumber++
                 val ppgIrData = Gson().fromJson(String(dataEvent.dataItem.data),
                     PpgData::class.java)
-                Log.d(TAG, "PPG InfraRed data received\n" +
-                        "Data Number: ${ppgIrData.number}\n" +
-                        "Own Data Number: $ppgIrValueNumber\n" +
-                        "PPG IR Value: ${ppgIrData.ppgValue}\n" +
-                        "Timestamp: ${ppgIrData.timestamp}")
-                ppgIrPlotter?.addValues(ppgIrData.ppgValue, ppgIrData.timestamp)
+                Log.d(TAG, "PPG Ir data batch received\n" +
+                        "Data count: ${ppgIrData.size}\n" +
+                        "PPG Ir Value: ${ppgIrData.ppgValues}\n" +
+                        "Timestamp: ${ppgIrData.timestamps}")
+                for (i in 0 until ppgIrData.size) {
+                    ppgIrPlotter?.addValues(
+                        ppgIrData.ppgValues[i],
+                        ppgIrData.timestamps[i])
+                }
+                ppgIrValueNumber += ppgIrData.size
+
+                // Update the view
+                val elapsed: Double = ppgIrPlotter!!.getDataIndex() / PPG_IR_RED_SAMPLE_RATE
                 runOnUiThread {
                     textPpgIrStatus.text = getString(R.string.ppg_ir_status,
                         ppgIrValueNumber.toString())
+                    textStatusContainerTitle.text = getString(R.string.elapsed_time, elapsed)
                 }
             }
             MessagePath.DATA_PPG_RED -> {
-                ppgRedValueNumber++
                 val ppgRedData = Gson().fromJson(String(dataEvent.dataItem.data),
                     PpgData::class.java)
-                Log.d(TAG, "PPG Red data received\n" +
-                        "Data Number: ${ppgRedData.number}\n" +
-                        "Own Data Number: $ppgRedValueNumber\n" +
-                        "PPG Red Value: ${ppgRedData.ppgValue}\n" +
-                        "Timestamp: ${ppgRedData.timestamp}")
-                ppgRedPlotter?.addValues(ppgRedData.ppgValue, ppgRedData.timestamp)
+                Log.d(TAG, "PPG Red data batch received\n" +
+                        "Data count: ${ppgRedData.size}\n" +
+                        "PPG Red Value: ${ppgRedData.ppgValues}\n" +
+                        "Timestamp: ${ppgRedData.timestamps}")
+                for (i in 0 until ppgRedData.size) {
+                    ppgRedPlotter?.addValues(
+                        ppgRedData.ppgValues[i],
+                        ppgRedData.timestamps[i])
+                }
+                ppgRedValueNumber += ppgRedData.size
+
+                // Update the view
+                val elapsed: Double = ppgRedPlotter!!.getDataIndex() / PPG_IR_RED_SAMPLE_RATE
                 runOnUiThread {
                     textPpgRedStatus.text = getString(R.string.ppg_red_status,
                         ppgRedValueNumber.toString())
+                    textStatusContainerTitle.text = getString(R.string.elapsed_time, elapsed)
                 }
             }
         }

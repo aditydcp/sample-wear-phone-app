@@ -4,7 +4,6 @@ import kotlin.math.roundToInt
 
 object Constants {
     var PREF_DEVICE_ID = "deviceId"
-//    var PREF_ACQ_DEVICE_IDS = "mruDeviceIds"
     var PREF_TREE_URI = "treeUri"
     var PREF_PATIENT_NAME = "patientName"
     var PREF_ANALYSIS_VISIBILITY = "analysisVisibility"
@@ -139,12 +138,12 @@ object Constants {
     /**
      * Convert μV to mV.
      */
-    var MICRO_TO_MILLI_VOLT = .001
+    const val MICRO_TO_MILLI_VOLT = .001
 
     /**
      * Convert millisecond to seconds.
      */
-    var MS_TO_SEC = .001
+    const val MS_TO_SEC = .001
 
     /**
      * Filter coefficients for Butterworth fs=130 low_cutoff=5 high_cutoff=20
