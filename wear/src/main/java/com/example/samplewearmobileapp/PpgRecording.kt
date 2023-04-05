@@ -28,10 +28,17 @@ class PpgRecording() {
     }
 
     fun clearFromStartUntil(index: Int) {
-        for (i in 0 until index + 1) {
-            values.removeAt(i)
-            timestamps.removeAt(i)
+//        for (i in 0 until index + 1) {
+//            values.removeAt(i)
+//            timestamps.removeAt(i)
+//        }
+        for (i in 1 until index) {
+            values.removeFirst()
+            timestamps.removeFirst()
         }
+        Log.i("Wear: PpgRecording.clearFromStartUntil()","Done.\n" +
+                "Values size now: ${values.size}\n" +
+                "Timestamps size now: ${timestamps.size}")
     }
 
     fun getSize(): Int? {

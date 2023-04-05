@@ -2015,6 +2015,9 @@ class MainActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks,
                     ppgGreenPlotter?.addValues(
                         ppgGreenData.ppgValues[i],
                         ppgGreenData.timestamps[i])
+                    Log.d(TAG, "Data #$i\n" +
+                            "PPG Value: ${ppgGreenData.ppgValues[i]}\n" +
+                            "Timestamp: ${ppgGreenData.timestamps[i]}")
                 }
                 ppgGreenValueNumber += ppgGreenData.size
 
@@ -2029,14 +2032,15 @@ class MainActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks,
             MessagePath.DATA_PPG_IR -> {
                 val ppgIrData = Gson().fromJson(String(dataEvent.dataItem.data),
                     PpgData::class.java)
-                Log.d(TAG, "PPG Ir data batch received\n" +
-                        "Data count: ${ppgIrData.size}\n" +
-                        "PPG Ir Value: ${ppgIrData.ppgValues}\n" +
-                        "Timestamp: ${ppgIrData.timestamps}")
+                Log.d(TAG, "PPG IR data batch received\n" +
+                        "Data count: ${ppgIrData.size}")
                 for (i in 0 until ppgIrData.size) {
                     ppgIrPlotter?.addValues(
                         ppgIrData.ppgValues[i],
                         ppgIrData.timestamps[i])
+                    Log.d(TAG, "Data #$i\n" +
+                            "PPG Value: ${ppgIrData.ppgValues[i]}\n" +
+                            "Timestamp: ${ppgIrData.timestamps[i]}")
                 }
                 ppgIrValueNumber += ppgIrData.size
 
@@ -2059,6 +2063,9 @@ class MainActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks,
                     ppgRedPlotter?.addValues(
                         ppgRedData.ppgValues[i],
                         ppgRedData.timestamps[i])
+                    Log.d(TAG, "Data #$i\n" +
+                            "PPG Value: ${ppgRedData.ppgValues[i]}\n" +
+                            "Timestamp: ${ppgRedData.timestamps[i]}")
                 }
                 ppgRedValueNumber += ppgRedData.size
 

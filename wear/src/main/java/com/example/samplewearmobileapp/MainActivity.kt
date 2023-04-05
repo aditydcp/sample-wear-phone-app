@@ -209,7 +209,7 @@ class MainActivity : Activity(), GoogleApiClient.ConnectionCallbacks {
             // if current data number reaches multiple of batch size, send the batch
             if (currentPpgGreenDataNumber % PPG_GREEN_BATCH_SIZE == 0) {
                 sendPpgData(ppgGreenRecording)
-                ppgGreenRecording.clearFromStartUntil(PPG_GREEN_BATCH_SIZE - 1)
+                ppgGreenRecording.clearFromStartUntil(PPG_GREEN_BATCH_SIZE)
             }
         }
 
@@ -236,7 +236,7 @@ class MainActivity : Activity(), GoogleApiClient.ConnectionCallbacks {
             // if current data number reaches multiple of batch size, send the batch
             if (currentPpgIrDataNumber % PPG_IR_RED_BATCH_SIZE == 0) {
                 sendPpgData(ppgIrRecording)
-                ppgIrRecording.clearFromStartUntil(PPG_IR_RED_BATCH_SIZE - 1)
+                ppgIrRecording.clearFromStartUntil(PPG_IR_RED_BATCH_SIZE)
             }
         }
 
@@ -263,7 +263,7 @@ class MainActivity : Activity(), GoogleApiClient.ConnectionCallbacks {
             // if current data number reaches multiple of batch size, send the batch
             if (currentPpgRedDataNumber % PPG_IR_RED_BATCH_SIZE == 0) {
                 sendPpgData(ppgRedRecording)
-                ppgRedRecording.clearFromStartUntil(PPG_IR_RED_BATCH_SIZE - 1)
+                ppgRedRecording.clearFromStartUntil(PPG_IR_RED_BATCH_SIZE)
             }
         }
 
@@ -680,6 +680,7 @@ class MainActivity : Activity(), GoogleApiClient.ConnectionCallbacks {
         for (i in 0 until windowSize) {
             ppgData.ppgValues[i] = ppgRecording.values[i]
             ppgData.timestamps[i] = ppgRecording.timestamps[i]
+            ppgData.size++
         }
 
         // send it
