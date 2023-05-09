@@ -4,6 +4,7 @@ import android.graphics.Color
 import android.util.Log
 import com.androidplot.xy.*
 import com.example.samplewearmobileapp.Constants.HR_PLOT_DOMAIN_INTERVAL
+import com.example.samplewearmobileapp.models.RunningMax
 import com.example.samplewearmobileapp.utils.AppUtils
 import java.text.*
 import java.util.*
@@ -11,7 +12,7 @@ import kotlin.math.ceil
 import kotlin.math.roundToInt
 import kotlin.math.roundToLong
 
-class HrPlotter {
+class HrPlotter: PlotterListener {
     private lateinit var parentActivity: MainActivity
     private var plot: XYPlot
 
@@ -365,7 +366,7 @@ class HrPlotter {
     /**
      * Updates the plot. Runs on the UI thread.
      */
-    private fun update() {
+    override fun update() {
 //        Log.d(TAG, "HRPlotter: update: dataList sizes=" + mHrRrList1.size()
 //                + "," + mHrRrList2.size());
         parentActivity.runOnUiThread { plot.redraw() }
@@ -456,28 +457,6 @@ class HrPlotter {
             private val sdf = SimpleDateFormat(
                 "yyyy-MM-dd HH:mm:ss.SSS", Locale.US
             )
-        }
-    }
-
-    class RunningMax(private val windowSize: Int) {
-        private var values: MutableList<Double> = ArrayList()
-        fun add(value: Double) {
-            values.add(value)
-            while (values.size > windowSize) {
-                values.removeAt(0)
-            }
-        }
-
-        fun max(): Double {
-            var max = -Double.MAX_VALUE
-            for (value in values) {
-                if (value > max) max = value
-            }
-            return max
-        }
-
-        fun size(): Int {
-            return values.size
         }
     }
 

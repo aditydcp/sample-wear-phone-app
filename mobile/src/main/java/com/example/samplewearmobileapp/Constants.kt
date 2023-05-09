@@ -4,15 +4,30 @@ import kotlin.math.roundToInt
 
 object Constants {
     var PREF_DEVICE_ID = "deviceId"
-//    var PREF_ACQ_DEVICE_IDS = "mruDeviceIds"
     var PREF_TREE_URI = "treeUri"
     var PREF_PATIENT_NAME = "patientName"
     var PREF_ANALYSIS_VISIBILITY = "analysisVisibility"
 
     /**
      * Sampling rate for ECG.
+     * @see PPG_GREEN_SAMPLE_RATE
+     * @see PPG_IR_RED_SAMPLE_RATE
      */
     const val ECG_SAMPLE_RATE: Double = 130.0
+
+    /**
+     * Sampling rate for PPG Green.
+     * @see PPG_IR_RED_SAMPLE_RATE
+     * @see ECG_SAMPLE_RATE
+     */
+    const val PPG_GREEN_SAMPLE_RATE: Double = 25.0
+
+    /**
+     * Sampling rate for PPG IR and Red.
+     * @see PPG_GREEN_SAMPLE_RATE
+     * @see ECG_SAMPLE_RATE
+     */
+    const val PPG_IR_RED_SAMPLE_RATE: Double = 100.0
 
     /**
      * Number of small boxes in a large box.
@@ -26,9 +41,9 @@ object Constants {
         (ECG_SAMPLE_RATE / N_SMALL_BOXES_PER_LARGE_BOX).toInt() // =26
 
     /**
-     * The total number of points to display.
+     * The total number of points to record for imager.
      */
-    var N_TOTAL_VISIBLE_POINTS: Int =
+    var N_TOTAL_VISIBLE_ECG_POINTS: Int =
         (30 * ECG_SAMPLE_RATE).toInt() // =3900 -> 30 sec
 
     /**
@@ -36,11 +51,24 @@ object Constants {
      */
     var N_ECG_PLOT_POINTS = 4 * N_SMALL_BOXES_PER_LARGE_BOX * N_LARGE
     // =520 points -> 4 sec
-    // =520 points -> 4 sec
+
     /**
      * Number of large boxes visible on the x axis.
      */
     var N_DOMAIN_LARGE_BOXES = N_ECG_PLOT_POINTS / N_LARGE // = 20
+
+    // needed to show 4 secs in PPG plot to match the ECG plot
+    /**
+     * The number of points to show in PPG Green plot
+     */
+    var N_PPG_GREEN_PLOT_POINTS = (4 * PPG_GREEN_SAMPLE_RATE).toInt()
+    // 4 secs * 25 Hz = 100 points
+
+    /**
+     * The number of points to show in PPG IR & Red plot
+     */
+    var N_PPG_IR_RED_PLOT_POINTS = (4 * PPG_IR_RED_SAMPLE_RATE).toInt()
+    // 4 secs * 100 Hz = 400 points
 
     /**
      * Ratio of mV to mm for a box.
@@ -48,7 +76,7 @@ object Constants {
     var RATIO_MM_MV = 100
 
     /**
-     * Data window size.  Must be large enough for maximum number of
+     * Data window size. Must be large enough for maximum number of
      * coefficients.
      */
     var DATA_WINDOW = 20
@@ -107,16 +135,15 @@ object Constants {
      */
     var NUMBER_OF_STDDEV = 2
 
-
     /**
      * Convert μV to mV.
      */
-    var MICRO_TO_MILLI_VOLT = .001
+    const val MICRO_TO_MILLI_VOLT = .001
 
     /**
      * Convert millisecond to seconds.
      */
-    var MS_TO_SEC = .001
+    const val MS_TO_SEC = .001
 
     /**
      * Filter coefficients for Butterworth fs=130 low_cutoff=5 high_cutoff=20

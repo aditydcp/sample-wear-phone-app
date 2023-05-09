@@ -12,15 +12,17 @@ import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
 import androidx.core.app.ActivityCompat
+import com.example.samplewearmobileapp.Constants.PPG_GREEN_BATCH_SIZE
+import com.example.samplewearmobileapp.Constants.PPG_IR_RED_BATCH_SIZE
 import com.example.samplewearmobileapp.constants.codes.ActivityCode
 import com.example.samplewearmobileapp.constants.Entity
 import com.example.samplewearmobileapp.constants.MessagePath
+import com.example.samplewearmobileapp.constants.codes.ExtraCode.TOGGLE_ACTIVITY
 import com.example.samplewearmobileapp.databinding.ActivityMainBinding
-import com.example.samplewearmobileapp.models.HeartData
 import com.example.samplewearmobileapp.models.Message
 import com.example.samplewearmobileapp.models.PpgData
 import com.example.samplewearmobileapp.models.PpgType
-import com.example.samplewearmobileapp.trackers.heartrate.HeartRateData
+import com.example.samplewearmobileapp.trackers.Listener
 import com.example.samplewearmobileapp.trackers.ppggreen.PpgGreenData
 import com.example.samplewearmobileapp.trackers.ppggreen.PpgGreenListener
 import com.example.samplewearmobileapp.trackers.ppggreen.PpgGreenStatus
@@ -34,8 +36,6 @@ import com.google.android.gms.wearable.PutDataRequest
 import com.google.android.gms.wearable.Wearable
 import com.google.gson.Gson
 import com.samsung.android.service.health.tracking.HealthTrackerException
-import java.time.LocalDateTime
-import java.time.format.DateTimeFormatter
 import java.util.concurrent.atomic.AtomicBoolean
 
 class MainActivity : Activity(), GoogleApiClient.ConnectionCallbacks {
@@ -73,7 +73,6 @@ class MainActivity : Activity(), GoogleApiClient.ConnectionCallbacks {
     private lateinit var textPpgRedNumber: TextView
     private lateinit var textPpgRedTimestamp: TextView
 
-
     private lateinit var uiUpdateThread: Thread
     private lateinit var connectionManager: ConnectionManager
 //    private lateinit var heartRateListener: HeartRateListener
@@ -83,11 +82,21 @@ class MainActivity : Activity(), GoogleApiClient.ConnectionCallbacks {
     private var connected = false
     private var permissionGranted = false
 //    private var heartRateDataLast = HeartRateData()
-    private var ppgGreenDataLast = PpgGreenData()
-    private var ppgIrDataLast = PpgIrData()
-    private var ppgRedDataLast = PpgRedData()
+//    private var ppgGreenDataLast = PpgGreenData()
+//    private var ppgIrDataLast = PpgIrData()
+//    private var ppgRedDataLast = PpgRedData()
 
-    // TODO: use countdown timer
+    // these vars are used to store incoming data
+    // until an amount equal to batch size is reached
+    // and then be transported to mobile module
+//    private var ppgGreenDataBatch = PpgData(PPG_GREEN_BATCH_SIZE, PpgType.PPG_GREEN)
+//    private var ppgIrDataBatch = PpgData(PPG_IR_RED_BATCH_SIZE, PpgType.PPG_IR)
+//    private var ppgRedDataBatch = PpgData(PPG_IR_RED_BATCH_SIZE, PpgType.PPG_RED)
+    private var ppgGreenRecording = PpgRecording(PpgType.PPG_GREEN)
+    private var ppgIrRecording = PpgRecording(PpgType.PPG_IR)
+    private var ppgRedRecording = PpgRecording(PpgType.PPG_RED)
+
+    // unused
     private val onDemandCountDownTimer: CountDownTimer = object : CountDownTimer(
         ON_DEMAND_MEASUREMENT_DURATION.toLong(),
         ON_DEMAND_MEASUREMENT_TICK.toLong()
@@ -188,9 +197,20 @@ class MainActivity : Activity(), GoogleApiClient.ConnectionCallbacks {
                     Log.i(tag, "No Green PPG Data")
                 }
             }
-            // commented out sending data for trial
-            sendPpgGreenData(ppgGreenData)
-            ppgGreenDataLast = ppgGreenData
+//            sendPpgGreenData(ppgGreenData)
+//            ppgGreenDataLast = ppgGreenData
+
+            // store data to datastore
+//            val index = (currentPpgGreenDataNumber - 1) % PPG_GREEN_BATCH_SIZE
+//            ppgGreenDataBatch.ppgValues[index] = ppgGreenData.ppgValue
+//            ppgGreenDataBatch.timestamps[index] = ppgGreenData.timestamp
+//            ppgGreenDataBatch.size++
+            ppgGreenRecording.add(ppgGreenData.ppgValue, ppgGreenData.timestamp)
+            // if current data number reaches multiple of batch size, send the batch
+            if (currentPpgGreenDataNumber % PPG_GREEN_BATCH_SIZE == 0) {
+                sendPpgData(ppgGreenRecording)
+                ppgGreenRecording.clearFromStartUntil(PPG_GREEN_BATCH_SIZE)
+            }
         }
 
         override fun onPpgIrTrackerDataChanged(ppgIrData: PpgIrData) {
@@ -204,9 +224,20 @@ class MainActivity : Activity(), GoogleApiClient.ConnectionCallbacks {
                 Log.i(tag, "PPG IR Timestamp : ${ppgIrData.timestamp}")
                 textPpgIrNumber.text = currentPpgIrDataNumber.toString()
             }
-            // commented out sending data for trial
-            sendPpgIrData(ppgIrData)
-            ppgIrDataLast = ppgIrData
+//            sendPpgIrData(ppgIrData)
+//            ppgIrDataLast = ppgIrData
+
+            // store data to datastore
+//            val index = (currentPpgIrDataNumber - 1) % PPG_GREEN_BATCH_SIZE
+//            ppgIrDataBatch.ppgValues[index] = ppgIrData.ppgValue
+//            ppgIrDataBatch.timestamps[index] = ppgIrData.timestamp
+//            ppgIrDataBatch.size++
+            ppgIrRecording.add(ppgIrData.ppgValue, ppgIrData.timestamp)
+            // if current data number reaches multiple of batch size, send the batch
+            if (currentPpgIrDataNumber % PPG_IR_RED_BATCH_SIZE == 0) {
+                sendPpgData(ppgIrRecording)
+                ppgIrRecording.clearFromStartUntil(PPG_IR_RED_BATCH_SIZE)
+            }
         }
 
         override fun onPpgRedTrackerDataChanged(ppgRedData: PpgRedData) {
@@ -220,9 +251,20 @@ class MainActivity : Activity(), GoogleApiClient.ConnectionCallbacks {
                 Log.i(tag, "PPG Red Timestamp : ${ppgRedData.timestamp}")
                 textPpgRedNumber.text = currentPpgRedDataNumber.toString()
             }
-            // commented out sending data for trial
-            sendPpgRedData(ppgRedData)
-            ppgRedDataLast = ppgRedData
+//            sendPpgRedData(ppgRedData)
+//            ppgRedDataLast = ppgRedData
+
+            // store data to datastore
+//            val index = (currentPpgRedDataNumber - 1) % PPG_GREEN_BATCH_SIZE
+//            ppgRedDataBatch.ppgValues[index] = ppgRedData.ppgValue
+//            ppgRedDataBatch.timestamps[index] = ppgRedData.timestamp
+//            ppgRedDataBatch.size++
+            ppgRedRecording.add(ppgRedData.ppgValue, ppgRedData.timestamp)
+            // if current data number reaches multiple of batch size, send the batch
+            if (currentPpgRedDataNumber % PPG_IR_RED_BATCH_SIZE == 0) {
+                sendPpgData(ppgRedRecording)
+                ppgRedRecording.clearFromStartUntil(PPG_IR_RED_BATCH_SIZE)
+            }
         }
 
         override fun onError(errorResourceId: Int) {
@@ -389,6 +431,33 @@ class MainActivity : Activity(), GoogleApiClient.ConnectionCallbacks {
         Log.d("Wear","build Google API passed")
     }
 
+    /**
+     * Invalidate the app status by checking all
+     * tracker is currently running or not.
+     * If all tracker is not running, invalidate app
+     * and update view accordingly.
+     *
+     * @return A boolean value. True if invalidation
+     * occurs. False if nothing done.
+     */
+    private fun invalidateAppStatus(): Boolean {
+        Log.d("Wear", "invalidateAppStatus\n" +
+                "PpgGreen Tracking: ${ppgGreenListener.isTracking()}\n" +
+                "PpgIR Tracking: ${ppgIrListener.isTracking()}\n" +
+                "PpgRed Tracking: ${ppgRedListener.isTracking()}\n")
+        return if (!ppgGreenListener.isTracking() &&
+            !ppgIrListener.isTracking() &&
+            !ppgRedListener.isTracking()) {
+            window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+            runOnUiThread {
+                textStatus.text = getString(R.string.status_stopped)
+                textPpgIrStatus.text = getString(R.string.status_stopped)
+                textPpgRedStatus.text = getString(R.string.status_stopped)
+            }
+            true
+        } else false
+    }
+
     override fun onDestroy() {
         Log.d(tag, "onDestroy")
         super.onDestroy()
@@ -437,7 +506,7 @@ class MainActivity : Activity(), GoogleApiClient.ConnectionCallbacks {
             when (messagePath) {
                 MessagePath.COMMAND -> {
                     when (it.code) {
-                        ActivityCode.START_ACTIVITY -> {
+                        ActivityCode.START_ACTIVITY -> { // start all tracker
                             runOnUiThread {
 //                                hrContainer.visibility = View.VISIBLE
                                 ppgGreenContainer.visibility = View.VISIBLE
@@ -449,13 +518,18 @@ class MainActivity : Activity(), GoogleApiClient.ConnectionCallbacks {
 
                             switchState(1)
 //                            heartRateListener.startTracker()
-                            ppgGreenListener.startTracker()
-                            ppgIrListener.startTracker()
-                            ppgRedListener.startTracker()
+//                            ppgGreenListener.startTracker()
+//                            ppgIrListener.startTracker()
+//                            ppgRedListener.startTracker()
+                            startTracker(ppgGreenListener)
+                            startTracker(ppgIrListener)
+                            startTracker(ppgRedListener)
                         }
-                        ActivityCode.STOP_ACTIVITY -> {
+                        ActivityCode.STOP_ACTIVITY -> { // stop all tracker
                             runOnUiThread {
                                 textStatus.text = getString(R.string.status_stopped)
+                                textPpgIrStatus.text = getString(R.string.status_stopped)
+                                textPpgRedStatus.text = getString(R.string.status_stopped)
                             }
 
                             switchState(0)
@@ -484,6 +558,81 @@ class MainActivity : Activity(), GoogleApiClient.ConnectionCallbacks {
                 MessagePath.INFO -> {
                     TODO("Not yet implemented")
                 }
+                MessagePath.DATA_PPG_GREEN -> {
+                    if (it.code == ActivityCode.START_ACTIVITY) { // start tracker
+                        runOnUiThread {
+                            ppgGreenContainer.visibility = View.VISIBLE
+                            textTip.visibility = View.GONE
+                            textStatus.text = getString(R.string.status_running)
+                        }
+
+                        if (it.extraCode == TOGGLE_ACTIVITY) { // if toggle is instructed
+                            toggleTracker(ppgGreenListener)
+                            invalidateAppStatus()
+                            return
+                        }
+
+                        startTracker(ppgGreenListener)
+                    }
+                    else if (it.code == ActivityCode.STOP_ACTIVITY) { // stop tracker
+                        ppgGreenListener.stopTracker()
+                        invalidateAppStatus()
+                    }
+                }
+                MessagePath.DATA_PPG_IR -> {
+                    if (it.code == ActivityCode.START_ACTIVITY) { // start tracker
+                        runOnUiThread {
+                            ppgIrContainer.visibility = View.VISIBLE
+                            textTip.visibility = View.GONE
+                            textStatus.text = getString(R.string.status_running)
+                        }
+
+                        if (it.extraCode == TOGGLE_ACTIVITY) { // if toggle instructed
+                            toggleTracker(ppgIrListener)
+                            if (!ppgIrListener.isTracking()) runOnUiThread {
+                                textPpgIrStatus.text = getString(R.string.status_stopped)
+                            }
+                            invalidateAppStatus()
+                            return
+                        }
+
+                        startTracker(ppgIrListener)
+                    }
+                    else if (it.code == ActivityCode.STOP_ACTIVITY) { // stop tracker
+                        ppgIrListener.stopTracker()
+                        if (!ppgIrListener.isTracking()) runOnUiThread {
+                            textPpgIrStatus.text = getString(R.string.status_stopped)
+                        }
+                        invalidateAppStatus()
+                    }
+                }
+                MessagePath.DATA_PPG_RED -> {
+                    if (it.code == ActivityCode.START_ACTIVITY) { // start tracker
+                        runOnUiThread {
+                            ppgRedContainer.visibility = View.VISIBLE
+                            textTip.visibility = View.GONE
+                            textStatus.text = getString(R.string.status_running)
+                        }
+
+                        if (it.extraCode == TOGGLE_ACTIVITY) { // if toggle instructed
+                            toggleTracker(ppgRedListener)
+                            if (!ppgRedListener.isTracking()) runOnUiThread {
+                                textPpgRedStatus.text = getString(R.string.status_stopped)
+                            }
+                            invalidateAppStatus()
+                            return
+                        }
+
+                        startTracker(ppgRedListener)
+                    }
+                    else if (it.code == ActivityCode.STOP_ACTIVITY) { // stop tracker
+                        ppgRedListener.stopTracker()
+                        if (!ppgRedListener.isTracking()) runOnUiThread {
+                            textPpgRedStatus.text = getString(R.string.status_stopped)
+                        }
+                        invalidateAppStatus()
+                    }
+                }
             }
         }
     }
@@ -498,59 +647,157 @@ class MainActivity : Activity(), GoogleApiClient.ConnectionCallbacks {
         }
     }
 
-    private fun sendHrData(hrData: HeartRateData) {
-        val heartData = HeartData(
-            hrData.hr,
-            hrData.ibi,
-            LocalDateTime.now().format(DateTimeFormatter.ISO_DATE_TIME).toString()
-        )
-        val bytes = Gson().toJson(heartData).toByteArray()
-        Wearable.DataApi.putDataItem(client,
-            PutDataRequest.create(MessagePath.DATA_HR).setData(bytes).setUrgent()
-        )
-        Log.i("Wear","Heart Data sent via DataApi!")
-    }
+//    private fun sendHrData(hrData: HeartRateData) {
+//        val heartData = HeartData(
+//            hrData.hr,
+//            hrData.ibi,
+//            LocalDateTime.now().format(DateTimeFormatter.ISO_DATE_TIME).toString()
+//        )
+//        val bytes = Gson().toJson(heartData).toByteArray()
+//        Wearable.DataApi.putDataItem(client,
+//            PutDataRequest.create(MessagePath.DATA_HR).setData(bytes).setUrgent()
+//        )
+//        Log.i("Wear","Heart Data sent via DataApi!")
+//    }
 
-    private fun sendPpgGreenData(ppgGreenData: PpgGreenData) {
-        val ppgData = PpgData(
-            currentPpgGreenDataNumber,
-            ppgGreenData.ppgValue,
-            ppgGreenData.timestamp,
-            PpgType.PPG_GREEN
-        )
+    private fun sendPpgData(ppgRecording: PpgRecording) {
+        val path: String
+        val windowSize: Int
+
+        when (ppgRecording.ppgType) {
+            PpgType.PPG_GREEN -> {
+                path = MessagePath.DATA_PPG_GREEN
+                windowSize = PPG_GREEN_BATCH_SIZE
+            }
+            PpgType.PPG_IR -> {
+                path = MessagePath.DATA_PPG_IR
+                windowSize = PPG_IR_RED_BATCH_SIZE
+            }
+            PpgType.PPG_RED -> {
+                path = MessagePath.DATA_PPG_RED
+                windowSize = PPG_IR_RED_BATCH_SIZE
+            }
+        }
+
+        // prep the PpgData
+        val ppgData = PpgData(windowSize, ppgRecording.ppgType)
+        for (i in 0 until windowSize) {
+            ppgData.ppgValues[i] = ppgRecording.values[i]
+            ppgData.timestamps[i] = ppgRecording.timestamps[i]
+            ppgData.size++
+        }
+
+        // send it
         val bytes = Gson().toJson(ppgData).toByteArray()
         Wearable.DataApi.putDataItem(client,
-            PutDataRequest.create(MessagePath.DATA_PPG_GREEN).setData(bytes).setUrgent()
+            PutDataRequest.create(path).setData(bytes).setUrgent()
         )
-        Log.i("Wear","PPG Green Data sent via DataApi!")
+        Log.i("Wear","PPG Data sent via DataApi!\n$ppgData")
     }
 
-    private fun sendPpgIrData(ppgIrData: PpgIrData) {
-        val ppgData = PpgData(
-            currentPpgIrDataNumber,
-            ppgIrData.ppgValue,
-            ppgIrData.timestamp,
-            PpgType.PPG_IR
-        )
-        val bytes = Gson().toJson(ppgData).toByteArray()
-        Wearable.DataApi.putDataItem(client,
-            PutDataRequest.create(MessagePath.DATA_PPG_IR).setData(bytes).setUrgent()
-        )
-        Log.i("Wear","PPG IR Data sent via DataApi!")
+//    private fun sendPpgData(ppgData: PpgData) {
+//        val path = when (ppgData.ppgType) {
+//            PpgType.PPG_GREEN -> MessagePath.DATA_PPG_GREEN
+//            PpgType.PPG_IR -> MessagePath.DATA_PPG_IR
+//            PpgType.PPG_RED -> MessagePath.DATA_PPG_RED
+//        }
+//        val bytes = Gson().toJson(ppgData).toByteArray()
+//        Wearable.DataApi.putDataItem(client,
+//            PutDataRequest.create(path).setData(bytes).setUrgent()
+//        )
+//        Log.i("Wear","PPG Data sent via DataApi!\n$ppgData")
+//    }
+
+//    private fun sendPpgGreenData(ppgGreenData: PpgGreenData) {
+//        val ppgData = PpgData(
+//            currentPpgGreenDataNumber,
+//            ppgGreenData.ppgValue,
+//            ppgGreenData.timestamp,
+//            PpgType.PPG_GREEN
+//        )
+//        val bytes = Gson().toJson(ppgData).toByteArray()
+//        Wearable.DataApi.putDataItem(client,
+//            PutDataRequest.create(MessagePath.DATA_PPG_GREEN).setData(bytes).setUrgent()
+//        )
+//        Log.i("Wear","PPG Green Data sent via DataApi!")
+//    }
+//
+//    private fun sendPpgIrData(ppgIrData: PpgIrData) {
+//        val ppgData = PpgData(
+//            currentPpgIrDataNumber,
+//            ppgIrData.ppgValue,
+//            ppgIrData.timestamp,
+//            PpgType.PPG_IR
+//        )
+//        val bytes = Gson().toJson(ppgData).toByteArray()
+//        Wearable.DataApi.putDataItem(client,
+//            PutDataRequest.create(MessagePath.DATA_PPG_IR).setData(bytes).setUrgent()
+//        )
+//        Log.i("Wear","PPG IR Data sent via DataApi!")
+//    }
+//
+//    private fun sendPpgRedData(ppgRedData: PpgRedData) {
+//        val ppgData = PpgData(
+//            currentPpgRedDataNumber,
+//            ppgRedData.ppgValue,
+//            ppgRedData.timestamp,
+//            PpgType.PPG_RED
+//        )
+//        val bytes = Gson().toJson(ppgData).toByteArray()
+//        Wearable.DataApi.putDataItem(client,
+//            PutDataRequest.create(MessagePath.DATA_PPG_RED).setData(bytes).setUrgent()
+//        )
+//        Log.i("Wear","PPG Red Data sent via DataApi!")
+//    }
+
+    private fun toggleTracker(listener: Listener) {
+//        Log.d("Wear", "toggleTracker() Toggling $listener")
+        when (listener) {
+            ppgGreenListener -> {
+//                Log.d("Wear", "toggleTracker()\n" +
+//                        "PPG Green Tracking: ${ppgGreenListener.isTracking()}")
+                if (ppgGreenListener.isTracking()) ppgGreenListener.stopTracker()
+                else startTracker(ppgGreenListener)
+//                Log.d("Wear", "toggleTracker() after\n" +
+//                        "PPG Green Tracking: ${ppgGreenListener.isTracking()}")
+            }
+            ppgIrListener -> {
+//                Log.d("Wear", "toggleTracker()\n" +
+//                        "PPG IR Tracking: ${ppgIrListener.isTracking()}")
+                if (ppgIrListener.isTracking()) ppgIrListener.stopTracker()
+                else startTracker(ppgIrListener)
+//                Log.d("Wear", "toggleTracker() after\n" +
+//                        "PPG IR Tracking: ${ppgIrListener.isTracking()}")
+            }
+            ppgRedListener -> {
+//                Log.d("Wear", "toggleTracker()\n" +
+//                        "PPG Red Tracking: ${ppgRedListener.isTracking()}")
+                if (ppgRedListener.isTracking()) ppgRedListener.stopTracker()
+                else startTracker(ppgRedListener)
+//                Log.d("Wear", "toggleTracker() after\n" +
+//                        "PPG Red Tracking: ${ppgRedListener.isTracking()}")
+            }
+        }
     }
 
-    private fun sendPpgRedData(ppgRedData: PpgRedData) {
-        val ppgData = PpgData(
-            currentPpgRedDataNumber,
-            ppgRedData.ppgValue,
-            ppgRedData.timestamp,
-            PpgType.PPG_RED
-        )
-        val bytes = Gson().toJson(ppgData).toByteArray()
-        Wearable.DataApi.putDataItem(client,
-            PutDataRequest.create(MessagePath.DATA_PPG_RED).setData(bytes).setUrgent()
-        )
-        Log.i("Wear","PPG Red Data sent via DataApi!")
+    private fun startTracker(listener: Listener) {
+        when (listener) {
+            ppgGreenListener -> {
+                ppgGreenListener.startTracker()
+            }
+            ppgIrListener -> {
+                ppgIrListener.startTracker()
+            }
+            ppgRedListener -> {
+                ppgRedListener.startTracker()
+            }
+        }
+
+        // check KEEP SCREEN ON flag
+        val flags = window.attributes.flags
+        if ((flags and WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON) == 0)
+            // if flag is not on, add the flag
+            window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
     }
 
     /**
