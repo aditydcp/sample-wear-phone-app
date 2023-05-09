@@ -448,6 +448,7 @@ class MainActivity : Activity(), GoogleApiClient.ConnectionCallbacks {
         return if (!ppgGreenListener.isTracking() &&
             !ppgIrListener.isTracking() &&
             !ppgRedListener.isTracking()) {
+            window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
             runOnUiThread {
                 textStatus.text = getString(R.string.status_stopped)
                 textPpgIrStatus.text = getString(R.string.status_stopped)
@@ -517,9 +518,12 @@ class MainActivity : Activity(), GoogleApiClient.ConnectionCallbacks {
 
                             switchState(1)
 //                            heartRateListener.startTracker()
-                            ppgGreenListener.startTracker()
-                            ppgIrListener.startTracker()
-                            ppgRedListener.startTracker()
+//                            ppgGreenListener.startTracker()
+//                            ppgIrListener.startTracker()
+//                            ppgRedListener.startTracker()
+                            startTracker(ppgGreenListener)
+                            startTracker(ppgIrListener)
+                            startTracker(ppgRedListener)
                         }
                         ActivityCode.STOP_ACTIVITY -> { // stop all tracker
                             runOnUiThread {
@@ -568,7 +572,7 @@ class MainActivity : Activity(), GoogleApiClient.ConnectionCallbacks {
                             return
                         }
 
-                        ppgGreenListener.startTracker()
+                        startTracker(ppgGreenListener)
                     }
                     else if (it.code == ActivityCode.STOP_ACTIVITY) { // stop tracker
                         ppgGreenListener.stopTracker()
@@ -592,7 +596,7 @@ class MainActivity : Activity(), GoogleApiClient.ConnectionCallbacks {
                             return
                         }
 
-                        ppgIrListener.startTracker()
+                        startTracker(ppgIrListener)
                     }
                     else if (it.code == ActivityCode.STOP_ACTIVITY) { // stop tracker
                         ppgIrListener.stopTracker()
@@ -619,7 +623,7 @@ class MainActivity : Activity(), GoogleApiClient.ConnectionCallbacks {
                             return
                         }
 
-                        ppgRedListener.startTracker()
+                        startTracker(ppgRedListener)
                     }
                     else if (it.code == ActivityCode.STOP_ACTIVITY) { // stop tracker
                         ppgRedListener.stopTracker()
@@ -753,7 +757,7 @@ class MainActivity : Activity(), GoogleApiClient.ConnectionCallbacks {
 //                Log.d("Wear", "toggleTracker()\n" +
 //                        "PPG Green Tracking: ${ppgGreenListener.isTracking()}")
                 if (ppgGreenListener.isTracking()) ppgGreenListener.stopTracker()
-                else ppgGreenListener.startTracker()
+                else startTracker(ppgGreenListener)
 //                Log.d("Wear", "toggleTracker() after\n" +
 //                        "PPG Green Tracking: ${ppgGreenListener.isTracking()}")
             }
@@ -761,7 +765,7 @@ class MainActivity : Activity(), GoogleApiClient.ConnectionCallbacks {
 //                Log.d("Wear", "toggleTracker()\n" +
 //                        "PPG IR Tracking: ${ppgIrListener.isTracking()}")
                 if (ppgIrListener.isTracking()) ppgIrListener.stopTracker()
-                else ppgIrListener.startTracker()
+                else startTracker(ppgIrListener)
 //                Log.d("Wear", "toggleTracker() after\n" +
 //                        "PPG IR Tracking: ${ppgIrListener.isTracking()}")
             }
@@ -769,11 +773,31 @@ class MainActivity : Activity(), GoogleApiClient.ConnectionCallbacks {
 //                Log.d("Wear", "toggleTracker()\n" +
 //                        "PPG Red Tracking: ${ppgRedListener.isTracking()}")
                 if (ppgRedListener.isTracking()) ppgRedListener.stopTracker()
-                else ppgRedListener.startTracker()
+                else startTracker(ppgRedListener)
 //                Log.d("Wear", "toggleTracker() after\n" +
 //                        "PPG Red Tracking: ${ppgRedListener.isTracking()}")
             }
         }
+    }
+
+    private fun startTracker(listener: Listener) {
+        when (listener) {
+            ppgGreenListener -> {
+                ppgGreenListener.startTracker()
+            }
+            ppgIrListener -> {
+                ppgIrListener.startTracker()
+            }
+            ppgRedListener -> {
+                ppgRedListener.startTracker()
+            }
+        }
+
+        // check KEEP SCREEN ON flag
+        val flags = window.attributes.flags
+        if ((flags and WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON) == 0)
+            // if flag is not on, add the flag
+            window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
     }
 
     /**
