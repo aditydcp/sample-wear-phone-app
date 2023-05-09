@@ -1555,9 +1555,10 @@ class MainActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks,
                     for (i in 0 until sampleCount) {
                         out.write(
                             String.format(
-                                Locale.US, "%.3f,%d,%s\n",
+                                Locale.US, "%.3f,%d,%d,%s\n",
                                 ecgValues[i],
                                 if (peakValues[i]) 1 else 0,
+                                timestamps[i],
                                 timestampFormat.format(Date(timestamps[i]))
                             )
                         )
@@ -1591,6 +1592,7 @@ class MainActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks,
             AppUtils.errMsg(this, "There is no data directory set")
             return
         }
+        // TODO: DURATION CAN BE INCORRECT. CHECK STOP TIME START TIME USAGE
         val duration = (stopTime!!.time - startTime!!.time) * MS_TO_SEC
         var msg: String
         val format = "yyyy-MM-dd_HH-mm"
@@ -1657,8 +1659,9 @@ class MainActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks,
                     for (i in 0 until sampleCount) {
                         out.write(
                             String.format(
-                                Locale.US, "%d,%s\n",
+                                Locale.US, "%d,%d,%s\n",
                                 ppgValues[i],
+                                timestamps[i],
                                 timestampFormat.format(Date(timestamps[i]))
                             )
                         )
