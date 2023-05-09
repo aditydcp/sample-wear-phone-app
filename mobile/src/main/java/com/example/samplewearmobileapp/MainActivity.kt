@@ -477,6 +477,9 @@ class MainActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks,
                     0.0
                 )
                 // Clear the plot
+                ppgGreenValueNumber = 0
+                ppgIrValueNumber = 0
+                ppgRedValueNumber = 0
                 ppgGreenPlotter?.clear()
                 ppgIrPlotter?.clear()
                 ppgRedPlotter?.clear()
