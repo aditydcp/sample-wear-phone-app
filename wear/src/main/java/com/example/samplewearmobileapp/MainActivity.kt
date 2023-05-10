@@ -3,6 +3,7 @@ package com.example.samplewearmobileapp
 import android.Manifest
 import android.app.Activity
 import android.content.pm.PackageManager
+import android.os.Build
 import android.os.Bundle
 import android.os.CountDownTimer
 import android.util.Log
@@ -12,6 +13,7 @@ import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
 import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
 import com.example.samplewearmobileapp.Constants.PPG_GREEN_BATCH_SIZE
 import com.example.samplewearmobileapp.Constants.PPG_IR_RED_BATCH_SIZE
 import com.example.samplewearmobileapp.constants.codes.ActivityCode
@@ -80,7 +82,6 @@ class MainActivity : Activity(), GoogleApiClient.ConnectionCallbacks {
     private lateinit var ppgIrListener: PpgIrListener
     private lateinit var ppgRedListener: PpgRedListener
     private var connected = false
-    private var permissionGranted = false
 //    private var heartRateDataLast = HeartRateData()
 //    private var ppgGreenDataLast = PpgGreenData()
 //    private var ppgIrDataLast = PpgIrData()
@@ -348,19 +349,23 @@ class MainActivity : Activity(), GoogleApiClient.ConnectionCallbacks {
         uiUpdateThread.start()
 
         // requests permission
-        if (ActivityCompat.checkSelfPermission(
-                applicationContext,
-                getString(R.string.BodySensors)
-            ) == PackageManager.PERMISSION_DENIED
-        ) requestPermissions(
-            arrayOf(
-                Manifest.permission.BODY_SENSORS
-            ), 0
-        )
-        else {
-            permissionGranted = true
-            createConnectionManager()
-        }
+//        if (ActivityCompat.checkSelfPermission(
+//                applicationContext,
+//                getString(R.string.BodySensors)
+//            ) == PackageManager.PERMISSION_DENIED
+//        ) requestPermissions(
+//            arrayOf(
+//                Manifest.permission.BODY_SENSORS
+//            ), 0
+//        )
+//        else {
+//            createConnectionManager()
+//        }
+        if (!allPermissionsGranted()) {
+            ActivityCompat.requestPermissions(
+                this, REQUIRED_PERMISSIONS, REQUEST_CODE_PERMISSIONS
+            )
+        } else createConnectionManager()
 
         // set UI vars
         textStatus = binding.statusMsg
@@ -448,12 +453,17 @@ class MainActivity : Activity(), GoogleApiClient.ConnectionCallbacks {
         return if (!ppgGreenListener.isTracking() &&
             !ppgIrListener.isTracking() &&
             !ppgRedListener.isTracking()) {
-            window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
             runOnUiThread {
                 textStatus.text = getString(R.string.status_stopped)
                 textPpgIrStatus.text = getString(R.string.status_stopped)
                 textPpgRedStatus.text = getString(R.string.status_stopped)
             }
+
+            // stop foreground service
+            MainService.stopService(this)
+
+//            window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+
             true
         } else false
     }
@@ -793,11 +803,14 @@ class MainActivity : Activity(), GoogleApiClient.ConnectionCallbacks {
             }
         }
 
-        // check KEEP SCREEN ON flag
-        val flags = window.attributes.flags
-        if ((flags and WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON) == 0)
-            // if flag is not on, add the flag
-            window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+        // start the foreground service
+        MainService.startService(this, "Tracker is running...")
+
+//        // check KEEP SCREEN ON flag
+//        val flags = window.attributes.flags
+//        if ((flags and WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON) == 0)
+//            // if flag is not on, add the flag
+//            window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
     }
 
     /**
@@ -831,11 +844,26 @@ class MainActivity : Activity(), GoogleApiClient.ConnectionCallbacks {
         Log.d("Wear","stateNum changed to: $currentState")
     }
 
+    /**
+     * Checks whether all permissions required has been granted.
+     * @return Boolean value of whether all permissions required has been granted
+     */
+    private fun allPermissionsGranted() = REQUIRED_PERMISSIONS.all {
+        ContextCompat.checkSelfPermission(baseContext, it) ==
+                PackageManager.PERMISSION_GRANTED
+    }
+
     companion object {
         /**
          * Measurement duration for On-Demand data type in ms.
          */
         private const val ON_DEMAND_MEASUREMENT_DURATION = 30000 // 30k ms = 30 secs
         private const val ON_DEMAND_MEASUREMENT_TICK = 250 // for ticking countdown timer
+        private const val REQUEST_CODE_PERMISSIONS = 10
+        private val REQUIRED_PERMISSIONS =
+            mutableListOf(
+                Manifest.permission.BODY_SENSORS,
+                Manifest.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS
+            ).toTypedArray()
     }
 }
