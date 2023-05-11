@@ -40,7 +40,7 @@ object Constants {
     /**
      * The rate used for sending PPG IR and Red sample batch in ms.
      */
-    const val PPG_IR_RED_CUSTOM_TICK_RATE: Long = PPG_GREEN_TICK_RATE
+    const val PPG_IR_RED_CUSTOM_TICK_RATE: Long = 12000
     // the same as PPG_GREEN_TICK_RATE = 12000 ms = 12 sec.
     // this is implemented due to flooding when data are sent each second
 
@@ -65,10 +65,11 @@ object Constants {
     /**
      * The number of PPG IR and Red data points
      * to be included in 1 batch.
+     * This version used 1200 data points.
      */
     const val PPG_IR_RED_BATCH_SIZE: Int =
         (PPG_IR_RED_SAMPLE_RATE * PPG_IR_RED_CUSTOM_TICK_RATE * MS_TO_SEC).toInt()
-    // 100 Hz * 12 sec = 12000 data points
+    // 100 Hz * 12 sec = 1200 data points
     // using actual tick rate OR 1 second would mean sending too frequently
     // causing the mobile module to hang and flooding the data queue
     // so instead, safely use 12 sec (also to match the PPG Green batch)
