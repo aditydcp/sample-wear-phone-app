@@ -344,6 +344,8 @@ class MainActivity : Activity(), GoogleApiClient.ConnectionCallbacks {
         message.sender = Entity.WEAR_APP
 
         currentPpgGreenDataNumber = 0
+        currentPpgIrDataNumber = 0
+        currentPpgRedDataNumber = 0
 
         uiUpdateThread = Thread {}
         uiUpdateThread.start()
@@ -681,11 +683,19 @@ class MainActivity : Activity(), GoogleApiClient.ConnectionCallbacks {
             }
             PpgType.PPG_IR -> {
                 path = MessagePath.DATA_PPG_IR
-                windowSize = PPG_IR_RED_BATCH_SIZE
+                /* TODO I don't know what's wrong with PPG_IR_RED_BATCH_SIZE
+                    but somehow the new 1200 value doesn't register and
+                    just keep sending per 100 data.
+                 */
+                /* TODO
+                    Also seems like the PPG IR and Red sample rate is way off
+                    and slower than expected. Try removing something to ease CPU work
+                 */
+                windowSize = 1200
             }
             PpgType.PPG_RED -> {
                 path = MessagePath.DATA_PPG_RED
-                windowSize = PPG_IR_RED_BATCH_SIZE
+                windowSize = 1200
             }
         }
 
