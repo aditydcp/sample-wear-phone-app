@@ -2047,7 +2047,7 @@ class MainActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks,
                 runOnUiThread {
                     textPpgGreenStatus.text = getString(R.string.ppg_green_status,
                         ppgGreenValueNumber.toString())
-//                    textStatusContainerTitle.text = getString(R.string.elapsed_time, elapsed)
+                    textStatusContainerTitle.text = getString(R.string.elapsed_time, elapsed)
                 }
             }
             MessagePath.DATA_PPG_IR -> {
@@ -2070,7 +2070,7 @@ class MainActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks,
                 runOnUiThread {
                     textPpgIrStatus.text = getString(R.string.ppg_ir_status,
                         ppgIrValueNumber.toString())
-//                    textStatusContainerTitle.text = getString(R.string.elapsed_time, elapsed)
+                    textStatusContainerTitle.text = getString(R.string.elapsed_time, elapsed)
                 }
             }
             MessagePath.DATA_PPG_RED -> {
@@ -2095,7 +2095,7 @@ class MainActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks,
                 runOnUiThread {
                     textPpgRedStatus.text = getString(R.string.ppg_red_status,
                         ppgRedValueNumber.toString())
-//                    textStatusContainerTitle.text = getString(R.string.elapsed_time, elapsed)
+                    textStatusContainerTitle.text = getString(R.string.elapsed_time, elapsed)
                 }
             }
         }
@@ -2331,7 +2331,7 @@ class MainActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks,
         runOnUiThread {
             textStatusContainerTitle.text = getString(
                 R.string.elapsed_time,
-                secondsElapsed.toFloat()
+                secondsElapsed
             )
         }
     }
