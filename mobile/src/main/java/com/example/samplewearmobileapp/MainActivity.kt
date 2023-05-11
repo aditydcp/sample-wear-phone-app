@@ -128,16 +128,6 @@ class MainActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks,
     //* Date when stopped playing. Updated whenever playing started */
     private var startTime: Date? = null
 
-    private var secondsElapsed = 0
-    private lateinit var timeHandler: Handler
-    private val updateTimeTask = object : Runnable {
-        override fun run() {
-            updateTimeText()
-            secondsElapsed++
-            timeHandler.postDelayed(this, 1000)
-        }
-    }
-
     private var deviceStopHr = "NA"
     private var calculatedStopHr = "NA"
 
@@ -387,8 +377,6 @@ class MainActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks,
 
         setLastHr()
 //        stopTime = Date()
-        // setup timer handler
-        timeHandler = Handler(Looper.getMainLooper())
 
         // get device ID from preferences if there is any
         deviceId = sharedPreferences!!.getString(PREF_DEVICE_ID, "").toString()
@@ -480,7 +468,6 @@ class MainActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks,
                 stopTime = Date()
                 isRecording = true
                 setPanBehavior()
-                secondsElapsed = 0
                 textStatusContainerTitle.text = getString(
                     R.string.elapsed_time,
                     0.0
@@ -506,8 +493,6 @@ class MainActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks,
                 }
                 // turn on PPG stream
                 togglePpgTracker()
-                // setup the timer
-                timeHandler.post(updateTimeTask)
                 menu.findItem(R.id.pause).icon = ResourcesCompat.getDrawable(
                     resources,
                     R.drawable.ic_stop_white_36dp, null
@@ -2325,15 +2310,6 @@ class MainActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks,
             msg.append("Data Directory: ").append(treeUri.path)
         }
         AppUtils.infoMsg(this, msg.toString())
-    }
-
-    private fun updateTimeText() {
-        runOnUiThread {
-            textStatusContainerTitle.text = getString(
-                R.string.elapsed_time,
-                secondsElapsed
-            )
-        }
     }
 
     companion object {
