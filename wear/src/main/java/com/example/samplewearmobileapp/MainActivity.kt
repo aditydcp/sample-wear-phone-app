@@ -14,6 +14,8 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import androidx.fragment.app.FragmentActivity
+import androidx.wear.ambient.AmbientModeSupport
 import com.example.samplewearmobileapp.Constants.PPG_GREEN_BATCH_SIZE
 import com.example.samplewearmobileapp.Constants.PPG_IR_RED_BATCH_SIZE
 import com.example.samplewearmobileapp.constants.codes.ActivityCode
@@ -40,7 +42,11 @@ import com.google.gson.Gson
 import com.samsung.android.service.health.tracking.HealthTrackerException
 import java.util.concurrent.atomic.AtomicBoolean
 
-class MainActivity : Activity(), GoogleApiClient.ConnectionCallbacks {
+class MainActivity :
+    FragmentActivity(),
+    GoogleApiClient.ConnectionCallbacks,
+    AmbientModeSupport.AmbientCallbackProvider
+{
     private val tag = "Wear: MainActivity"
     private lateinit var binding: ActivityMainBinding
     private lateinit var client: GoogleApiClient
@@ -52,6 +58,7 @@ class MainActivity : Activity(), GoogleApiClient.ConnectionCallbacks {
     private var currentPpgIrDataNumber = 0
     private var currentPpgRedDataNumber = 0
     private var isOnDemandMeasurementRunning = AtomicBoolean(false)
+    private lateinit var ambientController: AmbientModeSupport.AmbientController
 
     private lateinit var textStatus: TextView
     private lateinit var textTip: TextView
@@ -334,12 +341,26 @@ class MainActivity : Activity(), GoogleApiClient.ConnectionCallbacks {
         }
     }
 
+    private class MyAmbientCallback : AmbientModeSupport.AmbientCallback() {
+        override fun onEnterAmbient(ambientDetails: Bundle?) {
+            super.onEnterAmbient(ambientDetails)
+        }
+
+        override fun onExitAmbient() {
+            super.onExitAmbient()
+        }
+    }
+
+    override fun getAmbientCallback(): AmbientModeSupport.AmbientCallback = MyAmbientCallback()
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         Log.d("Wear","onCreate")
 
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
+
+        ambientController = AmbientModeSupport.attach(this)
 
         message.sender = Entity.WEAR_APP
 
