@@ -15,7 +15,10 @@ import android.widget.Toast
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import com.example.samplewearmobileapp.Constants.PPG_GREEN_BATCH_SIZE
+import com.example.samplewearmobileapp.Constants.PPG_GREEN_SAMPLE_RATE
 import com.example.samplewearmobileapp.Constants.PPG_IR_RED_BATCH_SIZE
+import com.example.samplewearmobileapp.Constants.PPG_IR_RED_BATCH_TICK_RATE
+import com.example.samplewearmobileapp.Constants.PPG_IR_RED_SAMPLE_RATE
 import com.example.samplewearmobileapp.constants.codes.ActivityCode
 import com.example.samplewearmobileapp.constants.Entity
 import com.example.samplewearmobileapp.constants.MessagePath
@@ -691,11 +694,11 @@ class MainActivity : Activity(), GoogleApiClient.ConnectionCallbacks {
                     Also seems like the PPG IR and Red sample rate is way off
                     and slower than expected. Try removing something to ease CPU work
                  */
-                windowSize = 1200
+                windowSize = PPG_IR_RED_BATCH_SIZE
             }
             PpgType.PPG_RED -> {
                 path = MessagePath.DATA_PPG_RED
-                windowSize = 1200
+                windowSize = PPG_IR_RED_BATCH_SIZE
             }
         }
 
@@ -706,6 +709,12 @@ class MainActivity : Activity(), GoogleApiClient.ConnectionCallbacks {
             ppgData.timestamps[i] = ppgRecording.timestamps[i]
             ppgData.size++
         }
+        Log.d("Wear: Sending PPG","Preparing to send PPG Data\n" +
+                "PPG_GREEN_BATCH_SIZE: $PPG_GREEN_BATCH_SIZE\n" +
+                "PPG_GREEN_SAMPLE_RATE: $PPG_GREEN_SAMPLE_RATE\n" +
+                "PPG_IR_RED_BATCH_SIZE: $PPG_IR_RED_BATCH_SIZE\n" +
+                "PPG_IR_RED_SAMPLE_RATE: $PPG_IR_RED_SAMPLE_RATE\n" +
+                "PPG_IR_RED_BATCH_TICK_RATE: $PPG_IR_RED_BATCH_TICK_RATE")
 
         // send it
         val bytes = Gson().toJson(ppgData).toByteArray()
