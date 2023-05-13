@@ -347,10 +347,12 @@ class MainActivity :
     private class MyAmbientCallback : AmbientModeSupport.AmbientCallback() {
         override fun onEnterAmbient(ambientDetails: Bundle?) {
             super.onEnterAmbient(ambientDetails)
+            Log.i("Wear: Ambient","Entered ambient mode")
         }
 
         override fun onExitAmbient() {
             super.onExitAmbient()
+            Log.i("Wear: Ambient","Exited ambient mode")
         }
     }
 

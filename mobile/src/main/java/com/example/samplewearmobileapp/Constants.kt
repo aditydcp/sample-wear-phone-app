@@ -6,6 +6,10 @@ object Constants {
     var PREF_DEVICE_ID = "deviceId"
     var PREF_TREE_URI = "treeUri"
     var PREF_PATIENT_NAME = "patientName"
+    var PREF_PPG_GREEN_VISIBILITY = "ppgGreenVisibility"
+    var PREF_PPG_IR_VISIBILITY = "ppgIrVisibility"
+    var PREF_PPG_RED_VISIBILITY = "ppgRedVisibility"
+    var PREF_ECG_VISIBILITY = "ecgVisibility"
     var PREF_ANALYSIS_VISIBILITY = "analysisVisibility"
 
     /**

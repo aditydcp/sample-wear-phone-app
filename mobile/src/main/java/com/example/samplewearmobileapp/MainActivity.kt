@@ -32,7 +32,11 @@ import com.example.samplewearmobileapp.Constants.PPG_GREEN_SAMPLE_RATE
 import com.example.samplewearmobileapp.Constants.PPG_IR_RED_SAMPLE_RATE
 import com.example.samplewearmobileapp.Constants.PREF_ANALYSIS_VISIBILITY
 import com.example.samplewearmobileapp.Constants.PREF_DEVICE_ID
+import com.example.samplewearmobileapp.Constants.PREF_ECG_VISIBILITY
 import com.example.samplewearmobileapp.Constants.PREF_PATIENT_NAME
+import com.example.samplewearmobileapp.Constants.PREF_PPG_GREEN_VISIBILITY
+import com.example.samplewearmobileapp.Constants.PREF_PPG_IR_VISIBILITY
+import com.example.samplewearmobileapp.Constants.PREF_PPG_RED_VISIBILITY
 import com.example.samplewearmobileapp.Constants.PREF_TREE_URI
 import com.example.samplewearmobileapp.EcgImager.createImage
 import com.example.samplewearmobileapp.constants.Entity.PHONE_APP
@@ -92,7 +96,6 @@ class MainActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks,
     private var wearMessage: Message? = null
     private var appState = 0
     private var bluetoothState = STATE_OFF
-    private var isUsingAnalysis = false
 
     private var ppgGreenValueNumber = 0
     private var ppgIrValueNumber = 0
@@ -113,6 +116,12 @@ class MainActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks,
     private var isPpgGreenRunning = false
     private var isPpgIrRunning = false
     private var isPpgRedRunning = false
+
+    private var isPpgGreenVisible = true
+    private var isPpgIrVisible = true
+    private var isPpgRedVisible = true
+    private var isEcgVisible = true
+    private var isUsingAnalysis = false
 
     private var sharedPreferences: SharedPreferences? = null
 
@@ -277,6 +286,21 @@ class MainActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks,
         if (oldDeviceId != deviceId) {
             resetDeviceId(oldDeviceId)
         }
+        // setup plot visibility preferences
+        isPpgGreenVisible = sharedPreferences!!.getBoolean(
+            PREF_PPG_GREEN_VISIBILITY, true
+        )
+        isPpgIrVisible = sharedPreferences!!.getBoolean(
+            PREF_PPG_IR_VISIBILITY, true
+        )
+        isPpgRedVisible = sharedPreferences!!.getBoolean(
+            PREF_PPG_RED_VISIBILITY, true
+        )
+        isEcgVisible = sharedPreferences!!.getBoolean(
+            PREF_ECG_VISIBILITY, true
+        )
+        setPlotVisibility()
+
         // PREF_ANALYSIS_VISIBILITY
         isUsingAnalysis = sharedPreferences!!.getBoolean(
             PREF_ANALYSIS_VISIBILITY, true
@@ -367,13 +391,25 @@ class MainActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks,
                 getString(R.string.status_default))
         }
 
-        if (!isUsingAnalysis) {
-            analysisContainer.visibility = View.GONE
-        }
-
         sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this)
         // register preference listener
         sharedPreferences!!.registerOnSharedPreferenceChangeListener(this)
+
+        // get visibility preferences
+        isPpgGreenVisible = sharedPreferences!!.getBoolean(
+            PREF_PPG_GREEN_VISIBILITY, true)
+        isPpgIrVisible = sharedPreferences!!.getBoolean(
+            PREF_PPG_IR_VISIBILITY, true)
+        isPpgRedVisible = sharedPreferences!!.getBoolean(
+            PREF_PPG_RED_VISIBILITY, true)
+        isEcgVisible = sharedPreferences!!.getBoolean(
+            PREF_ECG_VISIBILITY, true)
+        setPlotVisibility()
+        isUsingAnalysis = sharedPreferences!!.getBoolean(
+            PREF_ANALYSIS_VISIBILITY, false)
+        if (!isUsingAnalysis) {
+            analysisContainer.visibility = View.GONE
+        }
 
         setLastHr()
 //        stopTime = Date()
@@ -1139,6 +1175,27 @@ class MainActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks,
         ecgPlotter?.setupPlot()
         qrsPlotter?.setupPlot()
         hrPlotter?.setupPlot()
+    }
+
+    private fun setPlotVisibility() {
+        runOnUiThread {
+            ppgGreenPlot.visibility = when (isPpgGreenVisible) {
+                true -> View.VISIBLE
+                false -> View.GONE
+            }
+            ppgIrPlot.visibility = when (isPpgIrVisible) {
+                true -> View.VISIBLE
+                false -> View.GONE
+            }
+            ppgRedPlot.visibility = when (isPpgRedVisible) {
+                true -> View.VISIBLE
+                false -> View.GONE
+            }
+            ecgPlot.visibility = when (isEcgVisible) {
+                true -> View.VISIBLE
+                false -> View.GONE
+            }
+        }
     }
 
 //    /**
