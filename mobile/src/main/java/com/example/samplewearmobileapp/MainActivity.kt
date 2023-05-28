@@ -480,6 +480,8 @@ class MainActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks,
             }
             if (isRecording) {
                 // Turn recording off
+                // stop foreground service
+                MobileService.stopService(this)
                 setLastHr()
                 stopTime = Date()
                 isRecording = false
@@ -499,6 +501,8 @@ class MainActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks,
                 menu.findItem(R.id.save).isVisible = true
             } else {
                 // Turn recording on
+                // start foreground service
+                MobileService.startService(this,"Start recording...")
                 setLastHr()
                 startTime = Date()
                 stopTime = Date()
