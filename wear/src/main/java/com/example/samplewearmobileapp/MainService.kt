@@ -55,8 +55,8 @@ class MainService : Service() {
 
         val notification = NotificationCompat.Builder(this, CHANNEL_ID)
             .setContentTitle("Main Foreground Service Sample App")
-            .setContentText(message)
-//            .setSmallIcon(R.drawable.ic_notification)
+            .setContentText("Tracking...")
+            .setSmallIcon(R.drawable.ic_notification)
             .setContentIntent(pendingIntent)
             .build()
 
@@ -72,11 +72,11 @@ class MainService : Service() {
     private fun createNotificationChannel() {
         val serviceChannel = NotificationChannel(
             CHANNEL_ID, "Main Foreground Service Channel",
-            NotificationManager.IMPORTANCE_DEFAULT
+            NotificationManager.IMPORTANCE_HIGH
         )
 
         val manager = getSystemService(NotificationManager::class.java)
-        manager!!.createNotificationChannel(serviceChannel)
+        manager?.createNotificationChannel(serviceChannel)
     }
 
     private fun isServiceRunning() : Boolean {

@@ -6,6 +6,7 @@ import android.app.PendingIntent
 import android.app.Service
 import android.content.Context
 import android.content.Intent
+import android.graphics.Color
 import android.os.IBinder
 import androidx.core.app.NotificationCompat
 import androidx.core.content.ContextCompat
@@ -49,10 +50,11 @@ class MobileService : Service() {
             }
 
         val notification = NotificationCompat.Builder(this, CHANNEL_ID)
+            .setSmallIcon(R.drawable.ic_notification)
             .setContentTitle("Main Foreground Service Sample App")
-            .setContentText(message)
-//            .setSmallIcon(R.drawable.ic_notification)
+            .setContentText("Recording...")
             .setContentIntent(pendingIntent)
+            .setOngoing(true)
             .build()
 
         startForeground(1, notification)
@@ -66,12 +68,15 @@ class MobileService : Service() {
 
     private fun createNotificationChannel() {
         val serviceChannel = NotificationChannel(
-            CHANNEL_ID, "Main Foreground Service Channel",
-            NotificationManager.IMPORTANCE_DEFAULT
+            CHANNEL_ID, "Mobile Foreground Service Channel",
+            NotificationManager.IMPORTANCE_HIGH
         )
+        serviceChannel.description = "Description"
+        serviceChannel.enableLights(true)
+        serviceChannel.lightColor = Color.BLUE
 
         val manager = getSystemService(NotificationManager::class.java)
-        manager!!.createNotificationChannel(serviceChannel)
+        manager?.createNotificationChannel(serviceChannel)
     }
 
     private fun isServiceRunning() : Boolean {
