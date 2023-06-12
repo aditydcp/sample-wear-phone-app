@@ -11,6 +11,9 @@ import com.example.samplewearmobileapp.R
 import java.io.ByteArrayOutputStream
 import java.io.File
 import java.io.PrintStream
+import java.time.Instant
+import java.time.LocalDateTime
+import java.time.ZoneId
 import java.util.*
 
 object AppUtils {
@@ -194,6 +197,12 @@ object AppUtils {
         } else {
             "Landscape"
         }
+    }
+
+    fun convertToLocalDateTimeViaMillisecond(dateToConvert: Date): LocalDateTime {
+        return Instant.ofEpochMilli(dateToConvert.time)
+            .atZone(ZoneId.systemDefault())
+            .toLocalDateTime()
     }
 
 //    /**

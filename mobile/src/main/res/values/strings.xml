@@ -85,12 +85,26 @@
     <string name="button_ppg_ir">PPG IR</string>
     <string name="button_ppg_red">PPG Red</string>
 
+    <string name="ppg_green_status_title">PPG Green</string>
+    <string name="ppg_ir_status_title">PPG IR</string>
+    <string name="ppg_red_status_title">PPG Red</string>
+    <string name="ecg_status_title">ECG</string>
     <string name="ppg_green_status">PPG Green\n%1$s</string>
     <string name="ppg_ir_status">PPG IR\n%1$s</string>
     <string name="ppg_red_status">PPG Red\n%1$s</string>
     <string name="ecg_status">ECG\n%1$s</string>
     <string name="status_ok">OK</string>
     <string name="status_bad">Bad</string>
+    <string name="status_data_count_default">0</string>
+
+    <string name="sectioning_container_title">Sections</string>
+    <string name="section_name_dialog_title">Set Section Name</string>
+    <string name="section_number_default">1</string>
+    <string name="section_name_default">Section Name</string>
+    <string name="section_start_time_default">Start Time</string>
+    <string name="section_time_between">-</string>
+    <string name="section_end_time_default">End Time</string>
+    <string name="cannot_change_section_name">Recording in on.\nPlease try after recording is finished.</string>
 
     <!-- Plots -->
     <string name="label_hr">Heart Rate: </string>
