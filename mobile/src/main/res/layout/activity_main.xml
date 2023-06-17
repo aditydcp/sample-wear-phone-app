@@ -13,9 +13,9 @@
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintBottom_toTopOf="@id/sectioning_container"
+        app:layout_constraintBottom_toTopOf="@id/plot_container"
         app:layout_constraintVertical_chainStyle="spread"
-        app:layout_constraintVertical_weight="0.4">
+        app:layout_constraintVertical_weight="0.2">
 
         <TextView
             android:id="@+id/status_container_title"
@@ -25,187 +25,54 @@
             android:textAlignment="center"
             android:textStyle="bold"
             android:textSize="16sp"
-            app:layout_constraintBottom_toTopOf="@id/status_ppg_ir_container"
+            app:layout_constraintBottom_toTopOf="@id/status_ppg_ir"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
-
-        <LinearLayout
-            android:id="@+id/status_ppg_green_container"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:gravity="center"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toStartOf="@id/status_ppg_ir_container"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/status_container_title" >
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/ppg_green_status_title"
-                android:textAlignment="center" />
-
-            <TextView
-                android:id="@+id/status_ppg_green"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:hint="@string/status_default"
-                android:textAlignment="center" />
-
-            <TextView
-                android:id="@+id/status_ppg_green_data_count"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:hint="@string/status_data_count_default"
-                android:textAlignment="center" />
-        </LinearLayout>
-
-        <LinearLayout
-            android:id="@+id/status_ppg_ir_container"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:gravity="center"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toStartOf="@id/status_ppg_red_container"
-            app:layout_constraintStart_toEndOf="@id/status_ppg_green_container"
-            app:layout_constraintTop_toBottomOf="@id/status_container_title" >
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/ppg_ir_status_title"
-                android:textAlignment="center" />
-
-            <TextView
-                android:id="@+id/status_ppg_ir"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:hint="@string/status_default"
-                android:textAlignment="center" />
-
-            <TextView
-                android:id="@+id/status_ppg_ir_data_count"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:hint="@string/status_data_count_default"
-                android:textAlignment="center" />
-        </LinearLayout>
-
-        <LinearLayout
-            android:id="@+id/status_ppg_red_container"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:gravity="center"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toStartOf="@id/status_ecg_container"
-            app:layout_constraintStart_toEndOf="@id/status_ppg_ir_container"
-            app:layout_constraintTop_toBottomOf="@id/status_container_title" >
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/ppg_red_status_title"
-                android:textAlignment="center" />
-
-            <TextView
-                android:id="@+id/status_ppg_red"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:hint="@string/status_default"
-                android:textAlignment="center" />
-
-            <TextView
-                android:id="@+id/status_ppg_red_data_count"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:hint="@string/status_data_count_default"
-                android:textAlignment="center" />
-        </LinearLayout>
-
-        <LinearLayout
-            android:id="@+id/status_ecg_container"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:gravity="center"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toEndOf="@id/status_ppg_red_container"
-            app:layout_constraintTop_toBottomOf="@id/status_container_title" >
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/ecg_status_title"
-                android:textAlignment="center" />
-
-            <TextView
-                android:id="@+id/status_ecg"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:hint="@string/status_default"
-                android:textAlignment="center" />
-
-            <TextView
-                android:id="@+id/status_ecg_data_count"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:hint="@string/status_data_count_default"
-                android:textAlignment="center" />
-        </LinearLayout>
-
-    </androidx.constraintlayout.widget.ConstraintLayout>
-
-    <androidx.constraintlayout.widget.ConstraintLayout
-        android:id="@+id/sectioning_container"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        app:layout_constraintTop_toBottomOf="@id/status_container"
-        app:layout_constraintBottom_toTopOf="@id/plot_container" >
 
         <TextView
-            android:id="@+id/sectioning_container_title"
+            android:id="@+id/status_ppg_green"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="@string/sectioning_container_title"
+            android:hint="@string/ppg_green_status"
             android:textAlignment="center"
-            android:textStyle="bold"
-            android:textSize="16sp"
-            android:layout_marginVertical="8dp"
-            app:layout_constraintBottom_toTopOf="@id/section_list_frame"
-            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toStartOf="@id/status_ppg_ir"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
+            app:layout_constraintTop_toBottomOf="@id/status_container_title" />
 
-        <FrameLayout
-            android:id="@+id/section_list_frame"
-            android:layout_width="match_parent"
+        <TextView
+            android:id="@+id/status_ppg_ir"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            app:layout_constraintBottom_toTopOf="@id/button_add_section"
-            app:layout_constraintTop_toBottomOf="@id/sectioning_container_title">
+            android:hint="@string/ppg_ir_status"
+            android:textAlignment="center"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toStartOf="@id/status_ppg_red"
+            app:layout_constraintStart_toEndOf="@id/status_ppg_green"
+            app:layout_constraintTop_toBottomOf="@id/status_container_title" />
 
-            <include layout="@layout/section_list" />
-        </FrameLayout>
+        <TextView
+            android:id="@+id/status_ppg_red"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:hint="@string/ppg_red_status"
+            android:textAlignment="center"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toStartOf="@id/status_ecg"
+            app:layout_constraintStart_toEndOf="@id/status_ppg_ir"
+            app:layout_constraintTop_toBottomOf="@id/status_container_title" />
 
-        <LinearLayout
-            android:id="@+id/button_add_section"
-            android:layout_width="48dp"
-            android:layout_height="48dp"
-            android:gravity="center"
-            android:layout_marginVertical="8dp"
-            app:layout_constraintStart_toStartOf="parent"
+        <TextView
+            android:id="@+id/status_ecg"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:hint="@string/ecg_status"
+            android:textAlignment="center"
+            app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/section_list_frame"
-            app:layout_constraintBottom_toBottomOf="parent" >
-            <ImageView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:src="@drawable/ic_add_black_24dp" />
-        </LinearLayout>
+            app:layout_constraintStart_toEndOf="@id/status_ppg_red"
+            app:layout_constraintTop_toBottomOf="@id/status_container_title" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 
@@ -214,12 +81,12 @@
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:fillViewport="true"
-        app:layout_constraintTop_toBottomOf="@id/sectioning_container"
+        app:layout_constraintTop_toBottomOf="@id/status_container"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintVertical_chainStyle="spread"
-        app:layout_constraintVertical_weight="0.5">
+        app:layout_constraintVertical_weight="0.8">
 
         <LinearLayout
             android:layout_width="match_parent"

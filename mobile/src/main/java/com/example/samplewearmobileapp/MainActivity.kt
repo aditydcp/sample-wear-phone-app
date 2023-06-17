@@ -24,9 +24,6 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.core.content.res.ResourcesCompat
-import androidx.lifecycle.ViewModelProviders
-import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.recyclerview.widget.RecyclerView
 import com.androidplot.xy.XYPlot
 import com.example.samplewearmobileapp.BluetoothService.REQUEST_CODE_ENABLE_BLUETOOTH
 import com.example.samplewearmobileapp.Constants.ECG_SAMPLE_RATE
@@ -77,13 +74,10 @@ import kotlin.math.roundToLong
 import kotlin.system.exitProcess
 
 class MainActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks,
-    SharedPreferences.OnSharedPreferenceChangeListener, SectionsAdapter.SectionEvents {
+    SharedPreferences.OnSharedPreferenceChangeListener {
     private lateinit var binding: ActivityMainBinding
     private lateinit var client: GoogleApiClient
     private lateinit var menu: Menu
-
-    private lateinit var viewModel: MainViewModel
-    private lateinit var sectionsAdapter: SectionsAdapter
 
     var ppgGreenPlotter: PpgPlotter? = null
     var ppgIrPlotter: PpgPlotter? = null
@@ -123,8 +117,6 @@ class MainActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks,
     private var isPpgIrRunning = false
     private var isPpgRedRunning = false
 
-    private var activeSection: Section? = null
-
     private var isPpgGreenVisible = true
     private var isPpgIrVisible = true
     private var isPpgRedVisible = true
@@ -149,18 +141,10 @@ class MainActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks,
     private var calculatedStopHr = "NA"
 
     private lateinit var textStatusContainerTitle: TextView
-    private lateinit var ppgGreenStatusContainer: ViewGroup
     private lateinit var textPpgGreenStatus: TextView
-    private lateinit var textPpgGreenDataCount: TextView
-    private lateinit var ppgIrStatusContainer: ViewGroup
     private lateinit var textPpgIrStatus: TextView
-    private lateinit var textPpgIrDataCount: TextView
-    private lateinit var ppgRedStatusContainer: ViewGroup
     private lateinit var textPpgRedStatus: TextView
-    private lateinit var textPpgRedDataCount: TextView
-    private lateinit var ecgStatusContainer: ViewGroup
     private lateinit var textEcgStatus: TextView
-    private lateinit var textEcgDataCount: TextView
     private lateinit var ppgContainer: ViewGroup
     private lateinit var ppgGreenPlot: XYPlot
     private lateinit var ppgIrPlot: XYPlot
@@ -176,9 +160,6 @@ class MainActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks,
     private lateinit var analysisContainer: ViewGroup
     private lateinit var qrsPlot: XYPlot
     private lateinit var hrPlot: XYPlot
-    private lateinit var sectionsContainer: ViewGroup
-    private lateinit var sectionsList: RecyclerView
-    private lateinit var buttonAddSection: ViewGroup
 
 //    private lateinit var textWearStatus: TextView
 //    private lateinit var textWearHr: TextView
@@ -358,23 +339,10 @@ class MainActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks,
 
         // set UI vars
         textStatusContainerTitle = binding.statusContainerTitle
-
-        ppgGreenStatusContainer = binding.statusPpgGreenContainer
         textPpgGreenStatus = binding.statusPpgGreen
-        textPpgGreenDataCount = binding.statusPpgGreenDataCount
-
-        ppgIrStatusContainer = binding.statusPpgIrContainer
         textPpgIrStatus = binding.statusPpgIr
-        textPpgIrDataCount = binding.statusPpgIrDataCount
-
-        ppgRedStatusContainer = binding.statusPpgRedContainer
         textPpgRedStatus = binding.statusPpgRed
-        textPpgRedDataCount = binding.statusPpgRedDataCount
-
-        ecgStatusContainer = binding.statusEcgContainer
         textEcgStatus = binding.statusEcg
-        textEcgDataCount = binding.statusEcgDataCount
-
         ppgContainer = binding.ppgContainer
         ppgGreenPlot = binding.ppgGreenPlot
         ppgIrPlot = binding.ppgIrPlot
@@ -390,10 +358,6 @@ class MainActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks,
         analysisContainer = binding.analysisContainer
         qrsPlot = binding.qrsPlot
         hrPlot = binding.hrPlot
-
-        sectionsContainer = binding.sectioningContainer
-        sectionsList = binding.sectionListFrame.findViewById(R.id.section_list)
-        buttonAddSection = binding.buttonAddSection
 
 //        textWearStatus = binding.wearStatus
 //        textWearHr = binding.wearHr
@@ -416,24 +380,7 @@ class MainActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks,
 //            buttonView.visibility = View.GONE
 //        }
 
-        // setup recycler view
-        sectionsList.layoutManager = LinearLayoutManager(this)
-        sectionsAdapter = SectionsAdapter(this)
-        sectionsList.adapter = sectionsAdapter
-
-        // setup view model & live data
-        viewModel = ViewModelProviders.of(this).get(MainViewModel::class.java)
-        viewModel.getSectionsList().observe(this) {
-            sectionsAdapter.setSections(it)
-        }
-
-        // debug only
-        viewModel.initiateSectioning()
-
-        // TODO update values
         runOnUiThread {
-//            sectionsContainer.visibility = View.GONE
-
             textPpgGreenStatus.text = getString(R.string.ppg_green_status,
                 getString(R.string.status_default))
             textPpgIrStatus.text = getString(R.string.ppg_ir_status,
@@ -482,24 +429,19 @@ class MainActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks,
         client.connect()
 
         // set click listener
-        ppgGreenStatusContainer.setOnClickListener {
+        textPpgGreenStatus.setOnClickListener {
             togglePpgTracker(PpgType.PPG_GREEN)
         }
-        ppgIrStatusContainer.setOnClickListener {
+        textPpgIrStatus.setOnClickListener {
             togglePpgTracker(PpgType.PPG_IR)
         }
-        ppgRedStatusContainer.setOnClickListener {
+        textPpgRedStatus.setOnClickListener {
             togglePpgTracker(PpgType.PPG_RED)
         }
-        ecgStatusContainer.setOnClickListener {
+        textEcgStatus.setOnClickListener {
             if (!isPolarDeviceConnected) {
                 connectPolarDevice()
             }
-        }
-        buttonAddSection.setOnClickListener {
-            viewModel.addNewSection()
-            Log.d(TAG,"Add New Section!")
-            Log.d(TAG,"${viewModel.getSectionsList().value}")
         }
     }
 
@@ -557,10 +499,6 @@ class MainActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks,
                 )
                 menu.findItem(R.id.pause).title = "Start"
                 menu.findItem(R.id.save).isVisible = true
-//                // hide section container
-//                runOnUiThread {
-//                    sectionsContainer.visibility = View.GONE
-//                }
             } else {
                 // Turn recording on
                 // start foreground service
@@ -601,12 +539,6 @@ class MainActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks,
                 )
                 menu.findItem(R.id.pause).title = "Pause"
                 menu.findItem(R.id.save).isVisible = false
-                // re-initiate sectioning
-                viewModel.initiateSectioning()
-//                // show section container
-//                runOnUiThread {
-//                    sectionsContainer.visibility = View.VISIBLE
-//                }
             }
             return true
         } else if (id == R.id.save_all) {
@@ -666,82 +598,6 @@ class MainActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks,
             return true
         }
         return false
-    }
-
-    override fun onSectionClicked(section: Section) {
-        if (!isRecording) {
-            showSectionNameDialog(null, section)
-        }
-        else {
-            Toast.makeText(
-                this@MainActivity,
-                getString(R.string.cannot_change_section_name),
-                Toast.LENGTH_SHORT
-            ).show()
-        }
-    }
-
-    /**
-     * Show Section Name dialog input.
-     */
-    private fun showSectionNameDialog(view: View?, section: Section) {
-        val dialog = AlertDialog.Builder(
-            this,
-            R.style.InverseTheme
-        )
-        dialog.setTitle(R.string.section_name_dialog_title)
-
-        val viewInflated: View = LayoutInflater.from(applicationContext).inflate(
-            R.layout.section_name_dialog,
-            if (view == null) null else view.rootView as ViewGroup,
-            false
-        )
-
-        val input = viewInflated.findViewById<EditText>(R.id.section_name_input)
-        input.inputType = InputType.TYPE_CLASS_TEXT
-//        deviceId = sharedPreferences?.getString(PREF_DEVICE_ID, "").toString()
-//        input.setText(deviceId)
-        input.setText(section.name)
-        dialog.setView(viewInflated)
-
-        dialog.setPositiveButton(
-            R.string.ok
-        ) { _, _ ->
-            val newName =
-                if (input.text == null || input.text.isEmpty()) {
-                    "Section"
-                } else {
-                    input.text.toString()
-                }
-            val oldName: String = section.name
-            // mvvm architecture violation
-//            section.name = input.text.toString()
-            if (oldName != newName) {
-                viewModel.editSectionName(section, input.text.toString())
-                Log.d(
-                    TAG, "showSectionNameDialog: OK:  oldName="
-                            + oldName + " newName="
-                            + section.name
-                )
-            }
-            else {
-                Log.d(
-                    TAG,
-                    "showSectionNameDialog: OK:  No Changes  Name=${section.name}"
-                )
-            }
-
-        }
-        dialog.setNegativeButton(
-            R.string.cancel
-        ) { dialog1, _ ->
-            Log.d(
-                TAG,
-                "showSectionNameDialog: Cancel:  Name=${section.name}"
-            )
-            dialog1.cancel()
-        }
-        dialog.show()
     }
 
     private fun invalidatePpgState() {
