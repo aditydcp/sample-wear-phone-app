@@ -542,27 +542,27 @@ class MainActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks,
             }
             return true
         } else if (id == R.id.save_all) {
-            saveDataWithNote(SaveType.ALL)
+            saveDataWithName(SaveType.ALL)
             return true
         }
         else if (id == R.id.save_all_ppg_data) {
-            saveDataWithNote(SaveType.ALL_PPG)
+            saveDataWithName(SaveType.ALL_PPG)
             return true
         }
         else if (id == R.id.save_ecg_data) {
-            saveDataWithNote(SaveType.ECG_DATA)
+            saveDataWithName(SaveType.ECG_DATA)
             return true
         }
         else if (id == R.id.save_ppg_green_data) {
-            saveDataWithNote(SaveType.PPG_GREEN_DATA)
+            saveDataWithName(SaveType.PPG_GREEN_DATA)
             return true
         }
         else if (id == R.id.save_ppg_ir_data) {
-            saveDataWithNote(SaveType.PPG_IR_DATA)
+            saveDataWithName(SaveType.PPG_IR_DATA)
             return true
         }
         else if (id == R.id.save_ppg_red_data) {
-            saveDataWithNote(SaveType.PPG_RED_DATA)
+            saveDataWithName(SaveType.PPG_RED_DATA)
             return true
         }
 //        else if (id == R.id.save_plot) {
@@ -1390,12 +1390,11 @@ class MainActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks,
 
     /**
      * Commence saving the current samples as a file.
-     * Prompts for a note, then calls
-     * the appropriate save method.
-     *
+     * Prompts for a name to used as the file name,
+     * then calls the appropriate save method.
      * @param saveType The SaveType.
      */
-    private fun saveDataWithNote(saveType: SaveType) {
+    private fun saveDataWithName(saveType: SaveType) {
         val msg: String
         val state = Environment.getExternalStorageState()
         if (Environment.MEDIA_MOUNTED != state) {
@@ -1404,7 +1403,7 @@ class MainActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks,
             AppUtils.errMsg(this, msg)
             return
         }
-        // Get a note
+        // Get file name
         val dialog = AlertDialog.Builder(
             this,
             R.style.InverseTheme
@@ -1540,11 +1539,11 @@ class MainActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks,
     }
 
     /**
-     * Finishes the saveData after getting the note.
+     * Finishes the saveData after getting the name.
      * Only saves the ECG recording data.
-     * @param note The note.
+     * @param filename The name.
      */
-    private fun saveEcgData(note: String) {
+    private fun saveEcgData(filename: String) {
         val prefs = getPreferences(MODE_PRIVATE)
         val treeUriStr = prefs.getString(PREF_TREE_URI, null)
         if (treeUriStr == null) {
@@ -1555,7 +1554,7 @@ class MainActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks,
         var msg: String
         val format = "yyyy-MM-dd_HH-mm"
         val df = SimpleDateFormat(format, Locale.US)
-        val fileName = "ECG-" + df.format(stopTime!!) + ".csv"
+        val fileName = filename + "_ECG_" + df.format(stopTime!!) + ".csv"
         try {
             val treeUri = Uri.parse(treeUriStr)
             val treeDocumentId = DocumentsContract.getTreeDocumentId(treeUri)
@@ -1610,7 +1609,7 @@ class MainActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks,
                     out.write("deviceid=$deviceId\n")
                     out.write("battery=$deviceBatteryLevel\n")
                     out.write("firmware=$deviceFirmware\n")
-                    out.write("note=$note\n")
+//                    out.write("note=$filename\n")
 
                     // Write samples
                     for (i in 0 until sampleCount) {
@@ -1640,13 +1639,13 @@ class MainActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks,
     }
 
     /**
-     * Finishes the saveData after getting the note.
+     * Finishes the saveData after getting the name.
      * Only saves the PPG recording data that corresponds
      * to the given PPG Plotter.
-     * @param note The note.
+     * @param filename The name.
      * @param ppgPlotter A PPG Plotter.
      */
-    private fun savePpgData(note: String, ppgPlotter: PpgPlotter) {
+    private fun savePpgData(filename: String, ppgPlotter: PpgPlotter) {
         val prefs = getPreferences(MODE_PRIVATE)
         val treeUriStr = prefs.getString(PREF_TREE_URI, null)
         if (treeUriStr == null) {
@@ -1663,7 +1662,7 @@ class MainActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks,
             PpgType.PPG_IR -> "PPG IR"
             PpgType.PPG_RED -> "PPG Red"
         }
-        val fileName = ppgTypeString + "-" + df.format(stopTime!!) + ".csv"
+        val fileName = filename + "-" + ppgTypeString + "-" + df.format(stopTime!!) + ".csv"
         try {
             val treeUri = Uri.parse(treeUriStr)
             val treeDocumentId = DocumentsContract.getTreeDocumentId(treeUri)
@@ -1714,7 +1713,7 @@ class MainActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks,
                         """.trimIndent()
                     )
                     out.write("stopcalculatedhr=$calculatedStopHr\n")
-                    out.write("note=$note\n")
+//                    out.write("note=$filename\n")
 
                     // Write samples
                     for (i in 0 until sampleCount) {
