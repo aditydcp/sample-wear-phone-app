@@ -11,6 +11,7 @@ open class Listener {
     private lateinit var handler: Handler
     private lateinit var healthTracker: HealthTracker
     private var isHandlerRunning = false
+    private var isTracking = false
 
     private lateinit var trackerEventListener: TrackerEventListener
 
@@ -39,6 +40,7 @@ open class Listener {
                 healthTracker.setEventListener(trackerEventListener)
                 setHandlerRunning(true)
             }
+            isTracking = true
         }
     }
 
@@ -49,8 +51,13 @@ open class Listener {
         if (isHandlerRunning) {
             healthTracker.unsetEventListener()
             setHandlerRunning(false)
+            isTracking = false
 
             handler.removeCallbacksAndMessages(null)
         }
+    }
+
+    fun isTracking(): Boolean {
+        return isTracking
     }
 }

@@ -21,6 +21,7 @@
 <!--    <string name="message_on_button_click">App button clicked</string>-->
 
     <string name="status_default">No Status</string>
+    <string name="status_connecting">Connecting</string>
     <string name="status_connected">Connected</string>
     <string name="status_disconnected">Disconnected</string>
     <string name="status_running">Running</string>
@@ -44,6 +45,9 @@
 
     <string name="status_container_title">Status</string>
     <string name="ecg_plot_title">25 mm/s, 10 mm/mV</string>
+    <string name="ppg_green_plot_title">PPG Green</string>
+    <string name="ppg_ir_plot_title">PPG IR</string>
+    <string name="ppg_red_plot_title">PPG Red</string>
 
     <string name="device_id_label">Device ID</string>
 
@@ -61,13 +65,18 @@
     <string name="save_data_item">Save Data</string>
     <string name="save_plot_item">Save Plot</string>
     <string name="save_both_item">Save Data &amp; Plot</string>
-    <string name="save_all_item">Save All</string>
+    <string name="save_all_item">Save All Data</string>
+    <string name="save_ecg_data_item">Save ECG Data</string>
+    <string name="save_ppg_green_data_item">Save PPG Green Data</string>
+    <string name="save_ppg_ir_data_item">Save PPG IR Data</string>
+    <string name="save_ppg_red_data_item">Save PPG Red Data</string>
+    <string name="save_all_ppg_data_item">Save All PPG Data</string>
     <string name="save_device_data_item">Save Device HR Data</string>
     <string name="save_qrs_data_item">Save Calculated HR Data</string>
     <string name="choose_data_directory_item">Set Data Directory</string>
     <string name="info_item">Info</string>
     <string name="redo_setup_plots_item">Redo Plot Setup</string>
-    <string name="restart_api_item">Restart Polar API</string>
+    <string name="restart_polar_api_item">Restart Polar API</string>
     <string name="device_id_item">Set Device ID</string>
     <string name="settings_item">Settings</string>
     <string name="help_item">Help</string>

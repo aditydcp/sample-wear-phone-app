@@ -8,12 +8,12 @@ import com.example.samplewearmobileapp.Constants.MICRO_TO_MILLI_VOLT
 import com.example.samplewearmobileapp.Constants.N_DOMAIN_LARGE_BOXES
 import com.example.samplewearmobileapp.Constants.N_ECG_PLOT_POINTS
 import com.example.samplewearmobileapp.Constants.N_LARGE
-import com.example.samplewearmobileapp.Constants.N_TOTAL_VISIBLE_POINTS
+import com.example.samplewearmobileapp.Constants.N_TOTAL_VISIBLE_ECG_POINTS
 import com.example.samplewearmobileapp.utils.AppUtils
 import com.polar.sdk.api.model.PolarEcgData
 import java.util.*
 
-class EcgPlotter {
+class EcgPlotter: PlotterListener {
     private lateinit var parentActivity: MainActivity
     private var plot: XYPlot
     private lateinit var formatter: XYSeriesFormatter<XYRegionFormatter>
@@ -151,7 +151,7 @@ class EcgPlotter {
             // Update the plot
             update()
         } catch (ex: Exception) {
-            val msg = """Error in EcgPlotter.setupPLot:
+            val msg = """Error in EcgPlotter.setupPlot:
                 |isLaidOut=${plot.isLaidOut}
                 |width=${plot.width}
                 |height=${plot.height}""".trimMargin()
@@ -172,7 +172,7 @@ class EcgPlotter {
         // Add the new values, removing old values if needed
         for (ecgDataSample in polarEcgData.samples) {
             // remove old values only on visible series
-            if (seriesVisible.size() >= N_TOTAL_VISIBLE_POINTS) {
+            if (seriesVisible.size() >= N_TOTAL_VISIBLE_ECG_POINTS) {
                 seriesVisible.removeFirst()
             }
             // Convert from  μV to mV and add to series
@@ -196,7 +196,7 @@ class EcgPlotter {
     /**
      * Updates the plot. Runs on the UI thread.
      */
-    private fun update() {
+    override fun update() {
         parentActivity.runOnUiThread { plot.redraw() }
     }
 
