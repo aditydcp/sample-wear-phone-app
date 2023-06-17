@@ -1,43 +1,40 @@
 package com.example.samplewearmobileapp
 
-import android.app.ActivityManager
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
 import android.app.Service
 import android.content.Context
 import android.content.Intent
-import android.os.Build
+import android.graphics.Color
 import android.os.IBinder
 import androidx.core.app.NotificationCompat
 import androidx.core.content.ContextCompat
-import androidx.core.content.ContextCompat.getSystemService
-import androidx.core.content.ContextCompat.startForegroundService
 
-class MainService : Service() {
-    private val CHANNEL_ID = "MainService"
+class MobileService : Service() {
+    private val CHANNEL_ID = "MobileService"
     private var isServiceRunning = false
 
     companion object {
         fun startService(context: Context, message: String) {
-            val intent = Intent(context, MainService::class.java)
+            val intent = Intent(context, MobileService::class.java)
             intent.putExtra("message", message)
-            startForegroundService(context, intent)
+            ContextCompat.startForegroundService(context, intent)
 
-            val service = getSystemService(context, MainService::class.java)
+            val service = ContextCompat.getSystemService(context, MobileService::class.java)
             service?.isServiceRunning = true
         }
 
         fun stopService(context: Context) {
-            val service = getSystemService(context, MainService::class.java)
+            val service = ContextCompat.getSystemService(context, MobileService::class.java)
             service?.isServiceRunning = false
 
-            val intent = Intent(context, MainService::class.java)
+            val intent = Intent(context, MobileService::class.java)
             context.stopService(intent)
         }
 
         fun isServiceRunning(context: Context) : Boolean {
-            val service = getSystemService(context, MainService::class.java)
+            val service = ContextCompat.getSystemService(context, MobileService::class.java)
             return service?.isServiceRunning() ?: false
         }
     }
@@ -45,7 +42,6 @@ class MainService : Service() {
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         val message = intent?.getStringExtra("message")
         createNotificationChannel()
-//        val notificationIntent = Intent(this, MainActivity::class.java)
 
         val pendingIntent: PendingIntent =
             Intent(this, MainActivity::class.java).let { notificationIntent ->
@@ -54,10 +50,11 @@ class MainService : Service() {
             }
 
         val notification = NotificationCompat.Builder(this, CHANNEL_ID)
-            .setContentTitle("Main Foreground Service Sample App")
-            .setContentText("Tracking...")
             .setSmallIcon(R.drawable.ic_notification)
+            .setContentTitle("Main Foreground Service Sample App")
+            .setContentText("Recording...")
             .setContentIntent(pendingIntent)
+            .setOngoing(true)
             .build()
 
         startForeground(1, notification)
@@ -65,15 +62,18 @@ class MainService : Service() {
         return START_STICKY
     }
 
-    override fun onBind(p0: Intent?): IBinder? {
+    override fun onBind(intent: Intent?): IBinder? {
         return null
     }
 
     private fun createNotificationChannel() {
         val serviceChannel = NotificationChannel(
-            CHANNEL_ID, "Main Foreground Service Channel",
+            CHANNEL_ID, "Mobile Foreground Service Channel",
             NotificationManager.IMPORTANCE_HIGH
         )
+        serviceChannel.description = "Description"
+        serviceChannel.enableLights(true)
+        serviceChannel.lightColor = Color.BLUE
 
         val manager = getSystemService(NotificationManager::class.java)
         manager?.createNotificationChannel(serviceChannel)

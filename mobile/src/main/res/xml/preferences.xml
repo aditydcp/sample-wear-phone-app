@@ -15,6 +15,30 @@
             app:dialogMessage="@string/patient_name_summary"
             app:useSimpleSummaryProvider="true" />
         <SwitchPreferenceCompat
+            app:defaultValue="true"
+            app:key="ppgGreenVisibility"
+            app:summaryOn="@string/ppg_green_visibility_summary_on"
+            app:summaryOff="@string/ppg_green_visibility_summary_off"
+            app:title="@string/ppg_green_visibility_title" />
+        <SwitchPreferenceCompat
+            app:defaultValue="true"
+            app:key="ppgIrVisibility"
+            app:summaryOn="@string/ppg_ir_visibility_summary_on"
+            app:summaryOff="@string/ppg_ir_visibility_summary_off"
+            app:title="@string/ppg_ir_visibility_title" />
+        <SwitchPreferenceCompat
+            app:defaultValue="true"
+            app:key="ppgRedVisibility"
+            app:summaryOn="@string/ppg_red_visibility_summary_on"
+            app:summaryOff="@string/ppg_red_visibility_summary_off"
+            app:title="@string/ppg_red_visibility_title" />
+        <SwitchPreferenceCompat
+            app:defaultValue="true"
+            app:key="ecgVisibility"
+            app:summaryOn="@string/ecg_visibility_summary_on"
+            app:summaryOff="@string/ecg_visibility_summary_off"
+            app:title="@string/ecg_visibility_title" />
+        <SwitchPreferenceCompat
             app:defaultValue="false"
             app:key="analysisVisibility"
             app:summaryOn="@string/analysis_visibility_summary_on"

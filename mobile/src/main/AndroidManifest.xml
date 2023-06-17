@@ -5,6 +5,8 @@
 
     <uses-feature android:name="android.hardware.bluetooth" android:required="true"/>
 
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE"/>
+
     <!-- Request legacy Bluetooth permissions on older devices. -->
     <uses-permission android:name="android.permission.BLUETOOTH"
         android:maxSdkVersion="30" />
