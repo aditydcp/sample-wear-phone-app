@@ -104,6 +104,7 @@
 
     <string name="device_id_dialog_title">Set Device ID</string>
     <string name="note_dialog_title">Enter a Note</string>
+    <string name="filename_dialog_title">Enter File Name</string>
 
     <string name="info_string">%1$s\nBattery level: %2$s\nFirmware: %3$s\nID: %4$s\n</string>
     <string name="elapsed_time">%1$.1f sec"</string>

@@ -145,9 +145,14 @@ object Constants {
     const val MICRO_TO_MILLI_VOLT = .001
 
     /**
-     * Convert millisecond to seconds.
+     * Convert milliseconds to seconds.
      */
     const val MS_TO_SEC = .001
+
+    /**
+     * Convert nanoseconds to milliseconds.
+     */
+    const val NANO_TO_MICRO_SEC = .000001
 
     /**
      * Filter coefficients for Butterworth fs=130 low_cutoff=5 high_cutoff=20

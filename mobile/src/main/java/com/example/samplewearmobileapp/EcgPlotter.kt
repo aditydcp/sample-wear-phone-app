@@ -5,6 +5,7 @@ import android.util.Log
 import com.androidplot.util.PixelUtils
 import com.androidplot.xy.*
 import com.example.samplewearmobileapp.Constants.MICRO_TO_MILLI_VOLT
+import com.example.samplewearmobileapp.Constants.NANO_TO_MICRO_SEC
 import com.example.samplewearmobileapp.Constants.N_DOMAIN_LARGE_BOXES
 import com.example.samplewearmobileapp.Constants.N_ECG_PLOT_POINTS
 import com.example.samplewearmobileapp.Constants.N_LARGE
@@ -179,7 +180,9 @@ class EcgPlotter: PlotterListener {
             seriesVisible.addLast(dataIndex, MICRO_TO_MILLI_VOLT * ecgDataSample.voltage)
             // Add the value to the all series as well
             seriesAll.addLast(dataIndex, MICRO_TO_MILLI_VOLT * ecgDataSample.voltage)
-            seriesTimestamp.addLast(dataIndex, ecgDataSample.timeStamp)
+            seriesTimestamp.addLast(dataIndex,
+                (NANO_TO_MICRO_SEC * ecgDataSample.timeStamp).toLong().adjustEpoch()
+            )
             dataIndex++
         }
         // Reset the domain boundaries
@@ -316,5 +319,9 @@ class EcgPlotter: PlotterListener {
 
     companion object {
         private const val TAG = "EcgPlotter"
+
+        private fun Long.adjustEpoch(): Long {
+            return this + Date(2000 - 1900, 0, 1).time
+        }
     }
 }
