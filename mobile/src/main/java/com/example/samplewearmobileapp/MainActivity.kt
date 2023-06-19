@@ -1408,7 +1408,7 @@ class MainActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks,
             this,
             R.style.InverseTheme
         )
-        dialog.setTitle(R.string.note_dialog_title)
+        dialog.setTitle(R.string.filename_dialog_title)
         val viewInflated: View = LayoutInflater.from(applicationContext)
             .inflate(R.layout.device_id_dialog, null, false)
         val input = viewInflated.findViewById<EditText>(R.id.input)
@@ -1587,7 +1587,7 @@ class MainActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks,
                         ("application=" + "SamplingApp Version: "
                                 + AppUtils.getVersion(this)) + "\n"
                     )
-                    out.write("datatype=ECG")
+                    out.write("datatype=ECG\n")
                     out.write(
                         """
                         stoptime=${stopTime.toString()}
