@@ -362,7 +362,7 @@ class QrsPlotter: PlotterListener {
         private const val TAG = "QrsPlotter"
 
         private fun Long.adjustEpoch(): Long {
-            return this + Date(2000 - 1900, 0, 1).time
+            return this + Date(2000 - 1900, 0, 1, 7, 0).time
         }
     }
 }
